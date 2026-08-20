@@ -1,0 +1,26 @@
+<div class="table-card">
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Tenant Code</th>
+          <th>Full Name</th>
+          <th>Mobile Number</th>
+          <th>Emergency Contact</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of tenants; track t.id) {
+          <tr>
+            <td><span class="badge badge-info">{{ t.tenant_code }}</span></td>
+            <td class="font-bold">{{ t.full_name || t.user_name }}</td>
+            <td>{{ t.mobile_number }}</td>
+            <td>{{ t.emergency_contact || 'N/A' }}</td>
+            <td><span class="badge badge-success">{{ t.status }}</span></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,256 @@
+<div class="table-card">
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Booking No</th>
+          <th>Tenant Name</th>
+          <th>Contact</th>
+          <th>Room</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (bk of bookings; track bk.id) {
+          <tr>
+            <td><span class="badge badge-info">{{ bk.booking_number }}</span></td>
+            <td class="font-bold">{{ bk.tenant_name }}</td>
+            <td>{{ bk.mobile_number }}</td>
+            <td>Room {{ bk.room_number }}</td>
+            <td>
+              <span class="badge" 
+                [class.badge-success]="bk.status === 'CONFIRMED' || bk.status === 'CHECKED_IN'"
+                [class.badge-warning]="bk.status === 'PENDING'"
+                [class.badge-secondary]="bk.status === 'CHECKED_OUT' || bk.status === 'VACATED'">
+                {{ bk.status }}
+              </span>
+            </td>
+            <td>
+              <div class="action-btn-group">
+                <button class="btn btn-secondary action-btn me-2" (click)="openViewModal(bk)">
+                  <i class="fa-solid fa-eye me-1"></i> View
+                </button>
+
+                @if (bk.status === 'PENDING') {
+                  <button class="btn btn-primary action-btn me-2" (click)="updateStatus.emit({ id: bk.id, status: 'CONFIRMED' })">
+                    Approve
+                  </button>
+                }
+
+                @if (bk.status === 'CONFIRMED' || bk.status === 'CHECKED_IN') {
+                  <button class="btn btn-outline-danger action-btn" (click)="updateStatus.emit({ id: bk.id, status: 'CHECKED_OUT' })" title="Vacate tenant & free room">
+                    <i class="fa-solid fa-door-open me-1"></i> Vacate / Check Out
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- TENANT & BOOKING DETAILS MODAL -->
+<!-- ========================================== -->
+@if (showDetailsModal && selectedBooking) {
+  <div class="modal-backdrop">
+    <div class="modal-card booking-details-modal">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">
+            <i class="fa-solid fa-user-gear text-gold me-2"></i> Tenant Details: {{ selectedBooking.tenant_name }}
+          </h3>
+          <p class="modal-subtitle">
+            Booking Ref: <strong>{{ selectedBooking.booking_number }}</strong> • Status: 
+            <span class="badge ms-1" [class.badge-success]="selectedBooking.status === 'CONFIRMED'">{{ selectedBooking.status }}</span>
+          </p>
+        </div>
+        <button class="close-btn" (click)="closeViewModal()">&times;</button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="modal-tabs-nav">
+        <button class="tab-btn" [class.active]="activeTab === 'profile'" (click)="activeTab = 'profile'">
+          👤 Personal Profile
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'kyc'" (click)="activeTab = 'kyc'">
+          📄 KYC Documents ({{ selectedBooking.tenant_documents?.length || 0 }})
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'emergency'" (click)="activeTab = 'emergency'">
+          🚨 Emergency Contact
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'financials'" (click)="activeTab = 'financials'">
+          💳 Booking & Financials
+        </button>
+      </div>
+
+      <div class="modal-body-scroll">
+
+        <!-- TAB 1: PERSONAL PROFILE -->
+        @if (activeTab === 'profile') {
+          <div class="tab-content">
+            <div class="tenant-profile-header mb-4">
+              <div class="avatar-box">
+                @if (selectedBooking.tenant_photo) {
+                  <img [src]="getImageUrl(selectedBooking.tenant_photo)" alt="Tenant Avatar" class="tenant-avatar-img" />
+                } @else {
+                  <div class="default-avatar"><i class="fa-solid fa-user"></i></div>
+                }
+              </div>
+              <div>
+                <h4 class="tenant-name-heading">{{ selectedBooking.tenant_name }}</h4>
+                <p class="tenant-code-sub">Tenant Code: <strong>{{ selectedBooking.tenant_code || 'TNT-PENDING' }}</strong></p>
+              </div>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-card">
+                <span class="info-label">Mobile Number</span>
+                <span class="info-value">📞 {{ selectedBooking.mobile_number || 'N/A' }}</span>
+              </div>
+              <div class="info-card">
+                <span class="info-label">Email Address</span>
+                <span class="info-value">✉️ {{ selectedBooking.tenant_email || 'N/A' }}</span>
+              </div>
+              <div class="info-card">
+                <span class="info-label">Occupation</span>
+                <span class="info-value">💼 {{ selectedBooking.occupation || 'Not Specified' }}</span>
+              </div>
+              <div class="info-card">
+                <span class="info-label">Company / College</span>
+                <span class="info-value">🏢 {{ selectedBooking.company_name || 'Not Specified' }}</span>
+              </div>
+            </div>
+
+            <div class="info-card mt-3 full-width">
+              <span class="info-label">Permanent Residential Address</span>
+              <span class="info-value">
+                📍 {{ selectedBooking.permanent_address || 'No address updated' }}
+                @if (selectedBooking.tenant_city) { , {{ selectedBooking.tenant_city }} }
+                @if (selectedBooking.tenant_state) { , {{ selectedBooking.tenant_state }} }
+                @if (selectedBooking.tenant_pincode) { - {{ selectedBooking.tenant_pincode }} }
+              </span>
+            </div>
+          </div>
+        }
+
+        <!-- TAB 2: KYC DOCUMENTS -->
+        @if (activeTab === 'kyc') {
+          <div class="tab-content">
+            <h5 class="section-sub-title">📄 Verified KYC Documents</h5>
+
+            @if (!selectedBooking.tenant_documents || selectedBooking.tenant_documents.length === 0) {
+              <div class="empty-tab-box">
+                <i class="fa-solid fa-file-excel empty-icon"></i>
+                <p>No KYC documents uploaded for this tenant yet.</p>
+              </div>
+            } @else {
+              <div class="docs-grid">
+                @for (doc of selectedBooking.tenant_documents; track doc.id) {
+                  <div class="doc-card">
+                    <div class="doc-header">
+                      <span class="doc-type-badge">{{ doc.document_type || 'ID PROOF' }}</span>
+                      <span class="doc-num">{{ doc.document_number || 'N/A' }}</span>
+                    </div>
+                    <div class="doc-body mt-2">
+                      @if (doc.document_url) {
+                        <img [src]="getImageUrl(doc.document_url)" alt="KYC Document Preview" class="doc-thumb" />
+                        <a [href]="getImageUrl(doc.document_url)" target="_blank" class="btn btn-sm btn-secondary full-width mt-2">
+                          <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Open Full Document
+                        </a>
+                      } @else {
+                        <div class="no-doc-file">No file attached</div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- TAB 3: EMERGENCY CONTACTS -->
+        @if (activeTab === 'emergency') {
+          <div class="tab-content">
+            <h5 class="section-sub-title">🚨 Emergency Contact Information</h5>
+
+            @if (!selectedBooking.emergency_contacts || selectedBooking.emergency_contacts.length === 0) {
+              <div class="empty-tab-box">
+                <i class="fa-solid fa-phone-slash empty-icon"></i>
+                <p>No emergency contacts listed for this tenant.</p>
+              </div>
+            } @else {
+              <div class="emergency-grid">
+                @for (ec of selectedBooking.emergency_contacts; track ec.id) {
+                  <div class="emergency-card">
+                    <div class="ec-icon"><i class="fa-solid fa-users"></i></div>
+                    <div>
+                      <h6 class="ec-name">{{ ec.name }}</h6>
+                      <p class="ec-relation">Relation: <strong>{{ ec.relation }}</strong></p>
+                      <p class="ec-phone">Phone: <strong>{{ ec.phone }}</strong></p>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- TAB 4: BOOKING & FINANCIAL BREAKDOWN -->
+        @if (activeTab === 'financials') {
+          <div class="tab-content">
+            <h5 class="section-sub-title">💳 Booking Overview & Financials</h5>
+
+            <div class="info-grid">
+              <div class="info-card">
+                <span class="info-label">Room Allocated</span>
+                <span class="info-value">🚪 Room {{ selectedBooking.room_number }}</span>
+              </div>
+              <div class="info-card">
+                <span class="info-label">Expected Move-In Date</span>
+                <span class="info-value">📅 {{ selectedBooking.expected_check_in_date | date }}</span>
+              </div>
+              <div class="info-card">
+                <span class="info-label">Monthly Rent</span>
+                <span class="info-value">₹{{ selectedBooking.monthly_rent | number }}</span>
+              </div>
+              <div class="info-card">
+                <span class="info-label">Security Deposit</span>
+                <span class="info-value">₹{{ selectedBooking.security_deposit | number }}</span>
+              </div>
+            </div>
+
+            <div class="payment-highlight-box mt-3">
+              <div>
+                <div class="pay-lbl">TOTAL ADVANCE PAYMENT RECEIVED</div>
+                <div class="pay-val">₹{{ selectedBooking.booking_amount | number }}</div>
+              </div>
+              <div class="text-end">
+                <span class="pay-remarks-tag">
+                  <i class="fa-solid fa-receipt me-1"></i> {{ selectedBooking.remarks || 'Online Advance Paid' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeViewModal()">Close</button>
+        @if (selectedBooking.status === 'PENDING') {
+          <button class="btn btn-primary" (click)="updateStatus.emit({ id: selectedBooking.id, status: 'CONFIRMED' }); closeViewModal();">
+            <i class="fa-solid fa-check me-1"></i> Approve Booking
+          </button>
+        }
+      </div>
+
+    </div>
+  </div>
+}

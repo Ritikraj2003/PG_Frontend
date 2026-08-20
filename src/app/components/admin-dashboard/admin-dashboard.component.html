@@ -1,0 +1,674 @@
+<div class="admin-layout">
+  <!-- Left Sidebar Wrapper -->
+  <div class="admin-sidebar-wrap">
+    <aside class="dashboard-sidebar">
+      <!-- Brand Header -->
+      <div class="sidebar-brand">
+        <div class="brand-icon-wrap">
+          <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <div>
+          <div class="brand-name">StayPulse</div>
+          <div class="brand-sub">Super Admin</div>
+        </div>
+      </div>
+
+      <!-- Section: Overview -->
+      <div class="sidebar-section-label">Overview</div>
+      <nav class="sidebar-nav sidebar-nav-top">
+        <button class="nav-btn" [class.active]="activeTab === 'overview'" (click)="setActiveTab('overview')">
+          <i class="fa-solid fa-chart-pie nav-icon"></i>
+          <span class="nav-text">Dashboard</span>
+        </button>
+      </nav>
+
+      <!-- Section: Management -->
+      <div class="sidebar-section-label">Management</div>
+      <nav class="sidebar-nav">
+        <button class="nav-btn" [class.active]="activeTab === 'owners'" (click)="setActiveTab('owners')">
+          <i class="fa-solid fa-building-user nav-icon"></i>
+          <span class="nav-text">Property Owners</span>
+          <span class="tab-badge">{{ owners.length }}</span>
+        </button>
+
+        <button class="nav-btn" [class.active]="activeTab === 'properties'" (click)="setActiveTab('properties')">
+          <i class="fa-solid fa-city nav-icon"></i>
+          <span class="nav-text">Properties</span>
+          <span class="tab-badge">{{ reports?.totalProperties || properties.length || 0 }}</span>
+        </button>
+
+        <button class="nav-btn" [class.active]="activeTab === 'branches'" (click)="setActiveTab('branches')">
+          <i class="fa-solid fa-code-branch nav-icon"></i>
+          <span class="nav-text">Branches & Outlets</span>
+          <span class="tab-badge">{{ reports?.totalBranches || branches.length || 0 }}</span>
+        </button>
+
+        <button class="nav-btn" [class.active]="activeTab === 'reports'" (click)="setActiveTab('reports')">
+          <i class="fa-solid fa-chart-line nav-icon"></i>
+          <span class="nav-text">System Reports</span>
+        </button>
+      </nav>
+
+      <!-- Footer / Logout -->
+      <div class="sidebar-footer">
+        <button class="logout-btn" (click)="onLogout()">
+          <i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          <span class="nav-text">Logout</span>
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Right Content Area -->
+  <div class="admin-content">
+    <!-- Top Bar -->
+    <header class="admin-topbar">
+      <div class="topbar-title">
+        <i class="fa-solid fa-user-shield me-2 text-primary"></i> Super Admin Control Center
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm shadow-sm" (click)="openCreateOwnerModal()">
+          <i class="fa-solid fa-plus me-1"></i> New Owner
+        </button>
+      </div>
+    </header>
+
+    <!-- Scrollable Page Area -->
+    <div class="admin-page">
+
+    <!-- Metrics Grid -->
+    <div class="grid-4 metrics-grid">
+      <div class="glass-card metric-card">
+        <div class="metric-label">TOTAL OWNERS</div>
+        <div class="metric-value color-purple">{{ reports?.totalOwners || owners.length || 0 }}</div>
+      </div>
+      <div class="glass-card metric-card">
+        <div class="metric-label">PROPERTIES</div>
+        <div class="metric-value color-pink">{{ reports?.totalProperties || properties.length || 0 }}</div>
+      </div>
+      <div class="glass-card metric-card">
+        <div class="metric-label">BRANCHES</div>
+        <div class="metric-value color-blue">{{ reports?.totalBranches || branches.length || 0 }}</div>
+      </div>
+      <div class="glass-card metric-card">
+        <div class="metric-label">ACTIVE TENANTS</div>
+        <div class="metric-value color-green">{{ reports?.totalTenants || 0 }}</div>
+      </div>
+    </div>
+
+    <!-- TAB 1: OVERVIEW -->
+    @if (activeTab === 'overview') {
+      <div class="glass-card table-card mb-4">
+        <div class="table-header-row mb-3">
+          <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left me-2"></i> Recent Property Owners Summary</h3>
+          <button class="btn btn-secondary btn-sm" (click)="setActiveTab('owners')">View All Owners</button>
+        </div>
+        <div class="table-container">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Business Name</th>
+                <th>Owner Name</th>
+                <th>Contact</th>
+                <th>City</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (o of owners.slice(0, 5); track o.id) {
+              <tr>
+                <td><span class="property-badge">{{ o.owner_code }}</span></td>
+                <td class="font-bold">{{ o.business_name }}</td>
+                <td>{{ o.full_name }}</td>
+                <td>{{ o.contact_number }}</td>
+                <td>{{ o.city }}</td>
+                <td>
+                  <div class="table-actions">
+                    <button class="action-btn btn-view" (click)="viewOwnerDetails(o)" title="View Details">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button class="action-btn btn-edit" (click)="openEditOwnerModal(o)" title="Edit Owner">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 2: PROPERTY OWNERS -->
+    @if (activeTab === 'owners') {
+      <div class="glass-card table-card">
+        <div class="table-header-row mb-3">
+          <h3 class="card-title">Property Owners List</h3>
+          <button class="btn btn-primary btn-sm" (click)="openCreateOwnerModal()">
+            <i class="fa-solid fa-plus me-1"></i> Register Owner
+          </button>
+        </div>
+        <div class="table-container">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Business Name</th>
+                <th>Owner Name</th>
+                <th>Contact</th>
+                <th>City</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (o of owners; track o.id) {
+              <tr>
+                <td><span class="property-badge">{{ o.owner_code }}</span></td>
+                <td class="font-bold">{{ o.business_name }}</td>
+                <td>{{ o.full_name }}</td>
+                <td>{{ o.contact_number }}</td>
+                <td>{{ o.city }}</td>
+                <td>
+                  <div class="table-actions">
+                    <button class="action-btn btn-view" (click)="viewOwnerDetails(o)" title="View Details">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button class="action-btn btn-edit" (click)="openEditOwnerModal(o)" title="Edit Owner">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="action-btn btn-branch" (click)="addBranchForOwner(o)" title="Add Branch">
+                      <i class="fa-solid fa-code-branch"></i>
+                    </button>
+                    <button class="action-btn btn-delete" (click)="deleteOwner(o)" title="Delete Owner">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 3: PROPERTIES -->
+    @if (activeTab === 'properties') {
+      <div class="glass-card table-card">
+        <div class="table-header-row mb-3">
+          <h3 class="card-title"><i class="fa-solid fa-city me-2"></i> Registered Properties & Brands</h3>
+        </div>
+        <div class="table-container">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Property Name</th>
+                <th>Category</th>
+                <th>Owner Name</th>
+                <th>City</th>
+                <th>Contact</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (o of owners; track o.id) {
+              <tr>
+                <td class="font-bold text-primary">
+                  <i class="fa-solid fa-building me-2 color-purple"></i>
+                  {{ o.business_name || o.property_name || 'PG Property' }}
+                </td>
+                <td><span class="badge badge-info">{{ o.property_type || 'PG' }}</span></td>
+                <td>{{ o.full_name }}</td>
+                <td>{{ o.city }}</td>
+                <td>{{ o.contact_number }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 4: BRANCHES & OUTLETS -->
+    @if (activeTab === 'branches') {
+      <div class="glass-card table-card">
+        <div class="table-header-row mb-3">
+          <h3 class="card-title"><i class="fa-solid fa-code-branch me-2"></i> All Branches & Outlets</h3>
+        </div>
+        <div class="table-container">
+          @if (branches && branches.length > 0) {
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Branch Name</th>
+                  <th>Address</th>
+                  <th>City</th>
+                  <th>Contact</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (b of branches; track b.id) {
+                <tr>
+                  <td class="font-bold"><i class="fa-solid fa-code-branch me-2 text-primary"></i>{{ b.branch_name }}</td>
+                  <td>{{ b.address }}</td>
+                  <td>{{ b.city }}</td>
+                  <td>{{ b.contact_number || 'N/A' }}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="action-btn btn-edit" (click)="openEditBranchModal(b)" title="Edit Branch">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="action-btn btn-delete" (click)="deleteBranch(b)" title="Delete Branch">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <div class="p-4 text-center text-muted">
+              <p>No active branches found across registered properties.</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- TAB 5: SYSTEM REPORTS -->
+    @if (activeTab === 'reports') {
+      <div class="grid-3 mb-4">
+        <div class="glass-card metric-card">
+          <div class="metric-label">REGISTERED OWNERS</div>
+          <div class="metric-value color-purple">{{ reports?.totalOwners || owners.length || 0 }}</div>
+          <p class="text-muted mt-2">Active SaaS Property Owners</p>
+        </div>
+        <div class="glass-card metric-card">
+          <div class="metric-label">TOTAL PG PROPERTIES</div>
+          <div class="metric-value color-pink">{{ reports?.totalProperties || properties.length || 0 }}</div>
+          <p class="text-muted mt-2">PG & Rental Properties</p>
+        </div>
+        <div class="glass-card metric-card">
+          <div class="metric-label">ACTIVE OUTLETS / BRANCHES</div>
+          <div class="metric-value color-blue">{{ reports?.totalBranches || branches.length || 0 }}</div>
+          <p class="text-muted mt-2">Operating Locations</p>
+        </div>
+      </div>
+    }
+    </div> <!-- end admin-page -->
+  </div> <!-- end admin-content -->
+</div> <!-- end admin-layout -->
+
+<!-- ========================================== -->
+<!-- 1. CREATE NEW OWNER & PROPERTY MODAL -->
+<!-- ========================================== -->
+@if (showCreateOwnerModal) {
+<div class="modal-overlay">
+  <div class="modal-content glass-card view-modal" style="max-width: 800px;">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-user-plus me-2"></i> Register Owner & Property Account</h3>
+      <button type="button" class="close-icon-btn" (click)="showCreateOwnerModal = false">&times;</button>
+    </div>
+    <form (ngSubmit)="createOwner()" class="modal-form">
+
+      <!-- SECTION 1: OWNER ACCOUNT -->
+      <h4 class="section-title text-primary border-bottom pb-2 mb-3" style="font-size: 1rem;">
+        <i class="fa-solid fa-id-card me-2"></i> 1. Owner & Account Credentials
+      </h4>
+      <div class="detail-grid mb-4">
+        <div class="detail-item">
+          <label>Owner Full Name *</label>
+          <input type="text" class="input-field" placeholder="Full Name" [(ngModel)]="ownerData.full_name"
+            name="full_name" required />
+        </div>
+        <div class="detail-item">
+          <label>Owner Email *</label>
+          <input type="email" class="input-field" placeholder="Email Address" [(ngModel)]="ownerData.email" name="email"
+            required />
+        </div>
+        <div class="detail-item">
+          <label>Mobile Number *</label>
+          <input type="tel" class="input-field" placeholder="Mobile Number" [(ngModel)]="ownerData.mobile_number"
+            name="mobile_number" required />
+        </div>
+        <div class="detail-item">
+          <label>Owner Code *</label>
+          <input type="text" class="input-field" placeholder="e.g. OWN-005" [(ngModel)]="ownerData.owner_code"
+            name="owner_code" required />
+        </div>
+        <div class="detail-item full-width">
+          <label>Initial Account Password *</label>
+          <input type="text" class="input-field" placeholder="Set login password (default: owner123)"
+            [(ngModel)]="ownerData.password" name="password" required />
+        </div>
+      </div>
+
+      <!-- SECTION 2: BRANDING & LOGO -->
+      <h4 class="section-title text-primary border-bottom pb-2 mb-3" style="font-size: 1rem;">
+        <i class="fa-solid fa-building me-2"></i> 2. Brand & Property Information
+      </h4>
+      <div class="detail-grid mb-4">
+        <div class="detail-item">
+          <label>Business / PG Brand Name *</label>
+          <input type="text" class="input-field" placeholder="e.g. Royal Living Stays"
+            [(ngModel)]="ownerData.business_name" name="business_name" required />
+        </div>
+        <div class="detail-item">
+          <label>Property Category *</label>
+          <select class="input-field" [(ngModel)]="ownerData.property_type" name="property_type" required>
+            <option value="PG">Paying Guest (PG)</option>
+            <option value="RENTAL_HOUSE">Rental House</option>
+          </select>
+        </div>
+        <div class="detail-item full-width">
+          <label>Property Logo Image</label>
+          <div class="d-flex align-items-center gap-3">
+            <input type="file" #logoFileInput hidden (change)="onLogoFileChange($event)" accept="image/*" />
+            <button type="button" class="btn btn-outline-primary" (click)="logoFileInput.click()">
+              <i class="fa-solid fa-cloud-arrow-up me-2"></i> {{ logoFileName ? logoFileName : 'Upload Property Logo' }}
+            </button>
+            @if (ownerData.logo) {
+            <img [src]="ownerData.logo" alt="Logo Preview"
+              style="height: 42px; border-radius: 8px; border: 1px solid rgba(122, 66, 47, 0.2);" />
+            }
+          </div>
+        </div>
+        <div class="detail-item full-width">
+          <label>About Property / Overview</label>
+          <input type="text" class="input-field" placeholder="Brief overview of amenities, food, rules, etc."
+            [(ngModel)]="ownerData.description" name="description" />
+        </div>
+      </div>
+
+      <!-- SECTION 3: LOCATION & ADDRESS -->
+      <h4 class="section-title text-primary border-bottom pb-2 mb-3" style="font-size: 1rem;">
+        <i class="fa-solid fa-location-dot me-2"></i> 3. Address & Location Details
+      </h4>
+      <div class="detail-grid mb-4">
+        <div class="detail-item">
+          <label>City *</label>
+          <input type="text" class="input-field" placeholder="City (e.g. Bengaluru)" [(ngModel)]="ownerData.city"
+            name="city" required />
+        </div>
+        <div class="detail-item">
+          <label>State *</label>
+          <input type="text" class="input-field" placeholder="State" [(ngModel)]="ownerData.state" name="state"
+            required />
+        </div>
+        <div class="detail-item">
+          <label>Pincode / Postal Code *</label>
+          <input type="text" class="input-field" placeholder="e.g. 560001" [(ngModel)]="ownerData.pincode"
+            name="pincode" required />
+        </div>
+        <div class="detail-item full-width">
+          <label>Full Address *</label>
+          <input type="text" class="input-field" placeholder="Street Address, Area, Landmark"
+            [(ngModel)]="ownerData.address" name="address" required />
+        </div>
+      </div>
+
+      <!-- SECTION 4: KYC DOCUMENTS & REGISTRATION -->
+      <h4 class="section-title text-primary border-bottom pb-2 mb-3" style="font-size: 1rem;">
+        <i class="fa-solid fa-file-contract me-2"></i> 4. Verification & KYC Documents
+      </h4>
+      <div class="detail-grid mb-4">
+        <div class="detail-item">
+          <label>KYC Document Type</label>
+          <select class="input-field" [(ngModel)]="ownerData.kyc_doc_type" name="kyc_doc_type">
+            <option value="Aadhaar Card">Aadhaar Card</option>
+            <option value="PAN Card">PAN Card</option>
+            <option value="GST License">GST License</option>
+            <option value="Trade License">Trade License / Govt Reg</option>
+          </select>
+        </div>
+        <div class="detail-item">
+          <label>Document / License Number</label>
+          <input type="text" class="input-field" placeholder="e.g. 1234-5678-9012 or GSTIN..."
+            [(ngModel)]="ownerData.kyc_doc_number" name="kyc_doc_number" />
+        </div>
+        <div class="detail-item full-width">
+          <label>Upload Document / Scan File</label>
+          <div class="d-flex align-items-center gap-3">
+            <input type="file" #kycFileInput hidden (change)="onKycFileChange($event)" accept="image/*,.pdf" />
+            <button type="button" class="btn btn-outline-primary" (click)="kycFileInput.click()">
+              <i class="fa-solid fa-file-arrow-up me-2"></i> {{ kycFileName ? kycFileName : 'Upload Document Scan' }}
+            </button>
+            @if (kycFileName) {
+            <span class="text-success font-bold" style="font-size: 0.85rem;">
+              <i class="fa-solid fa-circle-check me-1"></i> Attached: {{ kycFileName }}
+            </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions mt-4">
+        <button type="submit" class="btn btn-primary flex-1">Register Owner & Property Account</button>
+        <button type="button" class="btn btn-secondary" (click)="showCreateOwnerModal = false">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+}
+
+<!-- ========================================== -->
+<!-- 2. VIEW OWNER DETAILS MODAL -->
+<!-- ========================================== -->
+@if (showViewModal) {
+<div class="modal-overlay">
+  <div class="modal-content glass-card view-modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-circle-info me-2"></i> Owner & Property Details</h3>
+      <button type="button" class="close-icon-btn" (click)="showViewModal = false">&times;</button>
+    </div>
+
+    @if (selectedOwner) {
+    <div class="detail-box mb-4">
+      <h4 class="box-title"><i class="fa-solid fa-location-dot me-2"></i> Address & Profile Details</h4>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Owner Code</label>
+          <span>{{ selectedOwner.owner_code }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Business Name</label>
+          <span>{{ selectedOwner.business_name }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Owner Name</label>
+          <span>{{ selectedOwner.full_name }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Contact</label>
+          <span>{{ selectedOwner.contact_number }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Email</label>
+          <span>{{ selectedOwner.email }}</span>
+        </div>
+        <div class="detail-item">
+          <label>City</label>
+          <span>{{ selectedOwner.city }}</span>
+        </div>
+        <div class="detail-item full-width">
+          <label>Address</label>
+          <span>{{ selectedOwner.address }}</span>
+        </div>
+        <div class="detail-item full-width">
+          <label>Assigned Property</label>
+          <span>{{ selectedOwner.property_name || 'No Property Created' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outlets / Branches Section -->
+    <div class="outlets-section">
+      <div class="outlets-header">
+        <h4 class="section-heading"><i class="fa-solid fa-code-branch me-2"></i> Outlets / Branches</h4>
+        <button class="btn btn-sm btn-primary" (click)="addBranchForOwner(selectedOwner)">
+          <i class="fa-solid fa-plus me-1"></i> Add Branch
+        </button>
+      </div>
+
+      @if (selectedOwnerBranches.length > 0) {
+      <div class="outlets-list">
+        @for (b of selectedOwnerBranches; track b.id; let idx = $index) {
+        <div class="outlet-card">
+          <div class="outlet-card-header">
+            <span class="outlet-title">Branch {{ idx + 1 }}: {{ b.branch_name }}</span>
+            <div class="outlet-actions">
+              <button class="outlet-action-btn edit" (click)="openEditBranchModal(b)" title="Edit Branch">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="outlet-action-btn delete" (click)="deleteBranch(b)" title="Delete Branch">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+          <div class="outlet-card-body">
+            <div class="outlet-info-col">
+              <label>Branch Name</label>
+              <span>{{ b.branch_name }}</span>
+            </div>
+            <div class="outlet-info-col">
+              <label>Branch Address</label>
+              <span>{{ b.address }}</span>
+            </div>
+            <div class="outlet-info-col">
+              <label>City & Contact</label>
+              <span>{{ b.city }} ({{ b.contact_number || 'N/A' }})</span>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="no-outlets-box">
+        <p class="mb-0">No branches/outlets added yet for this owner.</p>
+      </div>
+      }
+    </div>
+    }
+
+    <div class="form-actions mt-4">
+      <button type="button" class="btn btn-secondary" (click)="showViewModal = false">Close</button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- ========================================== -->
+<!-- 3. EDIT OWNER MODAL -->
+<!-- ========================================== -->
+@if (showEditOwnerModal) {
+<div class="modal-overlay">
+  <div class="modal-content glass-card view-modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-pen-to-square me-2"></i> Edit Property Owner</h3>
+      <button type="button" class="close-icon-btn" (click)="showEditOwnerModal = false">&times;</button>
+    </div>
+    <form (ngSubmit)="updateOwner()" class="modal-form">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Full Name</label>
+          <input type="text" class="input-field" placeholder="Owner Full Name" [(ngModel)]="editOwnerData.full_name"
+            name="edit_full_name" required />
+        </div>
+        <div class="detail-item">
+          <label>Business Name</label>
+          <input type="text" class="input-field" placeholder="Business Name" [(ngModel)]="editOwnerData.business_name"
+            name="edit_business_name" required />
+        </div>
+        <div class="detail-item">
+          <label>Email</label>
+          <input type="email" class="input-field" placeholder="Email" [(ngModel)]="editOwnerData.email"
+            name="edit_email" required />
+        </div>
+        <div class="detail-item">
+          <label>Contact Number</label>
+          <input type="tel" class="input-field" placeholder="Contact Number" [(ngModel)]="editOwnerData.contact_number"
+            name="edit_contact" required />
+        </div>
+        <div class="detail-item">
+          <label>City</label>
+          <input type="text" class="input-field" placeholder="City" [(ngModel)]="editOwnerData.city" name="edit_city"
+            required />
+        </div>
+        <div class="detail-item">
+          <label>Property / PG Name</label>
+          <input type="text" class="input-field" placeholder="Property Name" [(ngModel)]="editOwnerData.property_name"
+            name="edit_property_name" />
+        </div>
+        <div class="detail-item full-width">
+          <label>Address</label>
+          <input type="text" class="input-field" placeholder="Address" [(ngModel)]="editOwnerData.address"
+            name="edit_address" required />
+        </div>
+      </div>
+
+      <div class="form-actions mt-4">
+        <button type="submit" class="btn btn-primary flex-1">Save Changes</button>
+        <button type="button" class="btn btn-secondary" (click)="showEditOwnerModal = false">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+}
+
+<!-- ========================================== -->
+<!-- 4. EDIT BRANCH MODAL -->
+<!-- ========================================== -->
+@if (showEditBranchModal) {
+<div class="modal-overlay">
+  <div class="modal-content glass-card">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-pen-to-square me-2"></i> Edit Branch Details</h3>
+      <button type="button" class="close-icon-btn" (click)="showEditBranchModal = false">&times;</button>
+    </div>
+    <form (ngSubmit)="updateBranch()" class="modal-form">
+      <input type="text" class="input-field" placeholder="Branch Name" [(ngModel)]="editBranchData.branch_name"
+        name="edit_branch_name" required />
+      <input type="tel" class="input-field" placeholder="Contact Number" [(ngModel)]="editBranchData.contact_number"
+        name="edit_branch_contact" required />
+      <input type="text" class="input-field" placeholder="City" [(ngModel)]="editBranchData.city"
+        name="edit_branch_city" required />
+      <input type="text" class="input-field" placeholder="Address" [(ngModel)]="editBranchData.address"
+        name="edit_branch_address" required />
+
+      <div class="form-actions mt-3">
+        <button type="submit" class="btn btn-primary flex-1">Save Branch</button>
+        <button type="button" class="btn btn-secondary" (click)="showEditBranchModal = false">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+}
+
+<!-- ========================================== -->
+<!-- 5. ADD BRANCH MODAL -->
+<!-- ========================================== -->
+@if (showAddBranchModal) {
+<div class="modal-overlay">
+  <div class="modal-content glass-card">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-plus me-2"></i> Create New Branch / Outlet</h3>
+      <button type="button" class="close-icon-btn" (click)="showAddBranchModal = false">&times;</button>
+    </div>
+    <form (ngSubmit)="createBranch()" class="modal-form">
+      <input type="text" class="input-field" placeholder="e.g. BTM Layout Branch" [(ngModel)]="branchData.branch_name"
+        name="branch_name" required />
+      <input type="text" class="input-field" placeholder="City" [(ngModel)]="branchData.city" name="city" required />
+      <input type="text" class="input-field" placeholder="Address" [(ngModel)]="branchData.address" name="address"
+        required />
+
+      <div class="form-actions mt-3">
+        <button type="submit" class="btn btn-primary flex-1">Create Branch</button>
+        <button type="button" class="btn btn-secondary" (click)="showAddBranchModal = false">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+}

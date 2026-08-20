@@ -1,0 +1,38 @@
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(122, 66, 47, 0.1);
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.content-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a2744;
+}
+
+.table-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.2rem;
+  border: 1px solid #ede5d8;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  min-width: 460px;
+}
+
+.font-bold {
+  font-weight: 600;
+}

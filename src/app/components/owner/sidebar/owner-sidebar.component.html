@@ -1,0 +1,93 @@
+<!-- Mobile Header Bar (visible only on mobile/tablet) -->
+<div class="mobile-header">
+  <button class="hamburger" (click)="toggleMobile()" [class.open]="isMobileOpen" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="mobile-brand">
+    <i class="fa-solid fa-building-user"></i> StayPulse
+  </div>
+</div>
+
+<!-- Backdrop (mobile) -->
+@if (isMobileOpen) {
+  <div class="sidebar-backdrop" (click)="toggleMobile()"></div>
+}
+
+<!-- Sidebar Drawer -->
+<aside class="owner-sidebar" [class.mobile-open]="isMobileOpen">
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <div class="brand-icon-wrap">
+      <i class="fa-solid fa-building-user"></i>
+    </div>
+    <div>
+      <div class="brand-name">StayPulse</div>
+      <div class="brand-sub">Owner Workspace</div>
+    </div>
+    <!-- Close button (mobile) -->
+    <button class="sidebar-close" (click)="toggleMobile()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- Dashboard item -->
+  <nav class="sidebar-nav sidebar-nav-top">
+    <button class="nav-item" [class.active]="activeTab === 'dashboard'" (click)="onTabClick('dashboard')">
+      <i class="fa-solid fa-chart-pie nav-icon"></i>
+      <span class="nav-label">Dashboard</span>
+    </button>
+  </nav>
+
+  <!-- Management Section -->
+  <div class="sidebar-section-label">Management</div>
+
+  <nav class="sidebar-nav">
+    <button class="nav-item" [class.active]="activeTab === 'rooms'" (click)="onTabClick('rooms')">
+      <i class="fa-solid fa-door-open nav-icon"></i>
+      <span class="nav-label">Rooms</span>
+      @if (loadedTabs.has('rooms') && roomsCount > 0) {
+        <span class="nav-badge">{{ roomsCount }}</span>
+      }
+    </button>
+
+    <button class="nav-item" [class.active]="activeTab === 'bookings'" (click)="onTabClick('bookings')">
+      <i class="fa-solid fa-calendar-check nav-icon"></i>
+      <span class="nav-label">Bookings</span>
+      @if (loadedTabs.has('bookings') && bookingsCount > 0) {
+        <span class="nav-badge">{{ bookingsCount }}</span>
+      }
+    </button>
+
+    <button class="nav-item" [class.active]="activeTab === 'invoices'" (click)="onTabClick('invoices')">
+      <i class="fa-solid fa-file-invoice-dollar nav-icon"></i>
+      <span class="nav-label">Invoices</span>
+      @if (loadedTabs.has('invoices') && invoicesCount > 0) {
+        <span class="nav-badge">{{ invoicesCount }}</span>
+      }
+    </button>
+
+    <button class="nav-item" [class.active]="activeTab === 'expenses'" (click)="onTabClick('expenses')">
+      <i class="fa-solid fa-receipt nav-icon"></i>
+      <span class="nav-label">Expenses</span>
+      @if (loadedTabs.has('expenses') && expensesCount > 0) {
+        <span class="nav-badge">{{ expensesCount }}</span>
+      }
+    </button>
+
+    <button class="nav-item" [class.active]="activeTab === 'tenants'" (click)="onTabClick('tenants')">
+      <i class="fa-solid fa-users nav-icon"></i>
+      <span class="nav-label">Tenants / Users</span>
+      @if (loadedTabs.has('tenants') && tenantsCount > 0) {
+        <span class="nav-badge">{{ tenantsCount }}</span>
+      }
+    </button>
+  </nav>
+
+  <!-- Logout Footer -->
+  <div class="sidebar-footer">
+    <button class="logout-btn" (click)="logout.emit()">
+      <i class="fa-solid fa-right-from-bracket nav-icon"></i>
+      <span class="nav-label">Logout</span>
+    </button>
+  </div>
+</aside>

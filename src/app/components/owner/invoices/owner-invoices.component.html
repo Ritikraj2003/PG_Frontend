@@ -1,0 +1,178 @@
+<div class="invoices-wrapper">
+  <!-- Header Bar -->
+  <div class="invoices-header">
+    <div>
+      <h2 class="title">Rent & Maintenance Invoices</h2>
+      <p class="subtitle">Manage billing, monthly dues, and track payment statuses across active tenants.</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <span>+ Generate Invoice</span>
+    </button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon icon-blue">📋</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Invoices</span>
+        <span class="stat-value">{{ invoices.length }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-purple">💳</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Billed</span>
+        <span class="stat-value">₹{{ totalBilled | number }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-green">✅</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Collected</span>
+        <span class="stat-value">₹{{ totalCollected | number }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon icon-amber">⏳</div>
+      <div class="stat-info">
+        <span class="stat-label">Outstanding Dues</span>
+        <span class="stat-value text-amber">₹{{ totalPending | number }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <div class="table-card">
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Invoice Ref</th>
+            <th>Tenant Name</th>
+            <th>Billing Month</th>
+            <th>Due Date</th>
+            <th>Breakdown</th>
+            <th>Total Amount</th>
+            <th>Balance Due</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (inv of invoices; track inv.id) {
+            <tr>
+              <td>
+                <span class="badge badge-info font-mono">{{ inv.invoice_number }}</span>
+              </td>
+              <td>
+                <div class="tenant-cell">
+                  <span class="tenant-name">{{ inv.tenant_name }}</span>
+                  <span class="tenant-phone">{{ inv.mobile_number }}</span>
+                </div>
+              </td>
+              <td><span class="badge badge-month">{{ inv.billing_month }}</span></td>
+              <td>{{ inv.due_date | date:'mediumDate' }}</td>
+              <td>
+                <div class="breakdown-tag">
+                  Rent: ₹{{ inv.rent_amount }} | Maint: ₹{{ inv.maintenance_amount }}
+                </div>
+              </td>
+              <td class="font-bold text-dark">₹{{ inv.total_amount | number }}</td>
+              <td class="font-bold text-amber">₹{{ inv.balance_amount | number }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'badge-success': inv.status === 'PAID',
+                  'badge-warning': inv.status === 'PARTIALLY_PAID',
+                  'badge-danger': inv.status === 'PENDING' || inv.status === 'OVERDUE'
+                }">
+                  {{ inv.status }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="empty-state">
+                <div class="empty-box">
+                  <div class="empty-icon">🧾</div>
+                  <p>No invoices generated for this branch yet.</p>
+                  <button class="btn btn-sm btn-outline" (click)="openCreateModal()">Generate First Invoice</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Generate Rent Invoice -->
+@if (showModal) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🧾 Generate Rent Invoice</h3>
+        <button class="close-btn" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        @if (errorMessage) {
+          <div class="alert alert-error">{{ errorMessage }}</div>
+        }
+
+        <div class="form-grid">
+          <div class="form-group col-span-2">
+            <label>Select Tenant *</label>
+            <select [(ngModel)]="newInvoice.tenant_id" class="form-control">
+              @for (t of tenants; track t.id) {
+                <option [value]="t.id">{{ t.full_name }} ({{ t.tenant_code }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Billing Month (YYYY-MM) *</label>
+            <input type="text" [(ngModel)]="newInvoice.billing_month" placeholder="2026-08" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Due Date *</label>
+            <input type="date" [(ngModel)]="newInvoice.due_date" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Monthly Rent (₹) *</label>
+            <input type="number" [(ngModel)]="newInvoice.rent_amount" placeholder="e.g. 8500" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Maintenance Charge (₹)</label>
+            <input type="number" [(ngModel)]="newInvoice.maintenance_amount" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Electricity Charge (₹)</label>
+            <input type="number" [(ngModel)]="newInvoice.electricity_amount" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Water / Food Charges (₹)</label>
+            <input type="number" [(ngModel)]="newInvoice.water_amount" class="form-control" />
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <span>Estimated Invoice Total:</span>
+          <strong>₹{{ (newInvoice.rent_amount || 0) + (newInvoice.maintenance_amount || 0) + (newInvoice.electricity_amount || 0) + (newInvoice.water_amount || 0) }}</strong>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+        <button class="btn btn-primary" [disabled]="isSubmitting" (click)="submitInvoice()">
+          {{ isSubmitting ? 'Generating...' : 'Generate & Issue Invoice' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

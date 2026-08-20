@@ -1,0 +1,134 @@
+<div class="owner-layout">
+
+  <!-- Left Dark Sidebar -->
+  <div class="owner-sidebar-wrap">
+    <app-owner-sidebar
+      [activeTab]="activeTab"
+      [loadedTabs]="loadedTabs"
+      [roomsCount]="rooms.length"
+      [bookingsCount]="bookings.length"
+      [invoicesCount]="invoices.length"
+      [expensesCount]="expenses.length"
+      [tenantsCount]="tenants.length"
+      (selectTab)="setActiveTab($event)"
+      (logout)="handleLogout()"
+    ></app-owner-sidebar>
+  </div>
+
+  <!-- Right Content Area -->
+  <div class="owner-content">
+
+    <!-- Top Bar -->
+    <header class="owner-topbar">
+      <div class="topbar-title">
+        @if (activeTab === 'dashboard') { Dashboard }
+        @else if (activeTab === 'rooms') { Rooms Directory }
+        @else if (activeTab === 'bookings') { Bookings }
+        @else if (activeTab === 'invoices') { Rent Invoices }
+        @else if (activeTab === 'expenses') { Expenses }
+        @else if (activeTab === 'tenants') { Tenants & Users }
+      </div>
+
+      <div class="topbar-right">
+        <div class="topbar-branch">
+          <i class="fa-solid fa-code-branch"></i>
+          <select class="branch-select" [(ngModel)]="selectedBranchId" (change)="onBranchChange()">
+            @for (b of branches; track b.id) {
+              <option [value]="b.id">{{ b.branch_name }}</option>
+            }
+          </select>
+        </div>
+
+        @if (activeTab === 'rooms') {
+          <button class="btn btn-primary" (click)="showRoomModal = true">
+            <i class="fa-solid fa-plus me-1"></i> Add Room
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- Scrollable Page -->
+    <div class="owner-page">
+
+      <!-- Dashboard Overview Tab -->
+      @if (activeTab === 'dashboard') {
+        <div class="dashboard-welcome">
+          <h2 class="welcome-title">Welcome back! 👋</h2>
+          <p class="welcome-sub">{{ dashboard?.property?.property_name || 'My Property' }} — here's your overview.</p>
+        </div>
+
+        <div class="metrics-row">
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-door-open"></i></div>
+            <div>
+              <div class="stat-label">Total Rooms</div>
+              <div class="stat-value">{{ dashboard?.summary?.totalRooms || 0 }}</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber"><i class="fa-solid fa-bed"></i></div>
+            <div>
+              <div class="stat-label">Total Beds</div>
+              <div class="stat-value">{{ dashboard?.summary?.totalBeds || 0 }}</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-users"></i></div>
+            <div>
+              <div class="stat-label">Active Tenants</div>
+              <div class="stat-value">{{ dashboard?.summary?.activeTenants || 0 }}</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+            <div>
+              <div class="stat-label">Total Revenue</div>
+              <div class="stat-value">₹{{ dashboard?.summary?.totalRevenue || 0 }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Links on dashboard -->
+        <div class="quick-links">
+          <button class="quick-btn" (click)="setActiveTab('rooms')">
+            <i class="fa-solid fa-door-open"></i> Manage Rooms
+          </button>
+          <button class="quick-btn" (click)="setActiveTab('bookings')">
+            <i class="fa-solid fa-calendar-check"></i> View Bookings
+          </button>
+          <button class="quick-btn" (click)="setActiveTab('invoices')">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Rent Invoices
+          </button>
+          <button class="quick-btn" (click)="setActiveTab('tenants')">
+            <i class="fa-solid fa-users"></i> Tenants
+          </button>
+        </div>
+      }
+
+      <!-- Management Tab Components -->
+      @if (activeTab === 'rooms') {
+        <app-owner-rooms
+          [rooms]="rooms"
+          [branchId]="selectedBranchId"
+          [showModal]="showRoomModal"
+          (closeModal)="showRoomModal = false"
+          (refreshRooms)="loadActiveTabData(true)"
+        ></app-owner-rooms>
+      }
+      @if (activeTab === 'bookings') {
+        <app-owner-bookings [bookings]="bookings" (updateStatus)="handleUpdateBooking($event)"></app-owner-bookings>
+      }
+      @if (activeTab === 'invoices') {
+        <app-owner-invoices [invoices]="invoices" [branchId]="selectedBranchId" [tenants]="tenants" (refresh)="loadActiveTabData(true)"></app-owner-invoices>
+      }
+      @if (activeTab === 'expenses') {
+        <app-owner-expenses [expenses]="expenses"></app-owner-expenses>
+      }
+      @if (activeTab === 'tenants') {
+        <app-owner-tenants [tenants]="tenants"></app-owner-tenants>
+      }
+
+    </div>
+  </div>
+</div>
+

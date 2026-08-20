@@ -1,0 +1,18 @@
+@if (!isOwnerRoute) {
+  <app-navbar
+    [user]="user"
+    (openAuth)="openAuth()"
+    (logout)="logout()"
+  ></app-navbar>
+}
+
+<main [class.no-navbar]="isOwnerRoute">
+  <router-outlet></router-outlet>
+</main>
+
+<app-auth-modal
+  [isOpen]="isAuthOpen"
+  (close)="closeAuth()"
+  (loginSuccess)="onLoginSuccess($event)"
+></app-auth-modal>
+

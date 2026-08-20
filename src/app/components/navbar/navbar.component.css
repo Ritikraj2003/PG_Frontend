@@ -1,0 +1,24 @@
+.brand-icon {
+  color: var(--secondary);
+}
+
+.brand-tag {
+  font-size: 0.65rem;
+  margin-left: 5px;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-info {
+  text-align: right;
+}
+
+.user-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--primary);
+}

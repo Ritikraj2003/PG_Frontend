@@ -1,0 +1,239 @@
+<div class="dashboard-wrapper">
+  <!-- Left Sidebar -->
+  <aside class="dashboard-sidebar glass-card">
+    <div class="sidebar-header">
+      <i class="fa-solid fa-building-user sidebar-icon"></i>
+      <span class="sidebar-title">Workspace</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-btn" [class.active]="activeTab === 'rooms'" (click)="setActiveTab('rooms')">
+        <i class="fa-solid fa-door-open nav-icon"></i>
+        <span class="nav-text">Rooms</span>
+        @if (loadedTabs.has('rooms')) { <span class="tab-badge">{{ rooms.length }}</span> }
+      </button>
+
+      <button class="nav-btn" [class.active]="activeTab === 'bookings'" (click)="setActiveTab('bookings')">
+        <i class="fa-solid fa-calendar-check nav-icon"></i>
+        <span class="nav-text">Bookings</span>
+        @if (loadedTabs.has('bookings')) { <span class="tab-badge">{{ bookings.length }}</span> }
+      </button>
+
+      <button class="nav-btn" [class.active]="activeTab === 'invoices'" (click)="setActiveTab('invoices')">
+        <i class="fa-solid fa-file-invoice-dollar nav-icon"></i>
+        <span class="nav-text">Invoices</span>
+        @if (loadedTabs.has('invoices')) { <span class="tab-badge">{{ invoices.length }}</span> }
+      </button>
+
+      <button class="nav-btn" [class.active]="activeTab === 'expenses'" (click)="setActiveTab('expenses')">
+        <i class="fa-solid fa-receipt nav-icon"></i>
+        <span class="nav-text">Expenses</span>
+        @if (loadedTabs.has('expenses')) { <span class="tab-badge">{{ expenses.length }}</span> }
+      </button>
+
+      <button class="nav-btn" [class.active]="activeTab === 'tenants'" (click)="setActiveTab('tenants')">
+        <i class="fa-solid fa-users nav-icon"></i>
+        <span class="nav-text">Tenants / Users</span>
+        @if (loadedTabs.has('tenants')) { <span class="tab-badge">{{ tenants.length }}</span> }
+      </button>
+    </nav>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="dashboard-main">
+    <div class="header-banner">
+      <div>
+        <h1 class="page-title">
+          <i class="fa-solid fa-building-user title-icon"></i> Property Owner Workspace
+        </h1>
+        <p class="subtitle">{{ dashboard?.property?.property_name || 'My Property' }}</p>
+      </div>
+
+      <div class="branch-selector">
+        <label class="selector-label">Select Branch:</label>
+        <select class="input-field select-box" [(ngModel)]="selectedBranchId" (change)="onBranchChange()">
+          @for (b of branches; track b.id) {
+            <option [value]="b.id">{{ b.branch_name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="grid-4 metrics-grid">
+      <div class="glass-card metric-card">
+        <div class="metric-label">TOTAL ROOMS</div>
+        <div class="metric-value color-purple">{{ dashboard?.summary?.totalRooms || 0 }}</div>
+      </div>
+      <div class="glass-card metric-card">
+        <div class="metric-label">TOTAL BEDS</div>
+        <div class="metric-value color-pink">{{ dashboard?.summary?.totalBeds || 0 }}</div>
+      </div>
+      <div class="glass-card metric-card">
+        <div class="metric-label">ACTIVE TENANTS</div>
+        <div class="metric-value color-green">{{ dashboard?.summary?.activeTenants || 0 }}</div>
+      </div>
+      <div class="glass-card metric-card">
+        <div class="metric-label">TOTAL REVENUE</div>
+        <div class="metric-value color-blue">₹{{ dashboard?.summary?.totalRevenue || 0 }}</div>
+      </div>
+    </div>
+
+    <!-- Content Header -->
+    <div class="content-header mb-3">
+      <h2 class="content-title">
+        @if (activeTab === 'rooms') { Rooms Directory }
+        @else if (activeTab === 'bookings') { Bookings Directory }
+        @else if (activeTab === 'invoices') { Rent Invoices }
+        @else if (activeTab === 'expenses') { Expenses Log }
+        @else if (activeTab === 'tenants') { Active Tenants & Users }
+      </h2>
+      @if (activeTab === 'rooms') {
+        <button class="btn btn-primary" (click)="showRoomModal = true">
+          <i class="fa-solid fa-plus me-1"></i> Add Room
+        </button>
+      }
+    </div>
+
+    <!-- Tab Contents -->
+    @if (activeTab === 'rooms') {
+      <div class="grid-3">
+        @for (r of rooms; track r.id) {
+          <div class="glass-card room-card">
+            <div class="room-header">
+              <h3 class="room-title">Room {{ r.room_number }}</h3>
+              <span class="badge badge-info">{{ r.status }}</span>
+            </div>
+            <div class="room-info">
+              Rent: <strong>₹{{ r.monthly_rent }}</strong> • Deposit: <strong>₹{{ r.security_deposit }}</strong>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (activeTab === 'bookings') {
+      <div class="glass-card table-card">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Booking No</th>
+                <th>Tenant Name</th>
+                <th>Contact</th>
+                <th>Room</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (bk of bookings; track bk.id) {
+                <tr>
+                  <td><span class="badge badge-info">{{ bk.booking_number }}</span></td>
+                  <td class="font-bold">{{ bk.tenant_name }}</td>
+                  <td>{{ bk.mobile_number }}</td>
+                  <td>Room {{ bk.room_number }}</td>
+                  <td><span class="badge" [class.badge-success]="bk.status === 'CONFIRMED'">{{ bk.status }}</span></td>
+                  <td>
+                    @if (bk.status === 'PENDING') {
+                      <button class="btn btn-primary action-btn" (click)="updateBooking(bk.id, 'CONFIRMED')">Approve</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    @if (activeTab === 'invoices') {
+      <div class="glass-card table-card">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice No</th>
+                <th>Tenant</th>
+                <th>Month</th>
+                <th>Due Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (inv of invoices; track inv.id) {
+                <tr>
+                  <td><span class="badge badge-info">{{ inv.invoice_number }}</span></td>
+                  <td class="font-bold">{{ inv.tenant_name }}</td>
+                  <td>{{ inv.billing_month }}</td>
+                  <td>{{ inv.due_date | date:'mediumDate' }}</td>
+                  <td>₹{{ inv.total_amount }}</td>
+                  <td><span class="badge" [class.badge-success]="inv.status === 'PAID'">{{ inv.status }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    @if (activeTab === 'expenses') {
+      <div class="glass-card table-card">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Paid To</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (exp of expenses; track exp.id) {
+                <tr>
+                  <td class="font-bold">{{ exp.title }}</td>
+                  <td><span class="badge badge-info">{{ exp.category_name || 'General' }}</span></td>
+                  <td>₹{{ exp.amount }}</td>
+                  <td>{{ exp.expense_date | date:'mediumDate' }}</td>
+                  <td>{{ exp.paid_to || 'N/A' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    @if (activeTab === 'tenants') {
+      <div class="glass-card table-card">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Tenant Code</th>
+                <th>Full Name</th>
+                <th>Mobile Number</th>
+                <th>Emergency Contact</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (t of tenants; track t.id) {
+                <tr>
+                  <td><span class="badge badge-info">{{ t.tenant_code }}</span></td>
+                  <td class="font-bold">{{ t.full_name || t.user_name }}</td>
+                  <td>{{ t.mobile_number }}</td>
+                  <td>{{ t.emergency_contact || 'N/A' }}</td>
+                  <td><span class="badge badge-success">{{ t.status }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </main>
+</div>

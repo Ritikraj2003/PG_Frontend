@@ -1,0 +1,213 @@
+@if (isOpen) {
+  <div class="modal-overlay" (click)="close.emit()">
+    <div class="modal-card glass-modal" (click)="$event.stopPropagation()">
+      <button class="close-btn" (click)="close.emit()" aria-label="Close modal">&times;</button>
+
+      <!-- Brand Header -->
+      <div class="auth-header text-center mb-4">
+        <div class="brand-badge mb-2">
+          <i class="fa-solid fa-building-user text-primary fs-3"></i>
+        </div>
+        <h2 class="auth-title">StayPulse SaaS</h2>
+        <p class="auth-subtitle">PG & Rental Management Portal</p>
+      </div>
+
+      <!-- Segmented Tab Navigation -->
+      <div class="tab-segment mb-4">
+        <button
+          type="button"
+          class="segment-btn"
+          [class.active]="mode === 'login'"
+          (click)="setMode('login')"
+        >
+          <i class="fa-solid fa-right-to-bracket me-2"></i> Sign In
+        </button>
+        <button
+          type="button"
+          class="segment-btn"
+          [class.active]="mode === 'register'"
+          (click)="setMode('register')"
+        >
+          <i class="fa-solid fa-user-plus me-2"></i> Register
+        </button>
+      </div>
+
+      <!-- Alert Banner -->
+      @if (error) {
+        <div class="error-banner mb-3">
+          <i class="fa-solid fa-triangle-exclamation me-2"></i> {{ error }}
+        </div>
+      }
+
+      <!-- SIGN IN FORM -->
+      @if (mode === 'login') {
+        <form (ngSubmit)="handleLogin()" class="form-container">
+          <div class="form-group mb-3">
+            <label class="input-label">Email or Mobile Number</label>
+            <div class="input-icon-wrapper">
+              <i class="input-icon fa-solid fa-envelope"></i>
+              <input
+                type="text"
+                class="input-field icon-padded"
+                placeholder="Enter registered email or mobile"
+                [(ngModel)]="emailOrMobile"
+                name="emailOrMobile"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="input-label mb-0">Password</label>
+            </div>
+            <div class="input-icon-wrapper">
+              <i class="input-icon fa-solid fa-lock"></i>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                class="input-field icon-padded eye-padded"
+                placeholder="••••••••"
+                [(ngModel)]="password"
+                name="password"
+                required
+              />
+              <button
+                type="button"
+                class="password-eye-btn"
+                (click)="togglePasswordVisibility()"
+                tabindex="-1"
+              >
+                <i class="fa-solid" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn full-width mb-4" [disabled]="loading">
+            @if (loading) {
+              <span><i class="fa-solid fa-spinner fa-spin me-2"></i> Authenticating...</span>
+            } @else {
+              <span><i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Sign In to Account</span>
+            }
+          </button>
+
+          <!-- Quick Auto-Fill Demo Credentials -->
+          <div class="demo-section">
+            <div class="demo-header-label">
+              <i class="fa-solid fa-bolt text-warning me-1"></i> Quick Demo Auto-Fill Roles:
+            </div>
+            <div class="demo-pills-grid">
+              <button
+                type="button"
+                class="demo-pill"
+                [class.active-pill]="activeQuickRole === 'admin'"
+                (click)="quickFill('admin')"
+              >
+                <i class="fa-solid fa-user-shield me-1 color-admin"></i> Super Admin
+              </button>
+              <button
+                type="button"
+                class="demo-pill"
+                [class.active-pill]="activeQuickRole === 'owner'"
+                (click)="quickFill('owner')"
+              >
+                <i class="fa-solid fa-building me-1 color-owner"></i> Owner
+              </button>
+              <button
+                type="button"
+                class="demo-pill"
+                [class.active-pill]="activeQuickRole === 'tenant'"
+                (click)="quickFill('tenant')"
+              >
+                <i class="fa-solid fa-user me-1 color-tenant"></i> Tenant
+              </button>
+            </div>
+          </div>
+        </form>
+      } @else {
+        <!-- REGISTER FORM -->
+        <form (ngSubmit)="handleRegister()" class="form-container">
+          <div class="form-group mb-3">
+            <label class="input-label">Full Name</label>
+            <div class="input-icon-wrapper">
+              <i class="input-icon fa-solid fa-user"></i>
+              <input type="text" class="input-field icon-padded" placeholder="Full Name" [(ngModel)]="fullName" name="fullName" required />
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="input-label">Email Address</label>
+            <div class="input-icon-wrapper">
+              <i class="input-icon fa-solid fa-envelope"></i>
+              <input type="email" class="input-field icon-padded" placeholder="name@example.com" [(ngModel)]="email" name="email" required />
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="input-label">Mobile Number</label>
+            <div class="input-icon-wrapper">
+              <i class="input-icon fa-solid fa-mobile-screen"></i>
+              <input type="tel" class="input-field icon-padded" placeholder="10-digit Mobile Number" [(ngModel)]="mobileNumber" name="mobileNumber" required />
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="input-label">Password</label>
+            <div class="input-icon-wrapper">
+              <i class="input-icon fa-solid fa-lock"></i>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                class="input-field icon-padded eye-padded"
+                placeholder="••••••••"
+                [(ngModel)]="password"
+                name="password"
+                required
+              />
+              <button
+                type="button"
+                class="password-eye-btn"
+                (click)="togglePasswordVisibility()"
+                tabindex="-1"
+              >
+                <i class="fa-solid" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="input-label">Account Category</label>
+            <div class="input-icon-wrapper">
+              <i class="input-icon fa-solid fa-users-gear"></i>
+              <select class="input-field icon-padded" [(ngModel)]="role" name="role">
+                <option value="TENANT">Tenant (Guest / Resident)</option>
+                <option value="OWNER">Property Owner</option>
+              </select>
+            </div>
+          </div>
+
+          @if (role === 'TENANT') {
+            <div class="form-group mb-4">
+              <label class="input-label">Select PG Property / Branch</label>
+              <div class="input-icon-wrapper">
+                <i class="input-icon fa-solid fa-hotel"></i>
+                <select class="input-field icon-padded" [(ngModel)]="selectedBranchId" name="selectedBranchId">
+                  <option value="">-- Choose PG Property --</option>
+                  @for (prop of availableProperties; track prop.id) {
+                    <option [value]="prop.id">{{ prop.property_name }} - {{ prop.city }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+
+          <button type="submit" class="submit-btn full-width mb-2" [disabled]="loading">
+            @if (loading) {
+              <span><i class="fa-solid fa-spinner fa-spin me-2"></i> Registering Account...</span>
+            } @else {
+              <span><i class="fa-solid fa-user-plus me-2"></i> Create Account</span>
+            }
+          </button>
+        </form>
+      }
+    </div>
+  </div>
+}

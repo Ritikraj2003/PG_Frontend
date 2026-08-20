@@ -1,0 +1,423 @@
+<div class="tenant-layout">
+  <!-- Left Sidebar Wrapper -->
+  <div class="tenant-sidebar-wrap">
+    <aside class="dashboard-sidebar">
+      <!-- Brand Header -->
+      <div class="sidebar-brand">
+        <div class="brand-icon-wrap">
+          <i class="fa-solid fa-house-user"></i>
+        </div>
+        <div>
+          <div class="brand-name">StayPulse</div>
+          <div class="brand-sub">Resident Portal</div>
+        </div>
+      </div>
+
+      <!-- Section: Overview -->
+      <div class="sidebar-section-label">Overview</div>
+      <nav class="sidebar-nav sidebar-nav-top">
+        <button class="nav-btn" [class.active]="activeTab === 'overview'" (click)="setActiveTab('overview')">
+          <i class="fa-solid fa-chart-pie nav-icon"></i>
+          <span class="nav-text">Dashboard</span>
+        </button>
+      </nav>
+
+      <!-- Section: Resident Hub -->
+      <div class="sidebar-section-label">Resident Hub</div>
+      <nav class="sidebar-nav">
+        <button class="nav-btn" [class.active]="activeTab === 'property'" (click)="setActiveTab('property')">
+          <i class="fa-solid fa-building-user nav-icon"></i>
+          <span class="nav-text">My PG Property</span>
+        </button>
+
+        <button class="nav-btn" [class.active]="activeTab === 'bookings'" (click)="setActiveTab('bookings')">
+          <i class="fa-solid fa-calendar-check nav-icon"></i>
+          <span class="nav-text">Bookings</span>
+          @if (bookings.length > 0) { <span class="tab-badge">{{ bookings.length }}</span> }
+        </button>
+
+        <button class="nav-btn" [class.active]="activeTab === 'invoices'" (click)="setActiveTab('invoices')">
+          <i class="fa-solid fa-file-invoice-dollar nav-icon"></i>
+          <span class="nav-text">Invoices & Pay</span>
+          @if (invoices.length > 0) { <span class="tab-badge">{{ invoices.length }}</span> }
+        </button>
+
+        <button class="nav-btn" [class.active]="activeTab === 'complaints'" (click)="setActiveTab('complaints')">
+          <i class="fa-solid fa-headset nav-icon"></i>
+          <span class="nav-text">Complaints</span>
+          @if (complaints.length > 0) { <span class="tab-badge">{{ complaints.length }}</span> }
+        </button>
+      </nav>
+
+      <!-- Footer / Logout -->
+      <div class="sidebar-footer">
+        <button class="logout-btn" (click)="onLogout()">
+          <i class="fa-solid fa-right-from-bracket nav-icon"></i>
+          <span class="nav-text">Logout</span>
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Right Content Area -->
+  <div class="tenant-content">
+    <!-- Top Bar -->
+    <header class="tenant-topbar">
+      <div class="topbar-title">
+        <i class="fa-solid fa-user-gear me-2 text-primary"></i> Resident & Tenant Portal
+      </div>
+      <div class="topbar-right">
+        <span class="badge badge-info">Welcome, {{ user?.full_name || 'Resident' }}</span>
+      </div>
+    </header>
+
+    <!-- Scrollable Page Area -->
+    <div class="tenant-page">
+
+    <!-- Registered PG Property Banner Card -->
+    @if (dashboard?.registeredProperty) {
+      <div class="glass-card property-banner-card mb-4">
+        <div class="property-header">
+          <div class="property-badge">
+            <i class="fa-solid fa-building-user"></i> MY REGISTERED PG PROPERTY
+          </div>
+          <span class="status-pill active">
+            <i class="fa-solid fa-circle-check"></i> Registered Resident
+          </span>
+        </div>
+
+        <div class="property-details-grid">
+          <div class="prop-detail-item">
+            <div class="detail-label">PG PROPERTY NAME</div>
+            <div class="detail-value text-xl font-bold color-purple">
+              {{ dashboard.registeredProperty.property_name }}
+            </div>
+            <div class="detail-subtext">Branch: {{ dashboard.registeredProperty.branch_name }}</div>
+          </div>
+
+          <div class="prop-detail-item">
+            <div class="detail-label">LOCATION & ADDRESS</div>
+            <div class="detail-value text-md font-semibold">
+              <i class="fa-solid fa-location-dot text-danger mr-1"></i>
+              {{ dashboard.registeredProperty.branch_address }}, {{ dashboard.registeredProperty.branch_city }}
+            </div>
+          </div>
+
+          <div class="prop-detail-item">
+            <div class="detail-label">PG OWNER / MANAGEMENT</div>
+            <div class="detail-value text-md font-semibold">
+              <i class="fa-solid fa-user-tie color-purple mr-1"></i>
+              {{ dashboard.registeredProperty.owner_business_name || 'PG Management' }}
+            </div>
+            @if (dashboard.registeredProperty.owner_contact) {
+              <div class="detail-subtext">
+                <i class="fa-solid fa-phone text-success mr-1"></i> {{ dashboard.registeredProperty.owner_contact }}
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 1: OVERVIEW -->
+    @if (activeTab === 'overview') {
+      <!-- Metrics Grid -->
+      <div class="grid-3 metrics-grid mb-4">
+        <div class="glass-card metric-card">
+          <div class="metric-label">MY REGISTERED PG</div>
+          <div class="metric-value color-purple text-lg">
+            {{ dashboard?.registeredProperty?.property_name || 'Registered PG' }}
+          </div>
+        </div>
+        <div class="glass-card metric-card">
+          <div class="metric-label">CURRENT ASSIGNED ROOM</div>
+          <div class="metric-value color-purple">
+            {{ dashboard?.currentStay?.room_number || dashboard?.tenant?.room_number || 'Allocation Pending' }}
+          </div>
+        </div>
+        <div class="glass-card metric-card">
+          <div class="metric-label">OUTSTANDING DUES</div>
+          <div class="metric-value color-red">
+            ₹{{ dashboard?.summary?.pendingInvoicesAmount || 0 }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Summary Cards -->
+      <div class="glass-card table-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="card-title mb-0">
+            <i class="fa-solid fa-calendar-check color-purple mr-2"></i> Recent Booking Requests
+          </h3>
+          <button class="btn btn-secondary btn-sm" (click)="setActiveTab('bookings')">View All</button>
+        </div>
+        <div class="table-container">
+          @if (bookings && bookings.length > 0) {
+            <table>
+              <thead>
+                <tr>
+                  <th>Booking No</th>
+                  <th>PG Property & Branch</th>
+                  <th>Room No</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (bk of bookings.slice(0, 3); track bk.id) {
+                  <tr>
+                    <td><span class="badge badge-info">{{ bk.booking_number }}</span></td>
+                    <td>{{ bk.branch_name }}</td>
+                    <td>Room {{ bk.room_number }}</td>
+                    <td><span class="badge badge-success">{{ bk.status }}</span></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="text-muted p-3 text-center mb-0">No active bookings found.</p>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- TAB 2: MY PG PROPERTY -->
+    @if (activeTab === 'property') {
+      <div class="glass-card table-card">
+        <h3 class="card-title">
+          <i class="fa-solid fa-building color-purple mr-2"></i> My Property Details
+        </h3>
+        @if (dashboard?.registeredProperty) {
+          <div class="property-details-grid p-2">
+            <div class="prop-detail-item">
+              <div class="detail-label">PROPERTY NAME</div>
+              <div class="detail-value text-lg font-bold">{{ dashboard.registeredProperty.property_name }}</div>
+            </div>
+            <div class="prop-detail-item">
+              <div class="detail-label">BRANCH / OUTLET</div>
+              <div class="detail-value text-lg font-semibold">{{ dashboard.registeredProperty.branch_name }}</div>
+            </div>
+            <div class="prop-detail-item">
+              <div class="detail-label">ADDRESS</div>
+              <div class="detail-value">{{ dashboard.registeredProperty.branch_address }}</div>
+            </div>
+            <div class="prop-detail-item">
+              <div class="detail-label">CITY</div>
+              <div class="detail-value">{{ dashboard.registeredProperty.branch_city }}</div>
+            </div>
+            <div class="prop-detail-item">
+              <div class="detail-label">MANAGEMENT CONTACT</div>
+              <div class="detail-value">{{ dashboard.registeredProperty.owner_contact || 'N/A' }}</div>
+            </div>
+          </div>
+        } @else {
+          <p class="text-muted p-3">No registered property information available.</p>
+        }
+      </div>
+    }
+
+    <!-- TAB 3: BOOKINGS -->
+    @if (activeTab === 'bookings') {
+      <div class="glass-card table-card">
+        <h3 class="card-title">
+          <i class="fa-solid fa-calendar-check color-purple mr-2"></i> My Room & Bed Booking Requests
+        </h3>
+        <div class="table-container">
+          @if (bookings && bookings.length > 0) {
+            <table>
+              <thead>
+                <tr>
+                  <th>Booking No</th>
+                  <th>PG Property & Branch</th>
+                  <th>Room No</th>
+                  <th>Check-in Date</th>
+                  <th>Monthly Rent</th>
+                  <th>Booking Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (bk of bookings; track bk.id) {
+                  <tr>
+                    <td><span class="badge badge-info">{{ bk.booking_number }}</span></td>
+                    <td>{{ bk.branch_name }}</td>
+                    <td>Room {{ bk.room_number }} {{ bk.bed_number ? '(Bed ' + bk.bed_number + ')' : '' }}</td>
+                    <td>{{ bk.expected_check_in_date | date }}</td>
+                    <td>₹{{ bk.monthly_rent }}</td>
+                    <td>
+                      <span class="badge" 
+                        [class.badge-warning]="bk.status === 'PENDING'"
+                        [class.badge-success]="bk.status === 'APPROVED' || bk.status === 'CHECKED_IN'"
+                        [class.badge-danger]="bk.status === 'REJECTED' || bk.status === 'CANCELLED'">
+                        {{ bk.status }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <div class="empty-state p-4 text-center">
+              <p class="text-muted">No active room bookings found for your registered PG.</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- TAB 4: INVOICES & PAYMENTS -->
+    @if (activeTab === 'invoices') {
+      <div class="glass-card table-card">
+        <h3 class="card-title">
+          <i class="fa-solid fa-file-invoice-dollar color-purple mr-2"></i> Rent Invoices & Online Payments
+        </h3>
+        <div class="table-container">
+          @if (invoices && invoices.length > 0) {
+            <table>
+              <thead>
+                <tr>
+                  <th>Invoice No</th>
+                  <th>Billing Month</th>
+                  <th>Total Rent</th>
+                  <th>Balance Due</th>
+                  <th>Status</th>
+                  <th>Pay Online</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (inv of invoices; track inv.id) {
+                  <tr>
+                    <td><span class="badge badge-info">{{ inv.invoice_number }}</span></td>
+                    <td>{{ inv.billing_month }}</td>
+                    <td>₹{{ inv.total_amount }}</td>
+                    <td class="font-bold balance-due">₹{{ inv.balance_amount }}</td>
+                    <td><span class="badge" [class.badge-success]="inv.status === 'PAID'">{{ inv.status }}</span></td>
+                    <td>
+                      @if (inv.status !== 'PAID') {
+                        <button class="btn btn-primary pay-btn" (click)="payInvoice(inv)">
+                          <i class="fa-solid fa-credit-card"></i> Pay ₹{{ inv.balance_amount }}
+                        </button>
+                      } @else {
+                        <span class="badge badge-success">Fully Paid</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <div class="empty-state p-4 text-center">
+              <p class="text-muted">No pending rent invoices available.</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- TAB 5: COMPLAINTS & HELP -->
+    @if (activeTab === 'complaints') {
+      <div class="glass-card table-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="card-title mb-0">
+            <i class="fa-solid fa-headset color-purple mr-2"></i> Maintenance Requests & Complaints
+          </h3>
+          <button class="btn btn-primary btn-sm" (click)="openComplaintModal()">
+            <i class="fa-solid fa-plus me-1"></i> Raise Ticket
+          </button>
+        </div>
+        <div class="table-container">
+          @if (complaints && complaints.length > 0) {
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticket Title</th>
+                  <th>Category</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Resolution Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of complaints; track c.id) {
+                  <tr>
+                    <td class="font-bold">{{ c.title }}</td>
+                    <td><span class="badge badge-info">{{ c.category || 'General' }}</span></td>
+                    <td>
+                      <span class="badge" 
+                        [class.badge-danger]="c.priority === 'HIGH' || c.priority === 'URGENT'"
+                        [class.badge-warning]="c.priority === 'MEDIUM'"
+                        [class.badge-info]="c.priority === 'LOW'">
+                        {{ c.priority }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge"
+                        [class.badge-success]="c.status === 'RESOLVED' || c.status === 'CLOSED'"
+                        [class.badge-warning]="c.status === 'IN_PROGRESS'"
+                        [class.badge-info]="c.status === 'OPEN'">
+                        {{ c.status }}
+                      </span>
+                    </td>
+                    <td>{{ c.resolution_note || 'Awaiting response' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <div class="empty-state p-4 text-center">
+              <p class="text-muted">No complaints or maintenance tickets raised yet.</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+    </div> <!-- end tenant-page -->
+  </div> <!-- end tenant-content -->
+</div> <!-- end tenant-layout -->
+
+<!-- CREATE COMPLAINT MODAL -->
+@if (showComplaintModal) {
+  <div class="modal-overlay">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-headset me-2"></i> Raise Complaint / Ticket</h3>
+        <button type="button" class="close-icon-btn" (click)="showComplaintModal = false">&times;</button>
+      </div>
+      <form (ngSubmit)="submitComplaint()" class="modal-form">
+        <div>
+          <label class="form-label">Issue Title *</label>
+          <input type="text" class="input-field" placeholder="e.g. WiFi Not Working in Room 102" [(ngModel)]="newComplaint.title" name="title" required />
+        </div>
+
+        <div>
+          <label class="form-label">Category</label>
+          <select class="input-field" [(ngModel)]="newComplaint.category" name="category">
+            <option value="MAINTENANCE">Maintenance / Repairs</option>
+            <option value="PLUMBING">Plumbing</option>
+            <option value="ELECTRICITY">Electrical Issue</option>
+            <option value="CLEANING">Housekeeping / Cleaning</option>
+            <option value="FOOD">Food & Catering</option>
+            <option value="OTHER">Other Issue</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label">Priority</label>
+          <select class="input-field" [(ngModel)]="newComplaint.priority" name="priority">
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High / Urgent</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label">Description *</label>
+          <textarea class="input-field" rows="3" placeholder="Describe the issue in detail..." [(ngModel)]="newComplaint.description" name="description" required></textarea>
+        </div>
+
+        <div class="form-actions mt-3">
+          <button type="submit" class="btn btn-primary flex-1">Submit Ticket</button>
+          <button type="button" class="btn btn-secondary" (click)="showComplaintModal = false">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

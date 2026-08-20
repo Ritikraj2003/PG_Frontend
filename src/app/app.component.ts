@@ -1,0 +1,64 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import { NavbarComponent } from './components/navbar/navbar.component';
+import { filter } from 'rxjs/operators';
+import { AuthModalComponent } from './components/auth-modal/auth-modal.component';
+import { User } from './models/types';
+import { AuthService } from './services/auth.service';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    NavbarComponent,
+    AuthModalComponent,
+  ],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css',
+})
+export class AppComponent implements OnInit {
+  public authService = inject(AuthService);
+  private router = inject(Router);
+
+  user: User | null = null;
+  isAuthOpen = false;
+  isOwnerRoute = false;
+
+  constructor() {
+    this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe((e: any) => {
+        this.isOwnerRoute = e.urlAfterRedirects?.startsWith('/owner');
+      });
+  }
+
+  ngOnInit() {
+    this.isOwnerRoute = this.router.url?.startsWith('/owner');
+    this.authService.user$.subscribe(user => {
+      this.user = user;
+    });
+    this.authService.isAuthOpen$.subscribe(isOpen => {
+      this.isAuthOpen = isOpen;
+    });
+  }
+
+  openAuth() {
+    this.authService.openAuthModal();
+  }
+
+  closeAuth() {
+    this.authService.closeAuthModal();
+  }
+
+  onLoginSuccess(event: { user: User; token: string }) {
+    this.authService.handleLoginSuccess(event.user, event.token);
+  }
+
+  logout() {
+    this.authService.logout();
+  }
+}
+
