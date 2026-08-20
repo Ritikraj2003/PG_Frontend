@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { environment } from '../../../environments/environment';
 import { Property, Room, User } from '../../models/types';
 
 export interface BranchGroup {
@@ -168,7 +169,8 @@ export class PublicBrowserComponent implements OnInit {
       return url;
     }
     const cleanPath = url.startsWith('/') ? url : '/' + url;
-    return `http://localhost:5000${cleanPath}`;
+    const base = environment.apiUrl.replace(/\/api\/?$/, '');
+    return `${base}${cleanPath}`;
   }
 
   // --- BOOKING MODAL ACTIONS ---

@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChange
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-owner-rooms',
@@ -401,6 +402,7 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
       return url;
     }
     const cleanPath = url.startsWith('/') ? url : '/' + url;
-    return `http://localhost:5000${cleanPath}`;
+    const base = environment.apiUrl.replace(/\/api\/?$/, '');
+    return `${base}${cleanPath}`;
   }
 }

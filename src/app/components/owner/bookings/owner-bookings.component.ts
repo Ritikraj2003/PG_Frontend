@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-owner-bookings',
@@ -33,6 +34,7 @@ export class OwnerBookingsComponent {
       return url;
     }
     const cleanPath = url.startsWith('/') ? url : '/' + url;
-    return `http://localhost:5000${cleanPath}`;
+    const base = environment.apiUrl.replace(/\/api\/?$/, '');
+    return `${base}${cleanPath}`;
   }
 }

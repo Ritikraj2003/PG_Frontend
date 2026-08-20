@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  private apiBase = '/api';
+  private apiBase = environment.apiUrl;
 
   private async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = sessionStorage.getItem('token') || localStorage.getItem('token');
