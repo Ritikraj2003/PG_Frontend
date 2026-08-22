@@ -136,25 +136,8 @@ export class PublicBrowserComponent implements OnInit {
           groupsMap.get(bId)!.rooms.push(room);
         }
 
-        // If logged in as TENANT, filter ONLY to tenant's PG property branches
-        if (this.user && role === 'TENANT') {
-          const tenantDashboard = await this.apiService.tenant.getDashboard().catch(() => null);
-          const tenantBranchId = tenantDashboard?.currentStay?.branch_id || tenantDashboard?.tenant?.branch_id;
-
-          if (tenantBranchId && groupsMap.has(tenantBranchId)) {
-            const tenantGroup = groupsMap.get(tenantBranchId)!;
-            const tenantPropName = tenantGroup.property_name;
-
-            this.branchGroups = Array.from(groupsMap.values()).filter(
-              (g) => g.property_name === tenantPropName || g.branch_id === tenantBranchId
-            );
-          } else {
-            this.branchGroups = Array.from(groupsMap.values());
-          }
-        } else {
-          // Unauthenticated Guest: show all public branches
-          this.branchGroups = Array.from(groupsMap.values());
-        }
+        // Show all public branches to allow tenants and guests to explore & book anywhere
+        this.branchGroups = Array.from(groupsMap.values());
       }
     } catch (err) {
       console.error('Failed to fetch browser data:', err);

@@ -184,21 +184,6 @@
             </div>
           </div>
 
-          @if (role === 'TENANT') {
-            <div class="form-group mb-4">
-              <label class="input-label">Select PG Property / Branch</label>
-              <div class="input-icon-wrapper">
-                <i class="input-icon fa-solid fa-hotel"></i>
-                <select class="input-field icon-padded" [(ngModel)]="selectedBranchId" name="selectedBranchId">
-                  <option value="">-- Choose PG Property --</option>
-                  @for (prop of availableProperties; track prop.id) {
-                    <option [value]="prop.id">{{ prop.property_name }} - {{ prop.city }}</option>
-                  }
-                </select>
-              </div>
-            </div>
-          }
-
           <button type="submit" class="submit-btn full-width mb-2" [disabled]="loading">
             @if (loading) {
               <span><i class="fa-solid fa-spinner fa-spin me-2"></i> Registering Account...</span>

@@ -25,6 +25,11 @@
       <!-- Section: Resident Hub -->
       <div class="sidebar-section-label">Resident Hub</div>
       <nav class="sidebar-nav">
+        <button class="nav-btn" [class.active]="activeTab === 'explore'" (click)="setActiveTab('explore')">
+          <i class="fa-solid fa-compass nav-icon"></i>
+          <span class="nav-text">Explore & Book PGs</span>
+        </button>
+
         <button class="nav-btn" [class.active]="activeTab === 'property'" (click)="setActiveTab('property')">
           <i class="fa-solid fa-building-user nav-icon"></i>
           <span class="nav-text">My PG Property</span>
@@ -117,6 +122,14 @@
           </div>
         </div>
       </div>
+    } @else {
+      <div class="glass-card mb-4 text-center p-4">
+        <h4 class="mb-2"><i class="fa-solid fa-compass color-purple me-2"></i> Ready to Book Your Ideal PG?</h4>
+        <p class="text-muted mb-3">Browse all available PG properties, rooms & beds in your area and submit your booking registration!</p>
+        <button class="btn btn-primary" (click)="setActiveTab('explore')">
+          <i class="fa-solid fa-bed me-2"></i> Explore PGs & Reserve Room/Bed
+        </button>
+      </div>
     }
 
     <!-- TAB 1: OVERVIEW -->
@@ -177,6 +190,13 @@
             <p class="text-muted p-3 text-center mb-0">No active bookings found.</p>
           }
         </div>
+      </div>
+    }
+
+    <!-- TAB: EXPLORE & BOOK PGS (PUBLIC PAGE) -->
+    @if (activeTab === 'explore') {
+      <div class="mb-4">
+        <app-public-browser [user]="user"></app-public-browser>
       </div>
     }
 

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { User } from '../../models/types';
+import { PublicBrowserComponent } from '../public-browser/public-browser.component';
 
 @Component({
   selector: 'app-tenant-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PublicBrowserComponent],
   templateUrl: './tenant-dashboard.component.html',
   styleUrl: './tenant-dashboard.component.css',
 })
