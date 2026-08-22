@@ -4,6 +4,7 @@ import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { filter } from 'rxjs/operators';
 import { AuthModalComponent } from './components/auth-modal/auth-modal.component';
+import { LoaderComponent } from './components/loader/loader.component';
 import { User } from './models/types';
 import { AuthService } from './services/auth.service';
 
@@ -15,6 +16,7 @@ import { AuthService } from './services/auth.service';
     RouterModule,
     NavbarComponent,
     AuthModalComponent,
+    LoaderComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

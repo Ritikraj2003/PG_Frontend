@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
+import { loader } from './loader.service';
 
 @Injectable({
   providedIn: 'root',
@@ -8,62 +9,72 @@ export class ApiService {
   private apiBase = environment.apiUrl;
 
   private async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-
-    if (!(options.body instanceof FormData)) {
-      headers['Content-Type'] = 'application/json';
-    }
-
-    if (options.headers) {
-      Object.assign(headers, options.headers as Record<string, string>);
-    }
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${this.apiBase}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    let json: any = {};
-    const text = await response.text();
+    loader('start');
     try {
-      json = text ? JSON.parse(text) : {};
-    } catch {
-      throw new Error(`Server connection issue (${response.status}: ${response.statusText || 'Error'})`);
-    }
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const headers: Record<string, string> = {};
 
-    if (!response.ok || json.success === false) {
-      throw new Error(json.message || `API Request failed (${response.status})`);
-    }
+      if (!(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+      }
 
-    return json.data;
+      if (options.headers) {
+        Object.assign(headers, options.headers as Record<string, string>);
+      }
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${this.apiBase}${endpoint}`, {
+        ...options,
+        headers,
+      });
+
+      let json: any = {};
+      const text = await response.text();
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error(`Server connection issue (${response.status}: ${response.statusText || 'Error'})`);
+      }
+
+      if (!response.ok || json.success === false) {
+        throw new Error(json.message || `API Request failed (${response.status})`);
+      }
+
+      return json.data;
+    } finally {
+      loader('stop');
+    }
   }
 
   async uploadFile(file: File): Promise<string> {
-    const formData = new FormData();
-    formData.append('file', file);
+    loader('start');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${this.apiBase}/upload`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      const json = await response.json();
+      if (!response.ok || json.success === false) {
+        throw new Error(json.message || 'File upload failed');
+      }
+      return json.data.url;
+    } finally {
+      loader('stop');
     }
-
-    const response = await fetch(`${this.apiBase}/upload`, {
-      method: 'POST',
-      headers,
-      body: formData,
-    });
-
-    const json = await response.json();
-    if (!response.ok || json.success === false) {
-      throw new Error(json.message || 'File upload failed');
-    }
-    return json.data.url;
   }
 
   // Auth

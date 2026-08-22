@@ -1,231 +1,301 @@
-<div>
+<div class="public-browser-wrapper">
   <!-- Hero Banner -->
-  <section class="hero">
-    <h1>Find Your Perfect PG & Rental Living Space</h1>
-    <p>Verified Paying Guest accommodations & premium rental houses with transparent pricing, instant booking & zero brokerage.</p>
+  <section class="hero-section">
+    <div class="hero-bg-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+    </div>
+    <div class="hero-content container">
+      <span class="hero-badge">
+        <i class="fa-solid fa-sparkles me-1"></i> Verified PG & Rental Spaces
+      </span>
+      <h1 class="hero-title">Find Your Perfect Living Space</h1>
+      <p class="hero-subtitle">
+        Discover premium Paying Guest accommodations & verified rental houses with transparent pricing, instant booking & zero brokerage.
+      </p>
 
-    <div class="search-bar">
-      <input
-        type="text"
-        class="input-field"
-        placeholder="Search by city (e.g. Bengaluru, Mumbai)..."
-        [(ngModel)]="searchCity"
-      />
-      <select class="input-field" [(ngModel)]="filterType">
-        <option value="">All Types (PG & Rental House)</option>
-        <option value="PG">Paying Guest (PG)</option>
-        <option value="RENTAL_HOUSE">Rental House</option>
-      </select>
-      <button class="btn btn-primary" (click)="fetchData()">
-        <i class="fa-solid fa-magnifying-glass"></i> Search
-      </button>
+      <!-- Glassmorphic Search Bar -->
+      <div class="search-bar-card">
+        <div class="search-input-group">
+          <i class="fa-solid fa-location-dot search-icon"></i>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search by city (e.g. Bengaluru, Mumbai)..."
+            [(ngModel)]="searchCity"
+            (keyup.enter)="fetchData()"
+          />
+        </div>
+        <div class="search-select-group">
+          <i class="fa-solid fa-filter search-icon"></i>
+          <select class="search-select" [(ngModel)]="filterType" (change)="fetchData()">
+            <option value="">All Accommodation Types</option>
+            <option value="PG">Paying Guest (PG)</option>
+            <option value="RENTAL_HOUSE">Rental House</option>
+          </select>
+        </div>
+        <button class="btn btn-search" (click)="fetchData()">
+          <i class="fa-solid fa-magnifying-glass me-2"></i> Search Spaces
+        </button>
+      </div>
     </div>
   </section>
 
-  @if (bookingMessage) {
-    <div class="container alert-wrapper">
-      <div class="alert-success">
-        {{ bookingMessage }}
+  <div class="main-container container">
+    @if (bookingMessage) {
+      <div class="alert-wrapper mt-4">
+        <div class="alert-success-card">
+          <i class="fa-circle-check fa-solid me-2 text-emerald"></i>
+          <span>{{ bookingMessage }}</span>
+        </div>
       </div>
-    </div>
-  }
+    }
 
-  <!-- Logged-in Notice Banner -->
-  @if (user) {
-    <div class="container mt-3">
-      <div class="user-context-banner">
-        <i class="fa-solid fa-user-shield icon-gold me-2"></i>
-        <span>Logged in as <strong>{{ getUserName() }}</strong> ({{ getUserRole() }}). Showing inventory for your property and branches.</span>
+    <!-- Logged-in Notice Banner -->
+    @if (user) {
+      <div class="user-context-card mt-4">
+        <div class="user-context-content">
+          <div class="user-avatar-badge">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <div class="context-title">
+              Logged in as <strong>{{ getUserName() }}</strong>
+              <span class="role-badge">{{ getUserRole() }}</span>
+            </div>
+            <p class="context-desc">Showing properties & branches customized for your account context.</p>
+          </div>
+        </div>
       </div>
-    </div>
-  }
+    }
 
-  <!-- Branch-Wise Inventory Display -->
-  <section class="container section-margin">
-    <h2 class="section-title">
-      <i class="fa-solid fa-building icon-primary"></i> PG Branches & Rooms Directory
-    </h2>
-
-    @if (loading) {
-      <div class="loading-box">
-        <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading properties & rooms availability...
+    <!-- Branch-Wise Inventory Display -->
+    <section class="section-margin">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">
+            <i class="fa-solid fa-building-circle-check icon-accent me-2"></i> PG Branches & Rooms Directory
+          </h2>
+          <p class="section-desc">Browse available rooms and beds, check live pricing, and reserve instantly.</p>
+        </div>
       </div>
-    } @else if (branchGroups.length === 0) {
-      <div class="empty-box">
-        <i class="fa-solid fa-building-circle-exclamation empty-icon"></i>
-        <p>No branch or room inventory found for this selection.</p>
-      </div>
-    } @else {
 
-      <!-- Iterate over each Branch Group -->
-      <div class="branch-groups-wrapper">
-        @for (group of branchGroups; track group.branch_id) {
-          <div class="branch-group-card mb-5">
+      @if (loading) {
+        <div class="loading-state-card">
+          <div class="pulse-spinner"></div>
+          <p class="mt-3 text-muted">Fetching latest property & room availability...</p>
+        </div>
+      } @else if (branchGroups.length === 0) {
+        <div class="empty-state-card">
+          <div class="empty-icon-circle">
+            <i class="fa-solid fa-building-circle-exclamation"></i>
+          </div>
+          <h3>No Properties Found</h3>
+          <p>No branch or room inventory matches your search criteria. Try clearing filters or searching for another city.</p>
+          <button class="btn btn-secondary mt-3" (click)="searchCity = ''; filterType = ''; fetchData()">
+            <i class="fa-solid fa-rotate-left me-2"></i> Reset Search
+          </button>
+        </div>
+      } @else {
 
-            <!-- Branch Header Banner -->
-            <div class="branch-header-banner">
-              <div class="branch-header-info">
-                <span class="branch-badge"><i class="fa-solid fa-layer-group"></i> BRANCH</span>
-                <h3 class="branch-title-text">{{ group.branch_name }}</h3>
-                <div class="branch-meta-text">
-                  <span>🏢 {{ group.property_name }}</span>
-                  @if (group.city) { <span>📍 {{ group.city }}</span> }
-                  <span>🚪 {{ group.rooms.length }} Room(s) Available</span>
+        <!-- Iterate over each Branch Group -->
+        <div class="branch-groups-container">
+          @for (group of branchGroups; track group.branch_id) {
+            <div class="branch-card">
+
+              <!-- Branch Header Banner -->
+              <div class="branch-header">
+                <div class="branch-header-left">
+                  <span class="branch-type-tag"><i class="fa-solid fa-layer-group me-1"></i> BRANCH</span>
+                  <h3 class="branch-name">{{ group.branch_name }}</h3>
+                  <div class="branch-meta-row">
+                    <span class="meta-item"><i class="fa-solid fa-building me-1"></i> {{ group.property_name }}</span>
+                    @if (group.city) {
+                      <span class="meta-item"><i class="fa-solid fa-location-dot me-1"></i> {{ group.city }}</span>
+                    }
+                    @if (group.address) {
+                      <span class="meta-item"><i class="fa-solid fa-map-pin me-1"></i> {{ group.address }}</span>
+                    }
+                  </div>
+                </div>
+                <div class="branch-header-right">
+                  <span class="room-count-badge">
+                    <i class="fa-solid fa-door-open me-1"></i> {{ group.rooms.length }} Room(s) Listed
+                  </span>
                 </div>
               </div>
-            </div>
 
-            <!-- Rooms Grid under this Branch -->
-            @if (group.rooms.length === 0) {
-              <div class="no-rooms-box">
-                <i class="fa-solid fa-door-closed me-1"></i> No rooms listed in this branch yet.
-              </div>
-            } @else {
-              <div class="grid-3 p-3">
-                @for (room of group.rooms; track room.id) {
-                  <div class="glass-card room-card">
+              <!-- Rooms Grid under this Branch -->
+              @if (group.rooms.length === 0) {
+                <div class="no-rooms-notice">
+                  <i class="fa-solid fa-door-closed me-2"></i> No rooms listed in this branch currently.
+                </div>
+              } @else {
+                <div class="rooms-grid">
+                  @for (room of group.rooms; track room.id) {
+                    <div class="room-card">
 
-                    <!-- Room Image Preview -->
-                    <div class="room-banner-img">
-                      @if (room.images && room.images.length > 0) {
-                        <img [src]="getImageUrl(room.images[0])" alt="Room cover" class="cover-img" />
-                        <span class="img-count-tag"><i class="fa-solid fa-camera me-1"></i> {{ room.images.length }}</span>
-                      } @else {
-                        <div class="no-img-cover">
-                          <i class="fa-solid fa-building"></i>
-                        </div>
-                      }
-                      <span class="status-tag" 
-                        [class.badge-available]="room.status === 'AVAILABLE' || (+room.available_beds > 0)" 
-                        [class.badge-warning]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)">
-                        @if (room.total_beds && +room.total_beds > 0) {
-                          {{ room.available_beds || 0 }} / {{ room.total_beds }} Beds Available
+                      <!-- Room Image Preview Banner -->
+                      <div class="room-cover-box">
+                        @if (room.images && room.images.length > 0) {
+                          <img [src]="getImageUrl(room.images[0])" alt="Room cover" class="room-cover-image" />
+                          <span class="image-count-tag">
+                            <i class="fa-solid fa-camera me-1"></i> {{ room.images.length }} Photos
+                          </span>
                         } @else {
-                          {{ room.status || 'AVAILABLE' }}
+                          <div class="no-image-placeholder">
+                            <i class="fa-solid fa-city"></i>
+                            <span>No Photo Available</span>
+                          </div>
                         }
-                      </span>
-                    </div>
 
-                    <!-- Room Body -->
-                    <div class="room-body">
-                      <div class="room-header-row">
-                        <h4 class="room-num">Room {{ room.room_number }}</h4>
-                        @if (room.room_type_name) {
-                          <span class="type-tag">{{ room.room_type_name }}</span>
-                        }
+                        <span
+                          class="status-badge"
+                          [class.status-available]="room.status === 'AVAILABLE' || (+room.available_beds > 0)"
+                          [class.status-full]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)"
+                        >
+                          @if (room.total_beds && +room.total_beds > 0) {
+                            <i class="fa-solid fa-bed me-1"></i> {{ room.available_beds || 0 }} / {{ room.total_beds }} Beds Available
+                          } @else {
+                            {{ room.status || 'AVAILABLE' }}
+                          }
+                        </span>
                       </div>
 
-                      @if (room.room_name) {
-                        <div class="room-alias">{{ room.room_name }}</div>
-                      }
-
-                      <!-- Bed Inventory Chips Badges -->
-                      @if (room.beds && room.beds.length > 0) {
-                        <div class="public-beds-wrapper mt-2">
-                          <div class="public-beds-label">Bed Status:</div>
-                          <div class="public-beds-list">
-                            @for (b of room.beds; track b.id) {
-                              <span class="public-bed-chip" [class.bed-free]="b.status === 'AVAILABLE'" [class.bed-taken]="b.status !== 'AVAILABLE'">
-                                <i class="fa-solid fa-bed me-1"></i> {{ b.bed_number }} ({{ b.status }})
-                              </span>
+                      <!-- Room Body Information -->
+                      <div class="room-content">
+                        <div class="room-top-row">
+                          <div>
+                            <h4 class="room-title">Room {{ room.room_number }}</h4>
+                            @if (room.room_name) {
+                              <div class="room-subtitle">{{ room.room_name }}</div>
                             }
                           </div>
+                          @if (room.room_type_name) {
+                            <span class="room-type-chip">{{ room.room_type_name }}</span>
+                          }
                         </div>
-                      }
 
-                      <div class="rent-details-box mt-3">
-                        <div>
-                          <div class="details-label">MONTHLY RENT</div>
-                          <div class="rent-amount">₹{{ room.monthly_rent | number }}</div>
+                        <!-- Bed Inventory Badges -->
+                        @if (room.beds && room.beds.length > 0) {
+                          <div class="beds-status-card">
+                            <div class="beds-card-header"><i class="fa-solid fa-bed me-1"></i> Bed Availability:</div>
+                            <div class="beds-chips-flex">
+                              @for (b of room.beds; track b.id) {
+                                <span
+                                  class="bed-status-chip"
+                                  [class.chip-free]="b.status === 'AVAILABLE'"
+                                  [class.chip-taken]="b.status !== 'AVAILABLE'"
+                                >
+                                  Bed {{ b.bed_number }}
+                                </span>
+                              }
+                            </div>
+                          </div>
+                        }
+
+                        <!-- Financial Details Box -->
+                        <div class="rent-pricing-card">
+                          <div class="pricing-col">
+                            <span class="price-label">MONTHLY RENT</span>
+                            <span class="price-amount text-primary">₹{{ room.monthly_rent | number }}</span>
+                          </div>
+                          <div class="pricing-divider"></div>
+                          <div class="pricing-col">
+                            <span class="price-label">DEPOSIT</span>
+                            <span class="price-amount text-slate">₹{{ room.security_deposit | number }}</span>
+                          </div>
                         </div>
-                        <div>
-                          <div class="details-label">DEPOSIT</div>
-                          <div class="deposit-amount">₹{{ room.security_deposit | number }}</div>
-                        </div>
+
+                        <!-- Booking Action Button -->
+                        <button
+                          class="btn btn-booking-action"
+                          [class.btn-booking-active]="room.status === 'AVAILABLE' || (+room.available_beds > 0)"
+                          [class.btn-booking-disabled]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)"
+                          [disabled]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)"
+                          (click)="openBookingModal(room)"
+                        >
+                          @if (room.status === 'AVAILABLE' || (+room.available_beds > 0)) {
+                            <span>Book Room / Bed Now</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                          } @else if (room.status === 'RESERVED') {
+                            <span><i class="fa-solid fa-lock me-1"></i> Room Reserved</span>
+                          } @else if (room.status === 'FULLY_OCCUPIED' || (+room.available_beds === 0)) {
+                            <span><i class="fa-solid fa-user-xmark me-1"></i> Fully Occupied</span>
+                          } @else {
+                            <span><i class="fa-solid fa-ban me-1"></i> Unavailable</span>
+                          }
+                        </button>
                       </div>
 
-                      <button
-                        class="btn full-width mt-3"
-                        [class.btn-primary]="room.status === 'AVAILABLE' || (+room.available_beds > 0)"
-                        [class.btn-disabled]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)"
-                        [disabled]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)"
-                        (click)="openBookingModal(room)"
-                      >
-                        @if (room.status === 'AVAILABLE' || (+room.available_beds > 0)) {
-                          Book Room / Bed Now <i class="fa-solid fa-arrow-right ms-1"></i>
-                        } @else if (room.status === 'RESERVED') {
-                          <i class="fa-solid fa-lock me-1"></i> Room Reserved
-                        } @else if (room.status === 'FULLY_OCCUPIED' || (+room.available_beds === 0)) {
-                          <i class="fa-solid fa-user-xmark me-1"></i> Fully Occupied
-                        } @else {
-                          <i class="fa-solid fa-ban me-1"></i> Unavailable
-                        }
-                      </button>
                     </div>
+                  }
+                </div>
+              }
 
-                  </div>
-                }
-              </div>
-            }
-
-          </div>
-        }
-      </div>
-
-    }
-  </section>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </div>
 
   <!-- ========================================== -->
   <!-- COMPREHENSIVE ROOM BOOKING & KYC MODAL -->
   <!-- ========================================== -->
   @if (showBookingModal && selectedRoomForBooking) {
-    <div class="modal-backdrop">
-      <div class="modal-card booking-modal-lg">
+    <div class="modal-overlay">
+      <div class="modal-window booking-modal-dialog">
 
         <!-- Modal Header -->
-        <div class="modal-header">
-          <div>
-            <h3 class="modal-title"><i class="fa-solid fa-key text-gold me-2"></i> Room {{ selectedRoomForBooking.room_number }} Reservation & Onboarding</h3>
-            <p class="modal-subtitle">{{ selectedRoomForBooking.branch_name || 'PG Branch' }} • Instant Confirmation</p>
+        <div class="modal-window-header">
+          <div class="header-title-box">
+            <div class="header-icon-box">
+              <i class="fa-solid fa-key"></i>
+            </div>
+            <div>
+              <h3 class="modal-main-title">Room {{ selectedRoomForBooking.room_number }} Reservation & Onboarding</h3>
+              <p class="modal-sub-title">{{ selectedRoomForBooking.branch_name || 'PG Branch' }} • Instant Lock</p>
+            </div>
           </div>
-          <button class="close-btn" (click)="closeBookingModal()">&times;</button>
+          <button class="modal-close-icon" (click)="closeBookingModal()">&times;</button>
         </div>
 
         <!-- Step Navigation Tabs -->
-        <div class="modal-steps-nav">
-          <button class="step-btn" [class.active]="activeBookingStep === 1" (click)="activeBookingStep = 1">
-            <span class="step-num">1</span> Financials & Date
+        <div class="modal-tabs-nav">
+          <button class="tab-item-btn" [class.active]="activeBookingStep === 1" (click)="activeBookingStep = 1">
+            <span class="tab-badge">1</span> Financials & Date
           </button>
-          <button class="step-btn" [class.active]="activeBookingStep === 2" (click)="activeBookingStep = 2">
-            <span class="step-num">2</span> Tenant Profile
+          <button class="tab-item-btn" [class.active]="activeBookingStep === 2" (click)="activeBookingStep = 2">
+            <span class="tab-badge">2</span> Tenant Profile
           </button>
-          <button class="step-btn" [class.active]="activeBookingStep === 3" (click)="activeBookingStep = 3">
-            <span class="step-num">3</span> KYC & Documents
+          <button class="tab-item-btn" [class.active]="activeBookingStep === 3" (click)="activeBookingStep = 3">
+            <span class="tab-badge">3</span> KYC & Documents
           </button>
-          <button class="step-btn" [class.active]="activeBookingStep === 4" (click)="activeBookingStep = 4">
-            <span class="step-num">4</span> Advance Payment
+          <button class="tab-item-btn" [class.active]="activeBookingStep === 4" (click)="activeBookingStep = 4">
+            <span class="tab-badge">4</span> Advance Payment
           </button>
         </div>
 
-        <div class="modal-body-scroll">
+        <div class="modal-window-body">
 
           <!-- STEP 1: FINANCIAL BREAKDOWN & DATES -->
           @if (activeBookingStep === 1) {
-            <div class="step-content">
-              <h4 class="step-title">🗓️ Select Move-In Date & Review Costs</h4>
+            <div class="step-panel">
+              <h4 class="step-panel-title">🗓️ Select Move-In Date & Review Costs</h4>
 
-              <div class="form-group mb-4">
-                <label class="form-label">Expected Check-In / Joining Date *</label>
-                <input type="date" class="form-input" [(ngModel)]="bookingForm.expected_check_in_date" />
+              <div class="custom-form-group">
+                <label class="custom-form-label">Expected Check-In / Joining Date *</label>
+                <input type="date" class="custom-form-input" [(ngModel)]="bookingForm.expected_check_in_date" />
               </div>
 
               @if (selectedRoomForBooking.beds && selectedRoomForBooking.beds.length > 0) {
-                <div class="form-group mb-4">
-                  <label class="form-label">🛏️ Select Specific Bed to Reserve *</label>
-                  <select class="form-input" [(ngModel)]="bookingForm.selectedBedId">
+                <div class="custom-form-group">
+                  <label class="custom-form-label">🛏️ Select Specific Bed to Reserve *</label>
+                  <select class="custom-form-input" [(ngModel)]="bookingForm.selectedBedId">
                     @for (b of selectedRoomForBooking.beds; track b.id) {
                       <option [value]="b.id" [disabled]="b.status !== 'AVAILABLE'">
-                        {{ b.bed_number }} — {{ b.status === 'AVAILABLE' ? '✅ AVAILABLE' : '❌ OCCUPIED / RESERVED' }} (₹{{ b.monthly_rent }}/mo)
+                        Bed {{ b.bed_number }} — {{ b.status === 'AVAILABLE' ? '✅ AVAILABLE' : '❌ OCCUPIED / RESERVED' }} (₹{{ b.monthly_rent }}/mo)
                       </option>
                     }
                   </select>
@@ -233,111 +303,117 @@
               }
 
               <!-- Itemized Financial Breakdown Card -->
-              <div class="cost-breakdown-card">
-                <h5 class="breakdown-title">💳 Total Upfront Advance Payment Summary</h5>
-                
-                <div class="cost-row">
+              <div class="financial-summary-card">
+                <h5 class="summary-card-header"><i class="fa-solid fa-receipt me-2"></i> Total Upfront Advance Payment Summary</h5>
+
+                <div class="summary-line">
                   <span>🏠 Monthly Rent (Room {{ selectedRoomForBooking.room_number }})</span>
-                  <span class="cost-val">₹{{ getMonthlyRent() | number }}</span>
+                  <span class="summary-val">₹{{ getMonthlyRent() | number }}</span>
                 </div>
-                <div class="cost-row">
+                <div class="summary-line">
                   <span>🛡️ Refundable Security Deposit</span>
-                  <span class="cost-val">₹{{ getSecurityDeposit() | number }}</span>
+                  <span class="summary-val">₹{{ getSecurityDeposit() | number }}</span>
                 </div>
-                <div class="cost-row">
+                <div class="summary-line">
                   <span>⚡ Fixed Electricity Charges / Advance</span>
-                  <span class="cost-val">₹{{ getElectricityCharge() | number }}</span>
+                  <span class="summary-val">₹{{ getElectricityCharge() | number }}</span>
                 </div>
-                <div class="cost-row">
+                <div class="summary-line">
                   <span>🧹 Maintenance & Cleaning Charges</span>
-                  <span class="cost-val">₹{{ getMaintenanceCharge() | number }}</span>
+                  <span class="summary-val">₹{{ getMaintenanceCharge() | number }}</span>
                 </div>
-                
-                <div class="cost-total-row mt-3">
+
+                <div class="summary-total-banner mt-3">
                   <span>TOTAL PAYABLE ADVANCE</span>
-                  <span class="total-val">₹{{ getTotalAdvancePayable() | number }}</span>
+                  <span class="total-price-text">₹{{ getTotalAdvancePayable() | number }}</span>
                 </div>
               </div>
 
-              <div class="mt-4 text-end">
-                <button class="btn btn-primary" (click)="activeBookingStep = 2">Next: Tenant Profile & Address ➔</button>
+              <div class="modal-step-actions text-end">
+                <button class="btn btn-accent-gradient" (click)="activeBookingStep = 2">
+                  Next: Tenant Profile & Address <i class="fa-solid fa-chevron-right ms-2"></i>
+                </button>
               </div>
             </div>
           }
 
           <!-- STEP 2: TENANT PROFILE & EMERGENCY CONTACT -->
           @if (activeBookingStep === 2) {
-            <div class="step-content">
-              <h4 class="step-title">👤 Tenant Personal & Employment Details</h4>
+            <div class="step-panel">
+              <h4 class="step-panel-title">👤 Tenant Personal & Employment Details</h4>
 
-              <div class="grid-2">
-                <div class="form-group">
-                  <label class="form-label">Full Name *</label>
-                  <input type="text" class="form-input" [value]="getUserName()" readonly />
+              <div class="form-grid-2">
+                <div class="custom-form-group">
+                  <label class="custom-form-label">Full Name *</label>
+                  <input type="text" class="custom-form-input readonly-input" [value]="getUserName()" readonly />
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Occupation / Designation</label>
-                  <input type="text" class="form-input" placeholder="e.g. Software Engineer, Student" [(ngModel)]="bookingForm.occupation" />
+                <div class="custom-form-group">
+                  <label class="custom-form-label">Occupation / Designation</label>
+                  <input type="text" class="custom-form-input" placeholder="e.g. Software Engineer, Student" [(ngModel)]="bookingForm.occupation" />
                 </div>
               </div>
 
-              <div class="form-group">
-                <label class="form-label">Company / College Name</label>
-                <input type="text" class="form-input" placeholder="e.g. Infosys / Christ University" [(ngModel)]="bookingForm.company_name" />
+              <div class="custom-form-group">
+                <label class="custom-form-label">Company / College Name</label>
+                <input type="text" class="custom-form-input" placeholder="e.g. Infosys / Christ University" [(ngModel)]="bookingForm.company_name" />
               </div>
 
-              <div class="form-group">
-                <label class="form-label">Permanent Residential Address</label>
-                <textarea class="form-input" rows="2" placeholder="House/Street Address" [(ngModel)]="bookingForm.permanent_address"></textarea>
+              <div class="custom-form-group">
+                <label class="custom-form-label">Permanent Residential Address</label>
+                <textarea class="custom-form-input" rows="2" placeholder="House/Street Address" [(ngModel)]="bookingForm.permanent_address"></textarea>
               </div>
 
-              <div class="grid-3">
-                <div class="form-group">
-                  <label class="form-label">City</label>
-                  <input type="text" class="form-input" placeholder="City" [(ngModel)]="bookingForm.city" />
+              <div class="form-grid-3">
+                <div class="custom-form-group">
+                  <label class="custom-form-label">City</label>
+                  <input type="text" class="custom-form-input" placeholder="City" [(ngModel)]="bookingForm.city" />
                 </div>
-                <div class="form-group">
-                  <label class="form-label">State</label>
-                  <input type="text" class="form-input" placeholder="State" [(ngModel)]="bookingForm.state" />
+                <div class="custom-form-group">
+                  <label class="custom-form-label">State</label>
+                  <input type="text" class="custom-form-input" placeholder="State" [(ngModel)]="bookingForm.state" />
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Pincode</label>
-                  <input type="text" class="form-input" placeholder="Pincode" [(ngModel)]="bookingForm.pincode" />
-                </div>
-              </div>
-
-              <h5 class="sub-step-title mt-4">🚨 Emergency Contact Person</h5>
-              <div class="grid-3">
-                <div class="form-group">
-                  <label class="form-label">Contact Person Name</label>
-                  <input type="text" class="form-input" placeholder="Parent/Guardian Name" [(ngModel)]="bookingForm.emergency_name" />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Relation</label>
-                  <input type="text" class="form-input" placeholder="e.g. Father, Mother, Guardian" [(ngModel)]="bookingForm.emergency_relation" />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Phone Number</label>
-                  <input type="text" class="form-input" placeholder="Mobile Number" [(ngModel)]="bookingForm.emergency_phone" />
+                <div class="custom-form-group">
+                  <label class="custom-form-label">Pincode</label>
+                  <input type="text" class="custom-form-input" placeholder="Pincode" [(ngModel)]="bookingForm.pincode" />
                 </div>
               </div>
 
-              <div class="mt-4 d-flex justify-content-between">
-                <button class="btn btn-secondary" (click)="activeBookingStep = 1">⬅ Back</button>
-                <button class="btn btn-primary" (click)="activeBookingStep = 3">Next: KYC & Documents ➔</button>
+              <h5 class="sub-section-title mt-4">🚨 Emergency Contact Person</h5>
+              <div class="form-grid-3">
+                <div class="custom-form-group">
+                  <label class="custom-form-label">Contact Person Name</label>
+                  <input type="text" class="custom-form-input" placeholder="Parent/Guardian Name" [(ngModel)]="bookingForm.emergency_name" />
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">Relation</label>
+                  <input type="text" class="custom-form-input" placeholder="e.g. Father, Mother, Guardian" [(ngModel)]="bookingForm.emergency_relation" />
+                </div>
+                <div class="custom-form-group">
+                  <label class="custom-form-label">Phone Number</label>
+                  <input type="text" class="custom-form-input" placeholder="Mobile Number" [(ngModel)]="bookingForm.emergency_phone" />
+                </div>
+              </div>
+
+              <div class="modal-step-actions space-between">
+                <button class="btn btn-outline-secondary" (click)="activeBookingStep = 1">
+                  <i class="fa-solid fa-chevron-left me-2"></i> Back
+                </button>
+                <button class="btn btn-accent-gradient" (click)="activeBookingStep = 3">
+                  Next: KYC & Documents <i class="fa-solid fa-chevron-right ms-2"></i>
+                </button>
               </div>
             </div>
           }
 
           <!-- STEP 3: KYC DOCUMENTS & PHOTO UPLOAD -->
           @if (activeBookingStep === 3) {
-            <div class="step-content">
-              <h4 class="step-title">📄 KYC Identity Verification & Photo</h4>
+            <div class="step-panel">
+              <h4 class="step-panel-title">📄 KYC Identity Verification & Photo</h4>
 
-              <div class="grid-2">
-                <div class="form-group">
-                  <label class="form-label">Select Identity Proof Type *</label>
-                  <select class="form-input" [(ngModel)]="bookingForm.document_type">
+              <div class="form-grid-2">
+                <div class="custom-form-group">
+                  <label class="custom-form-label">Select Identity Proof Type *</label>
+                  <select class="custom-form-input" [(ngModel)]="bookingForm.document_type">
                     <option value="AADHAAR">Aadhar Card</option>
                     <option value="PAN">PAN Card</option>
                     <option value="PASSPORT">Passport</option>
@@ -345,97 +421,103 @@
                     <option value="EMPLOYEE_ID">College / Employee ID</option>
                   </select>
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Document ID Number</label>
-                  <input type="text" class="form-input" placeholder="e.g. 12-digit Aadhar Number" [(ngModel)]="bookingForm.document_number" />
+                <div class="custom-form-group">
+                  <label class="custom-form-label">Document ID Number</label>
+                  <input type="text" class="custom-form-input" placeholder="e.g. 12-digit Aadhar Number" [(ngModel)]="bookingForm.document_number" />
                 </div>
               </div>
 
               <!-- Upload ID Proof Document -->
-              <div class="form-group mb-4">
-                <label class="form-label">Upload ID Proof File (Aadhar/Passport/ID)</label>
-                <input type="file" class="form-input-file" (change)="onDocFileSelected($event)" accept="image/*,.pdf" />
+              <div class="custom-form-group mb-4">
+                <label class="custom-form-label">Upload ID Proof File (Aadhar/Passport/ID)</label>
+                <input type="file" class="custom-file-input" (change)="onDocFileSelected($event)" accept="image/*,.pdf" />
                 @if (docFilePreview) {
-                  <div class="upload-preview-box mt-2">
-                    <img [src]="docFilePreview" alt="KYC Document Preview" class="doc-preview-img" />
-                    <span class="file-success-tag">✓ ID Document Attached</span>
+                  <div class="file-preview-card mt-2">
+                    <img [src]="docFilePreview" alt="KYC Document Preview" class="doc-thumbnail" />
+                    <span class="file-success-badge"><i class="fa-solid fa-circle-check me-1"></i> ID Document Attached</span>
                   </div>
                 }
               </div>
 
               <!-- Upload Profile Photo -->
-              <div class="form-group">
-                <label class="form-label">Upload Profile Photo / Avatar</label>
-                <input type="file" class="form-input-file" (change)="onPhotoFileSelected($event)" accept="image/*" />
+              <div class="custom-form-group">
+                <label class="custom-form-label">Upload Profile Photo / Avatar</label>
+                <input type="file" class="custom-file-input" (change)="onPhotoFileSelected($event)" accept="image/*" />
                 @if (photoFilePreview) {
-                  <div class="upload-preview-box mt-2">
-                    <img [src]="photoFilePreview" alt="Profile Preview" class="photo-preview-avatar" />
-                    <span class="file-success-tag">✓ Profile Photo Attached</span>
+                  <div class="file-preview-card mt-2">
+                    <img [src]="photoFilePreview" alt="Profile Preview" class="photo-thumbnail" />
+                    <span class="file-success-badge"><i class="fa-solid fa-circle-check me-1"></i> Profile Photo Attached</span>
                   </div>
                 }
               </div>
 
-              <div class="mt-4 d-flex justify-content-between">
-                <button class="btn btn-secondary" (click)="activeBookingStep = 2">⬅ Back</button>
-                <button class="btn btn-primary" (click)="activeBookingStep = 4">Next: Payment & Confirm ➔</button>
+              <div class="modal-step-actions space-between">
+                <button class="btn btn-outline-secondary" (click)="activeBookingStep = 2">
+                  <i class="fa-solid fa-chevron-left me-2"></i> Back
+                </button>
+                <button class="btn btn-accent-gradient" (click)="activeBookingStep = 4">
+                  Next: Payment & Confirm <i class="fa-solid fa-chevron-right ms-2"></i>
+                </button>
               </div>
             </div>
           }
 
           <!-- STEP 4: ADVANCE PAYMENT & CONFIRMATION -->
           @if (activeBookingStep === 4) {
-            <div class="step-content">
-              <h4 class="step-title">💳 Select Payment Mode & Reserve Room</h4>
+            <div class="step-panel">
+              <h4 class="step-panel-title">💳 Select Payment Mode & Reserve Room</h4>
 
-              <div class="payment-method-selector mb-4">
-                <label class="form-label mb-2">Select Advance Payment Method:</label>
+              <div class="custom-form-group mb-4">
+                <label class="custom-form-label mb-2">Select Advance Payment Method:</label>
 
-                <div class="payment-options-grid">
-                  <label class="pay-option-card" [class.selected]="bookingForm.payment_method === 'UPI'">
+                <div class="payment-cards-grid">
+                  <label class="pay-method-card" [class.selected]="bookingForm.payment_method === 'UPI'">
                     <input type="radio" name="payMethod" value="UPI" [(ngModel)]="bookingForm.payment_method" />
-                    <div>
-                      <i class="fa-solid fa-qrcode pay-icon"></i>
-                      <div class="pay-title">UPI / QR Code</div>
-                      <div class="pay-sub">Google Pay, PhonePe, Paytm</div>
+                    <div class="pay-card-body">
+                      <div class="pay-icon-wrapper"><i class="fa-solid fa-qrcode"></i></div>
+                      <div class="pay-card-title">UPI / QR Code</div>
+                      <div class="pay-card-sub">GPay, PhonePe, Paytm</div>
                     </div>
                   </label>
 
-                  <label class="pay-option-card" [class.selected]="bookingForm.payment_method === 'CARD'">
+                  <label class="pay-method-card" [class.selected]="bookingForm.payment_method === 'CARD'">
                     <input type="radio" name="payMethod" value="CARD" [(ngModel)]="bookingForm.payment_method" />
-                    <div>
-                      <i class="fa-solid fa-credit-card pay-icon"></i>
-                      <div class="pay-title">Credit / Debit Card</div>
-                      <div class="pay-sub">Visa, Mastercard, RuPay</div>
+                    <div class="pay-card-body">
+                      <div class="pay-icon-wrapper"><i class="fa-solid fa-credit-card"></i></div>
+                      <div class="pay-card-title">Credit / Debit Card</div>
+                      <div class="pay-card-sub">Visa, Mastercard, RuPay</div>
                     </div>
                   </label>
 
-                  <label class="pay-option-card" [class.selected]="bookingForm.payment_method === 'DESK'">
+                  <label class="pay-method-card" [class.selected]="bookingForm.payment_method === 'DESK'">
                     <input type="radio" name="payMethod" value="DESK" [(ngModel)]="bookingForm.payment_method" />
-                    <div>
-                      <i class="fa-solid fa-store pay-icon"></i>
-                      <div class="pay-title">Pay at PG Office</div>
-                      <div class="pay-sub">Cash / Desk Confirmation</div>
+                    <div class="pay-card-body">
+                      <div class="pay-icon-wrapper"><i class="fa-solid fa-store"></i></div>
+                      <div class="pay-card-title">Pay at PG Office</div>
+                      <div class="pay-card-sub">Cash / Desk Confirmation</div>
                     </div>
                   </label>
                 </div>
               </div>
 
               <!-- Final Total Highlight -->
-              <div class="final-pay-summary">
+              <div class="checkout-total-card">
                 <div>
-                  <div class="summary-label">TOTAL AMOUNT TO PAY NOW</div>
-                  <div class="summary-total">₹{{ getTotalAdvancePayable() | number }}</div>
+                  <div class="checkout-label">TOTAL AMOUNT TO PAY NOW</div>
+                  <div class="checkout-price">₹{{ getTotalAdvancePayable() | number }}</div>
                 </div>
                 <div class="text-end">
-                  <span class="instant-res-tag">🔒 Instant Room Lock</span>
+                  <span class="instant-lock-badge"><i class="fa-solid fa-shield-halved me-1"></i> Instant Room Lock</span>
                 </div>
               </div>
 
-              <div class="mt-4 d-flex justify-content-between">
-                <button class="btn btn-secondary" (click)="activeBookingStep = 3">⬅ Back</button>
-                <button class="btn btn-success btn-lg" [disabled]="isSubmittingBooking" (click)="submitCompleteBooking()">
+              <div class="modal-step-actions space-between">
+                <button class="btn btn-outline-secondary" (click)="activeBookingStep = 3">
+                  <i class="fa-solid fa-chevron-left me-2"></i> Back
+                </button>
+                <button class="btn btn-confirm-pay" [disabled]="isSubmittingBooking" (click)="submitCompleteBooking()">
                   @if (isSubmittingBooking) {
-                    <i class="fa-solid fa-spinner fa-spin me-2"></i> Processing Reservation...
+                    <i class="fa-solid fa-spinner fa-spin me-2"></i> Processing...
                   } @else {
                     <i class="fa-solid fa-circle-check me-2"></i> Pay ₹{{ getTotalAdvancePayable() | number }} & Confirm Room
                   }
@@ -454,55 +536,55 @@
   <!-- 🎉 BOOKING RECEIPT & CONFIRMATION MODAL -->
   <!-- ========================================== -->
   @if (bookingReceipt) {
-    <div class="modal-backdrop">
-      <div class="modal-card receipt-modal">
-        <div class="receipt-header text-center">
-          <div class="success-badge-circle"><i class="fa-solid fa-check"></i></div>
-          <h3>🎉 Room Reservation Confirmed!</h3>
-          <p>Booking Reference: <strong>{{ bookingReceipt.booking_number }}</strong></p>
+    <div class="modal-overlay">
+      <div class="modal-window receipt-dialog">
+        <div class="receipt-header-banner">
+          <div class="success-icon-badge"><i class="fa-solid fa-check"></i></div>
+          <h3 class="receipt-main-title">🎉 Room Reservation Confirmed!</h3>
+          <p class="receipt-ref-text">Booking Ref: <strong>{{ bookingReceipt.booking_number }}</strong></p>
         </div>
 
-        <div class="receipt-body">
-          <div class="receipt-item">
-            <span>Branch Name:</span>
+        <div class="receipt-body-content">
+          <div class="receipt-row-item">
+            <span class="text-slate">Branch Name:</span>
             <strong>{{ bookingReceipt.branch_name }}</strong>
           </div>
-          <div class="receipt-item">
-            <span>Allocated Room:</span>
+          <div class="receipt-row-item">
+            <span class="text-slate">Allocated Room:</span>
             <strong>Room {{ bookingReceipt.room_number }}</strong>
           </div>
-          <div class="receipt-item">
-            <span>Expected Check-In:</span>
+          <div class="receipt-row-item">
+            <span class="text-slate">Expected Check-In:</span>
             <strong>{{ bookingReceipt.expected_check_in_date | date }}</strong>
           </div>
 
-          <div class="receipt-divider"></div>
+          <div class="receipt-dashed-line"></div>
 
-          <div class="receipt-item">
-            <span>Monthly Rent:</span>
+          <div class="receipt-row-item">
+            <span class="text-slate">Monthly Rent:</span>
             <span>₹{{ bookingReceipt.breakdown.monthly_rent | number }}</span>
           </div>
-          <div class="receipt-item">
-            <span>Security Deposit:</span>
+          <div class="receipt-row-item">
+            <span class="text-slate">Security Deposit:</span>
             <span>₹{{ bookingReceipt.breakdown.security_deposit | number }}</span>
           </div>
-          <div class="receipt-item">
-            <span>Electricity Advance:</span>
+          <div class="receipt-row-item">
+            <span class="text-slate">Electricity Advance:</span>
             <span>₹{{ bookingReceipt.breakdown.electricity_charge | number }}</span>
           </div>
-          <div class="receipt-item">
-            <span>Maintenance Charge:</span>
+          <div class="receipt-row-item">
+            <span class="text-slate">Maintenance Charge:</span>
             <span>₹{{ bookingReceipt.breakdown.maintenance_charge | number }}</span>
           </div>
 
-          <div class="receipt-item receipt-total">
+          <div class="receipt-row-item receipt-total-row">
             <span>Total Advance Paid:</span>
-            <strong>₹{{ bookingReceipt.breakdown.total_paid | number }}</strong>
+            <strong class="receipt-total-price">₹{{ bookingReceipt.breakdown.total_paid | number }}</strong>
           </div>
         </div>
 
-        <div class="modal-footer text-center">
-          <button class="btn btn-primary full-width" (click)="closeReceiptModal()">
+        <div class="receipt-footer">
+          <button class="btn btn-accent-gradient full-width" (click)="closeReceiptModal()">
             Done & Return to Directory
           </button>
         </div>
