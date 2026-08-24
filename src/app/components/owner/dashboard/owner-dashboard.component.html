@@ -54,7 +54,7 @@
       @if (activeTab === 'dashboard') {
         <div class="dashboard-welcome">
           <h2 class="welcome-title">Welcome back! 👋</h2>
-          <p class="welcome-sub">{{ dashboard?.property?.property_name || 'My Property' }} — here's your overview.</p>
+          <p class="welcome-sub">{{ dashboard?.branch?.branch_name || dashboard?.property?.property_name || 'Selected Branch' }} — here's your overview.</p>
         </div>
 
         <div class="metrics-row">
@@ -110,7 +110,7 @@
         <app-owner-rooms
           [rooms]="rooms"
           [branchId]="selectedBranchId"
-          [showModal]="showRoomModal"
+          [(showModal)]="showRoomModal"
           (closeModal)="showRoomModal = false"
           (refreshRooms)="loadActiveTabData(true)"
         ></app-owner-rooms>

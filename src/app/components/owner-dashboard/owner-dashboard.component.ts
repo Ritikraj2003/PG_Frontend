@@ -33,19 +33,38 @@ export class OwnerDashboardComponent implements OnInit {
 
   async fetchDashboard() {
     try {
-      this.dashboard = await this.apiService.owner.getDashboard();
+      const savedBranchId = sessionStorage.getItem('selected_branch_id');
+      this.dashboard = await this.apiService.owner.getDashboard(savedBranchId || undefined);
       if (this.dashboard.branches && this.dashboard.branches.length > 0) {
         this.branches = this.dashboard.branches;
-        this.selectedBranchId = this.branches[0].id;
-        this.onBranchChange();
+        const exists = this.branches.find((b: any) => b.id === savedBranchId);
+        this.selectedBranchId = (exists && savedBranchId) ? savedBranchId : this.branches[0].id;
+        this.persistBranchInSession();
+        await this.loadActiveTabData();
       }
     } catch (err) {
       console.error(err);
     }
   }
 
+  private persistBranchInSession() {
+    if (!this.selectedBranchId) return;
+    sessionStorage.setItem('selected_branch_id', this.selectedBranchId);
+    const branchObj = this.branches.find((b: any) => b.id === this.selectedBranchId);
+    if (branchObj) {
+      sessionStorage.setItem('selected_branch_details', JSON.stringify(branchObj));
+      sessionStorage.setItem('selected_branch', JSON.stringify(branchObj));
+    }
+  }
+
   async onBranchChange() {
     if (!this.selectedBranchId) return;
+    this.persistBranchInSession();
+    try {
+      this.dashboard = await this.apiService.owner.getDashboard(this.selectedBranchId);
+    } catch (err) {
+      console.error(err);
+    }
     this.rooms = [];
     this.bookings = [];
     this.invoices = [];

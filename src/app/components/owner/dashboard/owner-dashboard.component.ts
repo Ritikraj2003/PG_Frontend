@@ -52,26 +52,63 @@ export class OwnerDashboardComponent implements OnInit {
 
   async fetchDashboard() {
     try {
-      this.dashboard = await this.apiService.owner.getDashboard();
+      const savedBranchId = sessionStorage.getItem('selected_branch_id');
+      this.dashboard = await this.apiService.owner.getDashboard(savedBranchId || undefined);
+      
       if (this.dashboard.branches && this.dashboard.branches.length > 0) {
         this.branches = this.dashboard.branches;
-        this.selectedBranchId = this.branches[0].id;
-        this.onBranchChange();
+        const exists = this.branches.find((b: any) => b.id === savedBranchId);
+        
+        if (exists && savedBranchId) {
+          this.selectedBranchId = savedBranchId;
+        } else {
+          this.selectedBranchId = this.branches[0].id;
+        }
+
+        // Save selected branch details into sessionStorage
+        this.persistBranchInSession();
+
+        // Load data for active tab
+        await this.loadActiveTabData(true);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch owner dashboard:', err);
+    }
+  }
+
+  private persistBranchInSession() {
+    if (!this.selectedBranchId) return;
+    sessionStorage.setItem('selected_branch_id', this.selectedBranchId);
+    
+    const branchObj = this.branches.find((b: any) => b.id === this.selectedBranchId);
+    if (branchObj) {
+      sessionStorage.setItem('selected_branch_details', JSON.stringify(branchObj));
+      sessionStorage.setItem('selected_branch', JSON.stringify(branchObj));
     }
   }
 
   async onBranchChange() {
     if (!this.selectedBranchId) return;
+    
+    // Save to session storage
+    this.persistBranchInSession();
+
+    // Fetch updated dashboard metrics specifically for the newly selected branch
+    try {
+      this.dashboard = await this.apiService.owner.getDashboard(this.selectedBranchId);
+    } catch (err) {
+      console.error('Failed to refresh dashboard stats for branch:', err);
+    }
+
+    // Reset current tab data & force reload
     this.rooms = [];
     this.bookings = [];
     this.invoices = [];
     this.expenses = [];
     this.tenants = [];
     this.loadedTabs.clear();
-    await this.loadActiveTabData();
+
+    await this.loadActiveTabData(true);
   }
 
   setActiveTab(tab: 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'expenses' | 'tenants') {

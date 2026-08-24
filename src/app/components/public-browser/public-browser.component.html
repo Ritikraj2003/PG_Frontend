@@ -1,244 +1,173 @@
-<div class="public-browser-wrapper">
-  <!-- Hero Banner -->
+<div class="staypulse-public-wrapper">
+  <!-- Hero Section with Soft Cyan/Blue Gradient -->
   <section class="hero-section">
-    <div class="hero-bg-shapes">
-      <div class="shape shape-1"></div>
-      <div class="shape shape-2"></div>
-    </div>
-    <div class="hero-content container">
-      <span class="hero-badge">
-        <i class="fa-solid fa-sparkles me-1"></i> Verified PG & Rental Spaces
-      </span>
-      <h1 class="hero-title">Find Your Perfect Living Space</h1>
+    <div class="hero-content">
+      <h1 class="hero-title">Find Your Next Home</h1>
       <p class="hero-subtitle">
-        Discover premium Paying Guest accommodations & verified rental houses with transparent pricing, instant booking & zero brokerage.
+        Discover premium co-living spaces tailored for the modern professional.<br />
+        Seamless booking, superior amenities, and vibrant communities.
       </p>
 
-      <!-- Glassmorphic Search Bar -->
-      <div class="search-bar-card">
-        <div class="search-input-group">
-          <i class="fa-solid fa-location-dot search-icon"></i>
+      <!-- Pill Search Bar -->
+      <div class="search-pill-container">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
           <input
             type="text"
             class="search-input"
-            placeholder="Search by city (e.g. Bengaluru, Mumbai)..."
+            placeholder="Search by city, property, or room type..."
             [(ngModel)]="searchCity"
             (keyup.enter)="fetchData()"
           />
         </div>
-        <div class="search-select-group">
-          <i class="fa-solid fa-filter search-icon"></i>
-          <select class="search-select" [(ngModel)]="filterType" (change)="fetchData()">
-            <option value="">All Accommodation Types</option>
-            <option value="PG">Paying Guest (PG)</option>
-            <option value="RENTAL_HOUSE">Rental House</option>
-          </select>
-        </div>
-        <button class="btn btn-search" (click)="fetchData()">
-          <i class="fa-solid fa-magnifying-glass me-2"></i> Search Spaces
-        </button>
+        <button class="btn-search" (click)="fetchData()">Search</button>
       </div>
     </div>
   </section>
 
-  <div class="main-container container">
+  <!-- Main Directory Container -->
+  <main class="main-directory-container">
     @if (bookingMessage) {
-      <div class="alert-wrapper mt-4">
-        <div class="alert-success-card">
-          <i class="fa-circle-check fa-solid me-2 text-emerald"></i>
-          <span>{{ bookingMessage }}</span>
-        </div>
+      <div class="alert-banner mb-4">
+        <i class="fa-circle-check fa-solid text-emerald"></i>
+        <span>{{ bookingMessage }}</span>
       </div>
     }
 
-    <!-- Logged-in Notice Banner -->
     @if (user) {
-      <div class="user-context-card mt-4">
-        <div class="user-context-content">
-          <div class="user-avatar-badge">
-            <i class="fa-solid fa-user-shield"></i>
-          </div>
-          <div>
-            <div class="context-title">
-              Logged in as <strong>{{ getUserName() }}</strong>
-              <span class="role-badge">{{ getUserRole() }}</span>
-            </div>
-            <p class="context-desc">Showing properties & branches customized for your account context.</p>
-          </div>
-        </div>
+      <div class="logged-user-banner mb-4">
+        <i class="fa-solid fa-user-check me-2"></i>
+        <span>Logged in as <strong>{{ getUserName() }}</strong> ({{ getUserRole() }})</span>
       </div>
     }
 
-    <!-- Branch-Wise Inventory Display -->
-    <section class="section-margin">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">
-            <i class="fa-solid fa-building-circle-check icon-accent me-2"></i> PG Branches & Rooms Directory
-          </h2>
-          <p class="section-desc">Browse available rooms and beds, check live pricing, and reserve instantly.</p>
-        </div>
+    @if (loading) {
+      <div class="loading-state">
+        <div class="pulse-spinner"></div>
+        <p>Searching for premium spaces...</p>
       </div>
+    } @else if (propertyGroups.length === 0) {
+      <div class="empty-state">
+        <i class="fa-solid fa-building-circle-exclamation empty-icon"></i>
+        <h3>No Spaces Found</h3>
+        <p>We couldn't find any rooms matching "{{ searchCity }}". Try clearing your search.</p>
+        <button class="btn-reset" (click)="searchCity = ''; fetchData()">Clear Search</button>
+      </div>
+    } @else {
+      <!-- Iterate over Property Groups (e.g. Stay Raj, Heritage Residency) -->
+      <div class="properties-list">
+        @for (property of propertyGroups; track property.property_id) {
+          <section class="property-group-section">
+            
+            <!-- Property Name Header -->
+            <div class="property-group-header">
+              @if (property.property_name.includes('Raj') || property.property_name.includes('Stay')) {
+                <i class="fa-solid fa-building property-icon text-blue"></i>
+              } @else {
+                <i class="fa-solid fa-house-chimney property-icon text-blue"></i>
+              }
+              <h2 class="property-title">{{ property.property_name }}</h2>
+            </div>
 
-      @if (loading) {
-        <div class="loading-state-card">
-          <div class="pulse-spinner"></div>
-          <p class="mt-3 text-muted">Fetching latest property & room availability...</p>
-        </div>
-      } @else if (branchGroups.length === 0) {
-        <div class="empty-state-card">
-          <div class="empty-icon-circle">
-            <i class="fa-solid fa-building-circle-exclamation"></i>
-          </div>
-          <h3>No Properties Found</h3>
-          <p>No branch or room inventory matches your search criteria. Try clearing filters or searching for another city.</p>
-          <button class="btn btn-secondary mt-3" (click)="searchCity = ''; filterType = ''; fetchData()">
-            <i class="fa-solid fa-rotate-left me-2"></i> Reset Search
-          </button>
-        </div>
-      } @else {
-
-        <!-- Iterate over each Branch Group -->
-        <div class="branch-groups-container">
-          @for (group of branchGroups; track group.branch_id) {
-            <div class="branch-card">
-
-              <!-- Branch Header Banner -->
-              <div class="branch-header">
-                <div class="branch-header-left">
-                  <span class="branch-type-tag"><i class="fa-solid fa-layer-group me-1"></i> BRANCH</span>
-                  <h3 class="branch-name">{{ group.branch_name }}</h3>
-                  <div class="branch-meta-row">
-                    <span class="meta-item"><i class="fa-solid fa-building me-1"></i> {{ group.property_name }}</span>
-                    @if (group.city) {
-                      <span class="meta-item"><i class="fa-solid fa-location-dot me-1"></i> {{ group.city }}</span>
-                    }
-                    @if (group.address) {
-                      <span class="meta-item"><i class="fa-solid fa-map-pin me-1"></i> {{ group.address }}</span>
+            <!-- Branches List within this Property -->
+            <div class="branches-wrapper">
+              @for (branch of property.branches; track branch.branch_id) {
+                <div class="branch-card-container">
+                  
+                  <!-- Branch Sub-Header -->
+                  <div class="branch-card-header">
+                    <h3 class="branch-name">{{ branch.branch_name }}</h3>
+                    @if (branch.city) {
+                      <div class="branch-location">
+                        <i class="fa-solid fa-location-dot location-icon"></i>
+                        <span>{{ branch.city }}</span>
+                      </div>
                     }
                   </div>
-                </div>
-                <div class="branch-header-right">
-                  <span class="room-count-badge">
-                    <i class="fa-solid fa-door-open me-1"></i> {{ group.rooms.length }} Room(s) Listed
-                  </span>
-                </div>
-              </div>
 
-              <!-- Rooms Grid under this Branch -->
-              @if (group.rooms.length === 0) {
-                <div class="no-rooms-notice">
-                  <i class="fa-solid fa-door-closed me-2"></i> No rooms listed in this branch currently.
-                </div>
-              } @else {
-                <div class="rooms-grid">
-                  @for (room of group.rooms; track room.id) {
-                    <div class="room-card">
-
-                      <!-- Room Image Preview Banner -->
-                      <div class="room-cover-box">
-                        @if (room.images && room.images.length > 0) {
-                          <img [src]="getImageUrl(room.images[0])" alt="Room cover" class="room-cover-image" />
-                          <span class="image-count-tag">
-                            <i class="fa-solid fa-camera me-1"></i> {{ room.images.length }} Photos
-                          </span>
-                        } @else {
-                          <div class="no-image-placeholder">
-                            <i class="fa-solid fa-city"></i>
-                            <span>No Photo Available</span>
-                          </div>
-                        }
-
-                        <span
-                          class="status-badge"
-                          [class.status-available]="room.status === 'AVAILABLE' || (+room.available_beds > 0)"
-                          [class.status-full]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)"
-                        >
-                          @if (room.total_beds && +room.total_beds > 0) {
-                            <i class="fa-solid fa-bed me-1"></i> {{ room.available_beds || 0 }} / {{ room.total_beds }} Beds Available
+                  <!-- Rooms Cards Grid -->
+                  <div class="rooms-grid">
+                    @for (room of branch.rooms; track room.id) {
+                      <div 
+                        class="room-compact-card" 
+                        (click)="openBookingModal(room)"
+                        title="Click to view details and reserve"
+                      >
+                        <!-- Room Left Thumbnail -->
+                        <div class="room-thumb-box">
+                          @if (room.images && room.images.length > 0) {
+                            <img [src]="getImageUrl(room.images[0])" [alt]="room.room_name || room.room_number" class="room-thumb-img" />
                           } @else {
-                            {{ room.status || 'AVAILABLE' }}
+                            <div class="thumb-fallback">
+                              <i class="fa-solid fa-bed"></i>
+                            </div>
                           }
-                        </span>
-                      </div>
+                        </div>
 
-                      <!-- Room Body Information -->
-                      <div class="room-content">
-                        <div class="room-top-row">
-                          <div>
-                            <h4 class="room-title">Room {{ room.room_number }}</h4>
-                            @if (room.room_name) {
-                              <div class="room-subtitle">{{ room.room_name }}</div>
+                        <!-- Room Right Content -->
+                        <div class="room-details-box">
+                          <div class="room-top-meta">
+                            <span class="room-title-text">{{ room.room_name || ('Room ' + room.room_number) }}</span>
+                            <span 
+                              class="status-pill"
+                              [class.status-available]="room.status === 'AVAILABLE' || (+room.available_beds > 0)"
+                              [class.status-occupied]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)"
+                            >
+                              {{ (room.status === 'AVAILABLE' || (+room.available_beds > 0)) ? 'Available' : 'Occupied' }}
+                            </span>
+                          </div>
+
+                          <!-- Amenity Icons -->
+                          <div class="room-amenities-row">
+                            <i class="fa-solid fa-wifi amenity-icon" title="Wi-Fi"></i>
+                            @if (room.amenities?.includes('ac') || room.room_name?.includes('Studio') || room.room_name?.includes('Suite')) {
+                              <i class="fa-solid fa-wind amenity-icon" title="Air Conditioner"></i>
+                            }
+                            @if (room.amenities?.includes('tv') || room.room_name?.includes('Twin') || room.room_name?.includes('Suite')) {
+                              <i class="fa-solid fa-tv amenity-icon" title="Smart TV"></i>
                             }
                           </div>
-                          @if (room.room_type_name) {
-                            <span class="room-type-chip">{{ room.room_type_name }}</span>
-                          }
-                        </div>
 
-                        <!-- Bed Inventory Badges -->
-                        @if (room.beds && room.beds.length > 0) {
-                          <div class="beds-status-card">
-                            <div class="beds-card-header"><i class="fa-solid fa-bed me-1"></i> Bed Availability:</div>
-                            <div class="beds-chips-flex">
-                              @for (b of room.beds; track b.id) {
-                                <span
-                                  class="bed-status-chip"
-                                  [class.chip-free]="b.status === 'AVAILABLE'"
-                                  [class.chip-taken]="b.status !== 'AVAILABLE'"
-                                >
-                                  Bed {{ b.bed_number }}
-                                </span>
-                              }
-                            </div>
-                          </div>
-                        }
-
-                        <!-- Financial Details Box -->
-                        <div class="rent-pricing-card">
-                          <div class="pricing-col">
-                            <span class="price-label">MONTHLY RENT</span>
-                            <span class="price-amount text-primary">₹{{ room.monthly_rent | number }}</span>
-                          </div>
-                          <div class="pricing-divider"></div>
-                          <div class="pricing-col">
-                            <span class="price-label">DEPOSIT</span>
-                            <span class="price-amount text-slate">₹{{ room.security_deposit | number }}</span>
+                          <!-- Price Tag -->
+                          <div class="room-price-row">
+                            <span class="currency-symbol">₹</span>
+                            <span class="price-val">{{ room.monthly_rent | number }}</span>
+                            <span class="per-month">/mo</span>
                           </div>
                         </div>
-
-                        <!-- Booking Action Button -->
-                        <button
-                          class="btn btn-booking-action"
-                          [class.btn-booking-active]="room.status === 'AVAILABLE' || (+room.available_beds > 0)"
-                          [class.btn-booking-disabled]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)"
-                          [disabled]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)"
-                          (click)="openBookingModal(room)"
-                        >
-                          @if (room.status === 'AVAILABLE' || (+room.available_beds > 0)) {
-                            <span>Book Room / Bed Now</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                          } @else if (room.status === 'RESERVED') {
-                            <span><i class="fa-solid fa-lock me-1"></i> Room Reserved</span>
-                          } @else if (room.status === 'FULLY_OCCUPIED' || (+room.available_beds === 0)) {
-                            <span><i class="fa-solid fa-user-xmark me-1"></i> Fully Occupied</span>
-                          } @else {
-                            <span><i class="fa-solid fa-ban me-1"></i> Unavailable</span>
-                          }
-                        </button>
                       </div>
+                    }
+                  </div>
 
-                    </div>
-                  }
                 </div>
               }
-
             </div>
-          }
+
+          </section>
+        }
+      </div>
+    }
+  </main>
+
+  <!-- StayPulse Clean Footer -->
+  <footer class="staypulse-footer">
+    <div class="footer-container">
+      <div class="footer-brand-col">
+        <div class="footer-brand-logo">
+          <span class="brand-blue">StayPulse</span>
         </div>
-      }
-    </section>
-  </div>
+        <p class="copyright-text">© 2024 StayPulse. Technologically Empowered Hospitality.</p>
+      </div>
+
+      <div class="footer-links-col">
+        <a href="#privacy" class="footer-link">Privacy Policy</a>
+        <a href="#terms" class="footer-link">Terms of Service</a>
+        <a href="#partner" class="footer-link">Partner with Us</a>
+        <a href="#help" class="footer-link">Help Center</a>
+        <a href="#career" class="footer-link">Career</a>
+      </div>
+    </div>
+  </footer>
 
   <!-- ========================================== -->
   <!-- COMPREHENSIVE ROOM BOOKING & KYC MODAL -->
@@ -254,8 +183,8 @@
               <i class="fa-solid fa-key"></i>
             </div>
             <div>
-              <h3 class="modal-main-title">Room {{ selectedRoomForBooking.room_number }} Reservation & Onboarding</h3>
-              <p class="modal-sub-title">{{ selectedRoomForBooking.branch_name || 'PG Branch' }} • Instant Lock</p>
+              <h3 class="modal-main-title">{{ selectedRoomForBooking.room_name || ('Room ' + selectedRoomForBooking.room_number) }} Reservation</h3>
+              <p class="modal-sub-title">{{ selectedRoomForBooking.branch_name || 'PG Branch' }} • Instant Booking</p>
             </div>
           </div>
           <button class="modal-close-icon" (click)="closeBookingModal()">&times;</button>
@@ -273,7 +202,7 @@
             <span class="tab-badge">3</span> KYC & Documents
           </button>
           <button class="tab-item-btn" [class.active]="activeBookingStep === 4" (click)="activeBookingStep = 4">
-            <span class="tab-badge">4</span> Advance Payment
+            <span class="tab-badge">4</span> Request & Payment Preference
           </button>
         </div>
 
@@ -295,19 +224,19 @@
                   <select class="custom-form-input" [(ngModel)]="bookingForm.selectedBedId">
                     @for (b of selectedRoomForBooking.beds; track b.id) {
                       <option [value]="b.id" [disabled]="b.status !== 'AVAILABLE'">
-                        Bed {{ b.bed_number }} — {{ b.status === 'AVAILABLE' ? '✅ AVAILABLE' : '❌ OCCUPIED / RESERVED' }} (₹{{ b.monthly_rent }}/mo)
+                        Bed {{ b.bed_number }} — {{ b.status === 'AVAILABLE' ? '✅ AVAILABLE' : '❌ OCCUPIED' }} (₹{{ b.monthly_rent }}/mo)
                       </option>
                     }
                   </select>
                 </div>
               }
 
-              <!-- Itemized Financial Breakdown Card -->
+              <!-- Financial Summary Card -->
               <div class="financial-summary-card">
                 <h5 class="summary-card-header"><i class="fa-solid fa-receipt me-2"></i> Total Upfront Advance Payment Summary</h5>
 
                 <div class="summary-line">
-                  <span>🏠 Monthly Rent (Room {{ selectedRoomForBooking.room_number }})</span>
+                  <span>🏠 Monthly Rent</span>
                   <span class="summary-val">₹{{ getMonthlyRent() | number }}</span>
                 </div>
                 <div class="summary-line">
@@ -315,11 +244,11 @@
                   <span class="summary-val">₹{{ getSecurityDeposit() | number }}</span>
                 </div>
                 <div class="summary-line">
-                  <span>⚡ Fixed Electricity Charges / Advance</span>
+                  <span>⚡ Fixed Electricity Charges</span>
                   <span class="summary-val">₹{{ getElectricityCharge() | number }}</span>
                 </div>
                 <div class="summary-line">
-                  <span>🧹 Maintenance & Cleaning Charges</span>
+                  <span>🧹 Maintenance Charges</span>
                   <span class="summary-val">₹{{ getMaintenanceCharge() | number }}</span>
                 </div>
 
@@ -330,7 +259,7 @@
               </div>
 
               <div class="modal-step-actions text-end">
-                <button class="btn btn-accent-gradient" (click)="activeBookingStep = 2">
+                <button class="btn btn-primary-blue" (click)="activeBookingStep = 2">
                   Next: Tenant Profile & Address <i class="fa-solid fa-chevron-right ms-2"></i>
                 </button>
               </div>
@@ -395,10 +324,10 @@
               </div>
 
               <div class="modal-step-actions space-between">
-                <button class="btn btn-outline-secondary" (click)="activeBookingStep = 1">
+                <button class="btn btn-outline-slate" (click)="activeBookingStep = 1">
                   <i class="fa-solid fa-chevron-left me-2"></i> Back
                 </button>
-                <button class="btn btn-accent-gradient" (click)="activeBookingStep = 3">
+                <button class="btn btn-primary-blue" (click)="activeBookingStep = 3">
                   Next: KYC & Documents <i class="fa-solid fa-chevron-right ms-2"></i>
                 </button>
               </div>
@@ -427,7 +356,6 @@
                 </div>
               </div>
 
-              <!-- Upload ID Proof Document -->
               <div class="custom-form-group mb-4">
                 <label class="custom-form-label">Upload ID Proof File (Aadhar/Passport/ID)</label>
                 <input type="file" class="custom-file-input" (change)="onDocFileSelected($event)" accept="image/*,.pdf" />
@@ -439,7 +367,6 @@
                 }
               </div>
 
-              <!-- Upload Profile Photo -->
               <div class="custom-form-group">
                 <label class="custom-form-label">Upload Profile Photo / Avatar</label>
                 <input type="file" class="custom-file-input" (change)="onPhotoFileSelected($event)" accept="image/*" />
@@ -452,10 +379,10 @@
               </div>
 
               <div class="modal-step-actions space-between">
-                <button class="btn btn-outline-secondary" (click)="activeBookingStep = 2">
+                <button class="btn btn-outline-slate" (click)="activeBookingStep = 2">
                   <i class="fa-solid fa-chevron-left me-2"></i> Back
                 </button>
-                <button class="btn btn-accent-gradient" (click)="activeBookingStep = 4">
+                <button class="btn btn-primary-blue" (click)="activeBookingStep = 4">
                   Next: Payment & Confirm <i class="fa-solid fa-chevron-right ms-2"></i>
                 </button>
               </div>
@@ -465,10 +392,20 @@
           <!-- STEP 4: ADVANCE PAYMENT & CONFIRMATION -->
           @if (activeBookingStep === 4) {
             <div class="step-panel">
-              <h4 class="step-panel-title">💳 Select Payment Mode & Reserve Room</h4>
+              <h4 class="step-panel-title">📋 Submit Booking Request & Payment Preference</h4>
+
+              <div class="alert alert-info border-0 rounded-3 p-3 mb-4" style="background: rgba(13, 110, 253, 0.08); border-left: 4px solid #0d6efd !important;">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fa-solid fa-circle-info text-primary fs-5"></i>
+                  <div>
+                    <strong>Approval-First Payment Workflow:</strong>
+                    <div class="small text-muted">Your booking request will be sent to the Owner for confirmation. Once approved by the Owner, your invoice will be generated and you can pay directly from your Tenant Dashboard.</div>
+                  </div>
+                </div>
+              </div>
 
               <div class="custom-form-group mb-4">
-                <label class="custom-form-label mb-2">Select Advance Payment Method:</label>
+                <label class="custom-form-label mb-2">Select Preferred Payment Method (For Invoice):</label>
 
                 <div class="payment-cards-grid">
                   <label class="pay-method-card" [class.selected]="bookingForm.payment_method === 'UPI'">
@@ -500,26 +437,25 @@
                 </div>
               </div>
 
-              <!-- Final Total Highlight -->
               <div class="checkout-total-card">
                 <div>
-                  <div class="checkout-label">TOTAL AMOUNT TO PAY NOW</div>
+                  <div class="checkout-label">ESTIMATED ADVANCE AMOUNT</div>
                   <div class="checkout-price">₹{{ getTotalAdvancePayable() | number }}</div>
                 </div>
                 <div class="text-end">
-                  <span class="instant-lock-badge"><i class="fa-solid fa-shield-halved me-1"></i> Instant Room Lock</span>
+                  <span class="instant-lock-badge"><i class="fa-solid fa-clock me-1"></i> Pending Owner Approval</span>
                 </div>
               </div>
 
-              <div class="modal-step-actions space-between">
-                <button class="btn btn-outline-secondary" (click)="activeBookingStep = 3">
+              <div class="modal-step-actions space-between mt-4">
+                <button class="btn btn-outline-slate" (click)="activeBookingStep = 3">
                   <i class="fa-solid fa-chevron-left me-2"></i> Back
                 </button>
                 <button class="btn btn-confirm-pay" [disabled]="isSubmittingBooking" (click)="submitCompleteBooking()">
                   @if (isSubmittingBooking) {
-                    <i class="fa-solid fa-spinner fa-spin me-2"></i> Processing...
+                    <i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting Request...
                   } @else {
-                    <i class="fa-solid fa-circle-check me-2"></i> Pay ₹{{ getTotalAdvancePayable() | number }} & Confirm Room
+                    <i class="fa-solid fa-paper-plane me-2"></i> Submit Booking Request
                   }
                 </button>
               </div>
@@ -532,9 +468,7 @@
     </div>
   }
 
-  <!-- ========================================== -->
-  <!-- 🎉 BOOKING RECEIPT & CONFIRMATION MODAL -->
-  <!-- ========================================== -->
+  <!-- BOOKING RECEIPT & CONFIRMATION MODAL -->
   @if (bookingReceipt) {
     <div class="modal-overlay">
       <div class="modal-window receipt-dialog">
@@ -584,7 +518,7 @@
         </div>
 
         <div class="receipt-footer">
-          <button class="btn btn-accent-gradient full-width" (click)="closeReceiptModal()">
+          <button class="btn btn-primary-blue full-width" (click)="closeReceiptModal()">
             Done & Return to Directory
           </button>
         </div>
@@ -592,3 +526,4 @@
     </div>
   }
 </div>
+

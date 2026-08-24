@@ -121,7 +121,7 @@ export class ApiService {
 
   // Owner
   owner = {
-    getDashboard: () => this.request('/owner/dashboard'),
+    getDashboard: (branchId?: string) => this.request(`/owner/dashboard${branchId ? `?branch_id=${branchId}` : ''}`),
     getFloors: (branchId: string) => this.request(`/owner/floors?branch_id=${branchId}`),
     createFloor: (data: any) => this.request('/owner/floors', { method: 'POST', body: data instanceof FormData ? data : JSON.stringify(data) }),
     updateFloor: (id: string, data: any) => this.request(`/owner/floors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

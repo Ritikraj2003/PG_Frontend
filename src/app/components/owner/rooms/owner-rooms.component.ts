@@ -19,7 +19,20 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
   @Input() showModal: boolean = false;
 
   @Output() closeModal = new EventEmitter<void>();
+  @Output() showModalChange = new EventEmitter<boolean>();
   @Output() refreshRooms = new EventEmitter<void>();
+
+  openAddRoomModal() {
+    this.showModal = true;
+    this.showModalChange.emit(true);
+    this.loadMasterData(true);
+  }
+
+  handleCloseModal() {
+    this.showModal = false;
+    this.showModalChange.emit(false);
+    this.closeModal.emit();
+  }
 
   floors: any[] = [];
   roomTypes: any[] = [];
@@ -43,13 +56,15 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
   imagePreviews: string[] = [];
   isUploading = false;
 
-  // Photo Gallery Modal state
+  // Selected Room for Managing Beds
+  selectedRoomForBeds: any = null;
+  showBedManager = false;
+  roomBeds: any[] = [];
+
+  // Preview Image Modal
   previewRoom: any = null;
 
   // Bed Management Modal state
-  showBedManager = false;
-  selectedRoomForBeds: any = null;
-  roomBeds: any[] = [];
   isAddingBed = false;
   newBedForm = {
     bed_number: '',
@@ -67,27 +82,43 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
   };
   isSavingFloor = false;
 
+  private lastLoadedBranchId: string | null = null;
+  private isMasterDataLoading = false;
+
   ngOnInit() {
-    if (this.branchId) {
+    // Only load master data if modal is already requested open on init
+    if (this.showModal || this.showFloorManager) {
       this.loadMasterData();
     }
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if ((changes['branchId'] && this.branchId) || changes['showModal']?.currentValue === true) {
-      this.loadMasterData();
+    // Only fetch master data when user opens Add Room modal
+    const modalOpened = changes['showModal']?.currentValue === true;
+    if (modalOpened) {
+      this.loadMasterData(true);
     }
   }
 
-  async loadMasterData() {
+  async loadMasterData(force = false) {
     if (!this.branchId) return;
+
+    // Skip if already loading or if already cached for this branch
+    if (this.isMasterDataLoading) return;
+    if (!force && this.lastLoadedBranchId === this.branchId && this.floors.length > 0 && this.roomTypes.length > 0) {
+      return;
+    }
+
+    this.isMasterDataLoading = true;
+
     try {
       const [floorsRes, typesRes] = await Promise.all([
         this.apiService.owner.getFloors(this.branchId).catch(() => []),
-        this.apiService.owner.getRoomTypes().catch(() => []),
+        this.roomTypes.length > 0 ? Promise.resolve(this.roomTypes) : this.apiService.owner.getRoomTypes().catch(() => []),
       ]);
       this.floors = floorsRes || [];
       this.roomTypes = typesRes || [];
+      this.lastLoadedBranchId = this.branchId;
 
       if (this.floors.length > 0 && (!this.roomForm.floor_id || !this.floors.some(f => f.id === this.roomForm.floor_id))) {
         this.roomForm.floor_id = this.floors[0].id;
@@ -97,12 +128,15 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
       }
     } catch (err) {
       console.error('Failed to load master data:', err);
+    } finally {
+      this.isMasterDataLoading = false;
     }
   }
 
   // --- Floor Management CRUD ---
   openFloorManager() {
     this.showFloorManager = true;
+    this.loadMasterData(true);
     this.resetFloorForm();
   }
 
@@ -243,7 +277,7 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
       alert('🎉 Room & Beds added successfully!');
 
       this.resetForm();
-      this.closeModal.emit();
+      this.handleCloseModal();
       this.refreshRooms.emit();
     } catch (err: any) {
       alert(`Error creating room: ${err.message || 'Server error'}`);

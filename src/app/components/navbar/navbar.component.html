@@ -1,64 +1,65 @@
-<nav class="navbar">
-  <div class="brand-logo" routerLink="/browse">
-    <i class="fa-solid fa-building-user brand-icon"></i>
-    <span>StayPulse</span>
-    <span class="badge badge-info brand-tag">PG & SaaS</span>
-  </div>
-
-  <div class="nav-links">
-    <a
-      class="btn btn-secondary"
-      routerLink="/browse"
-      routerLinkActive="btn-primary"
-      [routerLinkActiveOptions]="{ exact: true }"
-    >
-      <i class="fa-solid fa-house"></i> Public Browse
-    </a>
-
-    @if (user && user.roles.includes('SUPER_ADMIN')) {
-      <a
-        class="btn btn-secondary"
-        routerLink="/admin"
-        routerLinkActive="btn-primary"
-      >
-        <i class="fa-solid fa-shield-halved"></i> Super Admin
-      </a>
-    }
-
-    @if (user && user.roles.includes('OWNER')) {
-      <a
-        class="btn btn-secondary"
-        routerLink="/owner"
-        routerLinkActive="btn-primary"
-      >
-        <i class="fa-solid fa-building"></i> Owner Portal
-      </a>
-    }
-
-    @if (user && user.roles.includes('TENANT')) {
-      <a
-        class="btn btn-secondary"
-        routerLink="/tenant"
-        routerLinkActive="btn-primary"
-      >
-        <i class="fa-solid fa-user"></i> Tenant Portal
-      </a>
-    }
-
-    @if (user) {
-      <div class="user-profile">
-        <div class="user-info">
-          <div class="user-name">{{ user.full_name }}</div>
-          <span class="badge badge-info">{{ user.roles.join(', ') }}</span>
-        </div>
-        <button class="btn btn-danger" (click)="logout.emit()" title="Logout">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </button>
+<nav class="staypulse-navbar">
+  <div class="nav-container">
+    <!-- Brand Logo -->
+    <div class="brand-logo" routerLink="/browse">
+      <div class="logo-icon-box">
+        <i class="fa-solid fa-heart-pulse"></i>
       </div>
-    } @else {
-      <button class="btn btn-primary" (click)="openAuth.emit()">
-        Register / Login
-      </button>
-    }
+      <span class="brand-name">StayPulse</span>
+    </div>
+
+    <!-- Center Navigation Links -->
+    <div class="nav-menu">
+      <a
+        class="nav-item"
+        routerLink="/browse"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        Find Rooms
+      </a>
+      <a class="nav-item" href="#about">About Us</a>
+      <a class="nav-item" href="#contact">Contact</a>
+
+      @if (user && user.roles.includes('SUPER_ADMIN')) {
+        <a class="nav-item admin-link" routerLink="/admin" routerLinkActive="active">
+          <i class="fa-solid fa-shield-halved me-1"></i> Admin Portal
+        </a>
+      }
+
+      @if (user && user.roles.includes('OWNER')) {
+        <a class="nav-item owner-link" routerLink="/owner" routerLinkActive="active">
+          <i class="fa-solid fa-building me-1"></i> Owner Portal
+        </a>
+      }
+
+      @if (user && user.roles.includes('TENANT')) {
+        <a class="nav-item tenant-link" routerLink="/tenant" routerLinkActive="active">
+          <i class="fa-solid fa-user me-1"></i> My Stay
+        </a>
+      }
+    </div>
+
+    <!-- Right Actions -->
+    <div class="nav-actions">
+      @if (user) {
+        <div class="user-profile-menu">
+          <div class="avatar-circle">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <span class="user-name">{{ user.full_name }}</span>
+          <button class="btn-logout" (click)="logout.emit()" title="Sign Out">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      } @else {
+        <button class="btn-sign-in" (click)="openAuth.emit()">Sign In</button>
+        <button class="btn-join-now" (click)="openAuth.emit()">Join Now</button>
+        <div class="avatar-icon-placeholder" (click)="openAuth.emit()">
+          <i class="fa-solid fa-user-astronaut"></i>
+        </div>
+      }
+    </div>
   </div>
 </nav>
+

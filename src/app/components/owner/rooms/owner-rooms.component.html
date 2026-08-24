@@ -8,7 +8,7 @@
       <button class="btn btn-outline" (click)="openFloorManager()">
         <i class="fa-solid fa-layer-group me-1"></i> Manage Floors
       </button>
-      <button class="btn btn-primary" (click)="showModal = true">
+      <button class="btn btn-primary" (click)="openAddRoomModal()">
         <i class="fa-solid fa-plus me-1"></i> Add Room Now
       </button>
     </div>
@@ -104,7 +104,7 @@
 <!-- ADD ROOM MODAL (WITH MULTI-IMAGE UPLOAD)   -->
 <!-- ========================================== -->
 @if (showModal) {
-  <div class="modal-backdrop" (click)="closeModal.emit()">
+  <div class="modal-backdrop" (click)="handleCloseModal()">
     <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title-group">
@@ -114,7 +114,7 @@
             <p class="modal-subtitle">Configure room details, monthly rent, floor, and room images.</p>
           </div>
         </div>
-        <button class="modal-close-btn" (click)="closeModal.emit()">✕</button>
+        <button type="button" class="modal-close-btn" (click)="handleCloseModal()">✕</button>
       </div>
 
       <div class="modal-body">
@@ -295,7 +295,7 @@
 
           <!-- Form Actions -->
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline" (click)="closeModal.emit()" [disabled]="isUploading">
+            <button type="button" class="btn btn-outline" (click)="handleCloseModal()" [disabled]="isUploading">
               Cancel
             </button>
             <button type="submit" class="btn btn-primary" [disabled]="isUploading">
