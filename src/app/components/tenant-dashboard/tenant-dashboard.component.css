@@ -438,3 +438,49 @@
 .text-md { font-size: 0.95rem; }
 .font-semibold { font-weight: 600; }
 
+.method-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #e5ddd4;
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  background: white;
+  text-align: center;
+}
+
+.method-card:hover {
+  border-color: #c28859;
+  background: #fdfaf7;
+}
+
+.method-card.selected {
+  border-color: #c28859;
+  background: #fdfaf7;
+  box-shadow: 0 4px 12px rgba(194, 136, 89, 0.15);
+}
+
+.method-card .d-none {
+  display: none !important;
+}
+
+.method-card i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.method-card span {
+  font-weight: 600;
+  color: #1a2744;
+  font-size: 1.05rem;
+}
+
+.method-card small {
+  color: #888;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}

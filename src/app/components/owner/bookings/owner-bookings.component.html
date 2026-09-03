@@ -20,7 +20,7 @@
             <td>Room {{ bk.room_number }}</td>
             <td>
               <span class="badge" 
-                [class.badge-success]="bk.status === 'CONFIRMED' || bk.status === 'CHECKED_IN'"
+                [class.badge-success]="bk.status === 'APPROVED' || bk.status === 'PAID' || bk.status === 'CHECKED_IN'"
                 [class.badge-warning]="bk.status === 'PENDING'"
                 [class.badge-secondary]="bk.status === 'CHECKED_OUT' || bk.status === 'VACATED'">
                 {{ bk.status }}
@@ -33,12 +33,12 @@
                 </button>
 
                 @if (bk.status === 'PENDING') {
-                  <button class="btn btn-primary action-btn me-2" (click)="updateStatus.emit({ id: bk.id, status: 'CONFIRMED' })">
+                  <button class="btn btn-primary action-btn me-2" (click)="updateStatus.emit({ id: bk.id, status: 'APPROVED' })">
                     Approve
                   </button>
                 }
 
-                @if (bk.status === 'CONFIRMED' || bk.status === 'CHECKED_IN') {
+                @if (bk.status === 'APPROVED' || bk.status === 'PAID' || bk.status === 'CHECKED_IN') {
                   <button class="btn btn-outline-danger action-btn" (click)="updateStatus.emit({ id: bk.id, status: 'CHECKED_OUT' })" title="Vacate tenant & free room">
                     <i class="fa-solid fa-door-open me-1"></i> Vacate / Check Out
                   </button>
@@ -67,7 +67,7 @@
           </h3>
           <p class="modal-subtitle">
             Booking Ref: <strong>{{ selectedBooking.booking_number }}</strong> • Status: 
-            <span class="badge ms-1" [class.badge-success]="selectedBooking.status === 'CONFIRMED'">{{ selectedBooking.status }}</span>
+            <span class="badge ms-1" [class.badge-success]="selectedBooking.status === 'APPROVED' || selectedBooking.status === 'PAID'">{{ selectedBooking.status }}</span>
           </p>
         </div>
         <button class="close-btn" (click)="closeViewModal()">&times;</button>
@@ -245,7 +245,7 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeViewModal()">Close</button>
         @if (selectedBooking.status === 'PENDING') {
-          <button class="btn btn-primary" (click)="updateStatus.emit({ id: selectedBooking.id, status: 'CONFIRMED' }); closeViewModal();">
+          <button class="btn btn-primary" (click)="updateStatus.emit({ id: selectedBooking.id, status: 'APPROVED' }); closeViewModal();">
             <i class="fa-solid fa-check me-1"></i> Approve Booking
           </button>
         }

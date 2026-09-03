@@ -10,6 +10,8 @@ import { OwnerBookingsComponent } from '../bookings/owner-bookings.component';
 import { OwnerInvoicesComponent } from '../invoices/owner-invoices.component';
 import { OwnerExpensesComponent } from '../expenses/owner-expenses.component';
 import { OwnerTenantsComponent } from '../tenants/owner-tenants.component';
+import { OwnerSettingsComponent } from '../settings/owner-settings.component';
+import { OwnerPaymentsComponent } from '../payments/owner-payments.component';
 
 @Component({
   selector: 'app-owner-dashboard',
@@ -21,8 +23,10 @@ import { OwnerTenantsComponent } from '../tenants/owner-tenants.component';
     OwnerRoomsComponent,
     OwnerBookingsComponent,
     OwnerInvoicesComponent,
+    OwnerPaymentsComponent,
     OwnerExpensesComponent,
-    OwnerTenantsComponent
+    OwnerTenantsComponent,
+    OwnerSettingsComponent
   ],
   templateUrl: './owner-dashboard.component.html',
   styleUrl: './owner-dashboard.component.css',
@@ -42,7 +46,7 @@ export class OwnerDashboardComponent implements OnInit {
   expenses: any[] = [];
   tenants: any[] = [];
 
-  activeTab: 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'expenses' | 'tenants' = 'dashboard';
+  activeTab: 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'payments' | 'expenses' | 'tenants' | 'settings' = 'dashboard';
   loadedTabs = new Set<string>();
   showRoomModal = false;
 
@@ -111,7 +115,7 @@ export class OwnerDashboardComponent implements OnInit {
     await this.loadActiveTabData(true);
   }
 
-  setActiveTab(tab: 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'expenses' | 'tenants') {
+  setActiveTab(tab: 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'payments' | 'expenses' | 'tenants' | 'settings') {
     this.activeTab = tab;
     this.loadActiveTabData();
   }

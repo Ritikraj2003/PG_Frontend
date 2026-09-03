@@ -49,7 +49,7 @@ export class AuthService {
 
     if (user.roles.includes('SUPER_ADMIN')) {
       this.router.navigate(['/admin']);
-    } else if (user.roles.includes('OWNER')) {
+    } else if (user.roles.includes('COMPANY_ADMIN') || user.roles.includes('STAFF')) {
       this.router.navigate(['/owner']);
     } else {
       this.router.navigate(['/tenant']);

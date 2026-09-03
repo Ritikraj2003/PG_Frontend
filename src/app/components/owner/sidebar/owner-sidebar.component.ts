@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-export type OwnerTab = 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'expenses' | 'tenants';
+export type OwnerTab = 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'payments' | 'expenses' | 'tenants' | 'settings';
 
 @Component({
   selector: 'app-owner-sidebar',

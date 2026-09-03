@@ -658,11 +658,28 @@
       <button type="button" class="close-icon-btn" (click)="showAddBranchModal = false">&times;</button>
     </div>
     <form (ngSubmit)="createBranch()" class="modal-form">
-      <input type="text" class="input-field" placeholder="e.g. BTM Layout Branch" [(ngModel)]="branchData.branch_name"
-        name="branch_name" required />
-      <input type="text" class="input-field" placeholder="City" [(ngModel)]="branchData.city" name="city" required />
-      <input type="text" class="input-field" placeholder="Address" [(ngModel)]="branchData.address" name="address"
-        required />
+      <div class="detail-grid">
+        <div class="detail-item full-width">
+          <label>Branch Name *</label>
+          <input type="text" class="input-field" placeholder="e.g. BTM Layout Branch" [(ngModel)]="branchData.branch_name" name="branch_name" required />
+        </div>
+        <div class="detail-item">
+          <label>Contact Number</label>
+          <input type="tel" class="input-field" placeholder="Contact Number" [(ngModel)]="branchData.contact_number" name="branch_contact" />
+        </div>
+        <div class="detail-item full-width">
+          <label>Address *</label>
+          <input type="text" class="input-field" placeholder="Full Address" [(ngModel)]="branchData.address" name="address" required />
+        </div>
+        <div class="detail-item">
+          <label>City *</label>
+          <input type="text" class="input-field" placeholder="City" [(ngModel)]="branchData.city" name="city" required />
+        </div>
+        <div class="detail-item">
+          <label>State *</label>
+          <input type="text" class="input-field" placeholder="State" [(ngModel)]="branchData.state" name="state" required />
+        </div>
+      </div>
 
       <div class="form-actions mt-3">
         <button type="submit" class="btn btn-primary flex-1">Create Branch</button>

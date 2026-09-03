@@ -27,13 +27,13 @@
         </a>
       }
 
-      @if (user && user.roles.includes('OWNER')) {
+      @if (user && (user.roles.includes('COMPANY_ADMIN') || user.roles.includes('STAFF'))) {
         <a class="nav-item owner-link" routerLink="/owner" routerLinkActive="active">
           <i class="fa-solid fa-building me-1"></i> Owner Portal
         </a>
       }
 
-      @if (user && user.roles.includes('TENANT')) {
+      @if (user && user.roles.includes('USER')) {
         <a class="nav-item tenant-link" routerLink="/tenant" routerLinkActive="active">
           <i class="fa-solid fa-user me-1"></i> My Stay
         </a>

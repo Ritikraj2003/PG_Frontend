@@ -1,553 +1,301 @@
-<!-- Empty State -->
-@if (!rooms || rooms.length === 0) {
-  <div class="empty-state-card">
-    <div class="empty-icon"><i class="fa-solid fa-door-open"></i></div>
-    <h3>No Rooms Added Yet</h3>
-    <p>Start adding rooms to this branch to manage inventory, set pricing, and assign beds.</p>
-    <div class="d-flex gap-2 justify-content-center mt-3">
-      <button class="btn btn-outline" (click)="openFloorManager()">
-        <i class="fa-solid fa-layer-group me-1"></i> Manage Floors
-      </button>
-      <button class="btn btn-primary" (click)="openAddRoomModal()">
-        <i class="fa-solid fa-plus me-1"></i> Add Room Now
+<!-- Rooms List View -->
+<div class="rooms-container">
+  @if (rooms.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fa-solid fa-door-open"></i></div>
+      <h3>No Rooms Found</h3>
+      <p>Start by adding rooms to this branch.</p>
+      <button class="btn btn-primary mt-3" (click)="openAddRoomModal()">
+        <i class="fa-solid fa-plus me-2"></i>Add First Room
       </button>
     </div>
-  </div>
-}
-
-<!-- Rooms Grid Directory -->
-<div class="rooms-grid">
-  @for (r of rooms; track r.id) {
-    <div class="room-card">
-      <!-- Thumbnail Header -->
-      <div class="room-card-banner">
-        @if (r.images && r.images.length > 0) {
-          <img [src]="getImageUrl(r.images[0])" alt="Room Image" class="room-cover-img" />
-          <span class="photo-count-badge" (click)="openPreview(r)">
-            <i class="fa-solid fa-camera me-1"></i> {{ r.images.length }} Photos
-          </span>
-        } @else {
-          <div class="room-placeholder-cover">
-            <i class="fa-solid fa-image placeholder-icon"></i>
-            <span>No Photos</span>
+  } @else {
+    <div class="rooms-grid">
+      @for (room of rooms; track room.id) {
+        <div class="room-card" (click)="openPreview(room)">
+          <!-- Room Status Banner -->
+          <div class="status-banner" [ngClass]="{
+            'available': room.status === 'AVAILABLE',
+            'partial': room.status === 'PARTIALLY_OCCUPIED',
+            'full': room.status === 'FULLY_OCCUPIED'
+          }">
+            {{ room.status.replace('_', ' ') }}
           </div>
-        }
-        <span class="status-badge" [class.badge-available]="r.status === 'AVAILABLE'" [class.badge-occupied]="r.status === 'PARTIALLY_OCCUPIED' || r.status === 'FULLY_OCCUPIED'">
-          {{ r.status || 'AVAILABLE' }}
-        </span>
-      </div>
 
-      <!-- Card Body -->
-      <div class="room-card-body">
-        <div class="room-title-row">
-          <h3 class="room-title">Room {{ r.room_number }}</h3>
-          @if (r.room_type_name) {
-            <span class="room-type-tag">{{ r.room_type_name }}</span>
-          }
-        </div>
+          <!-- Room Image -->
+          <div class="room-image">
+            @if (room.images && room.images.length > 0) {
+              <img [src]="getImageUrl(room.images[0])" alt="Room {{ room.room_number }}">
+            } @else {
+              <div class="no-image-placeholder">
+                <i class="fa-solid fa-image"></i>
+              </div>
+            }
+          </div>
 
-        @if (r.room_name) {
-          <div class="room-subtitle">{{ r.room_name }}</div>
-        }
+          <!-- Room Details -->
+          <div class="room-info">
+            <div class="room-header">
+              <h3>{{ room.room_number }}</h3>
+              <span class="room-type">{{ room.room_type }}</span>
+            </div>
 
-        <div class="room-meta-row mb-2">
-          @if (r.floor_name) {
-            <span class="meta-item"><i class="fa-solid fa-layer-group"></i> {{ r.floor_name }}</span>
-          }
-          <span class="meta-item"><i class="fa-solid fa-bed"></i> {{ r.available_beds || 0 }} / {{ r.total_beds || 0 }} Beds Available</span>
-        </div>
+            <div class="room-stats">
+              <div class="stat">
+                <i class="fa-solid fa-bed text-muted"></i>
+                <span>{{ room.available_beds || 0 }} / {{ room.total_beds || room.capacity || 2 }} beds free</span>
+              </div>
+              <div class="stat">
+                <i class="fa-solid fa-layer-group text-muted"></i>
+                <span>Floor {{ room.floor_number }}</span>
+              </div>
+            </div>
 
-        <!-- Bed Badges Chips Grid -->
-        @if (r.beds && r.beds.length > 0) {
-          <div class="beds-chips-wrapper mb-3">
-            <div class="beds-chips-label">Beds Inventory:</div>
-            <div class="beds-chips-list">
-              @for (b of r.beds; track b.id) {
-                <span class="bed-chip" 
-                  [class.bed-available]="b.status === 'AVAILABLE'" 
-                  [class.bed-occupied]="b.status === 'OCCUPIED' || b.status === 'RESERVED'">
-                  <i class="fa-solid fa-bed me-1"></i> {{ b.bed_number }}
-                  <small>({{ b.status }})</small>
-                </span>
-              }
+            <div class="room-price">
+              <span class="price-val">₹{{ room.monthly_rent }}</span>
+              <span class="price-term">/mo per bed</span>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="room-actions mt-3 pt-3 border-top d-flex gap-2" (click)="$event.stopPropagation()">
+              <button class="btn btn-sm btn-outline-primary flex-grow-1" (click)="openBedManager(room)">
+                <i class="fa-solid fa-bed me-1"></i> Manage Beds
+              </button>
             </div>
           </div>
-        }
-
-        <!-- Rent Info Grid -->
-        <div class="pricing-grid mb-3">
-          <div class="price-box">
-            <span class="price-label">Monthly Rent</span>
-            <span class="price-value">₹{{ r.monthly_rent | number }}</span>
-          </div>
-          <div class="price-box">
-            <span class="price-label">Deposit</span>
-            <span class="price-value">₹{{ r.security_deposit | number }}</span>
-          </div>
         </div>
-
-        <!-- Actions -->
-        <div class="room-card-actions d-flex gap-2">
-          <button class="btn-primary-sm flex-1" (click)="openBedManager(r)">
-            <i class="fa-solid fa-bed me-1"></i> Manage Beds ({{ r.total_beds || 0 }})
-          </button>
-          <button class="btn-secondary-sm" (click)="openPreview(r)" title="View Room Details">
-            <i class="fa-solid fa-images"></i>
-          </button>
-        </div>
-      </div>
+      }
     </div>
   }
 </div>
 
-<!-- ========================================== -->
-<!-- ADD ROOM MODAL (WITH MULTI-IMAGE UPLOAD)   -->
-<!-- ========================================== -->
+<!-- Add Room Modal -->
 @if (showModal) {
-  <div class="modal-backdrop" (click)="handleCloseModal()">
-    <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop">
+    <div class="modal-content large-modal">
       <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon"><i class="fa-solid fa-door-plus"></i></div>
-          <div>
-            <h3 class="modal-title">Add New Room</h3>
-            <p class="modal-subtitle">Configure room details, monthly rent, floor, and room images.</p>
-          </div>
-        </div>
-        <button type="button" class="modal-close-btn" (click)="handleCloseModal()">✕</button>
+        <h2><i class="fa-solid fa-door-open me-2"></i> Add New Room</h2>
+        <button class="close-btn" (click)="handleCloseModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="modal-body">
-        <form (ngSubmit)="submitCreateRoom()">
-
-          <div class="form-grid-2">
-            <!-- Room Number -->
+        <form (submit)="submitCreateRoom(); $event.preventDefault()">
+          
+          <div class="form-grid">
             <div class="form-group">
-              <label class="form-label">Room Number <span class="required">*</span></label>
-              <input
-                type="text"
-                class="form-control"
-                placeholder="e.g. 101, 102-A"
-                [(ngModel)]="roomForm.room_number"
-                name="room_number"
-                required
-              />
+              <label>Room Number / Name *</label>
+              <input type="text" class="form-control" name="room_number" [(ngModel)]="roomForm.room_number" placeholder="e.g. 101 or A1" required>
             </div>
 
-            <!-- Room Name / Alias -->
             <div class="form-group">
-              <label class="form-label">Room Title / Name</label>
-              <input
-                type="text"
-                class="form-control"
-                placeholder="e.g. Deluxe Sharing Room"
-                [(ngModel)]="roomForm.room_name"
-                name="room_name"
-              />
+              <label>Floor Number *</label>
+              <input type="number" class="form-control" name="floor_number" [(ngModel)]="roomForm.floor_number" required>
             </div>
-          </div>
 
-          <div class="form-grid-2">
-            <!-- Floor Select -->
             <div class="form-group">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="form-label mb-0">Floor <span class="required">*</span></label>
-                <button type="button" class="btn-text-action" (click)="openFloorManager()">
-                  <i class="fa-solid fa-plus-circle me-1"></i> Manage Floors
-                </button>
-              </div>
-              <select class="form-control" [(ngModel)]="roomForm.floor_id" name="floor_id" required>
-                @for (f of floors; track f.id) {
-                  <option [value]="f.id">{{ f.floor_name }} (Floor #{{ f.floor_number }})</option>
+              <label>Room Type *</label>
+              <select class="form-select" name="room_type" [(ngModel)]="roomForm.room_type" required>
+                @for (type of roomTypes; track type) {
+                  <option [value]="type">{{ type }}</option>
                 }
               </select>
             </div>
 
-            <!-- Room Type Select -->
             <div class="form-group">
-              <label class="form-label">Room Type</label>
-              <select class="form-control" [(ngModel)]="roomForm.room_type_id" name="room_type_id">
-                @for (t of roomTypes; track t.id) {
-                  <option [value]="t.id">{{ t.name }} (Cap: {{ t.capacity }})</option>
-                }
-              </select>
+              <label>Total Capacity (Beds)</label>
+              <input type="number" class="form-control" name="capacity" [(ngModel)]="roomForm.capacity" min="1">
+            </div>
+
+            <div class="form-group">
+              <label>Default Rent / Bed (₹)</label>
+              <input type="number" class="form-control" name="monthly_rent" [(ngModel)]="roomForm.monthly_rent">
+            </div>
+
+            <div class="form-group">
+              <label>Default Deposit / Bed (₹)</label>
+              <input type="number" class="form-control" name="security_deposit" [(ngModel)]="roomForm.security_deposit">
             </div>
           </div>
 
-          <div class="form-grid-2">
-            <!-- Total Beds Capacity -->
-            <div class="form-group">
-              <label class="form-label">Total Beds / Bed Capacity <span class="required">*</span></label>
-              <select class="form-control" [(ngModel)]="roomForm.capacity" name="capacity" required>
-                <option [value]="1">1 Bed (Single Room)</option>
-                <option [value]="2">2 Beds (Double Sharing)</option>
-                <option [value]="3">3 Beds (Triple Sharing)</option>
-                <option [value]="4">4 Beds (4-Sharing)</option>
-                <option [value]="5">5 Beds (5-Sharing)</option>
-                <option [value]="6">6 Beds (6-Sharing)</option>
-              </select>
-              <small class="form-hint text-muted">Automatically generates Bed 1, Bed 2, Bed 3...</small>
-            </div>
-
-            <!-- Monthly Rent -->
-            <div class="form-group">
-              <label class="form-label">Monthly Rent (₹) <span class="required">*</span></label>
-              <input
-                type="number"
-                class="form-control"
-                placeholder="8500"
-                [(ngModel)]="roomForm.monthly_rent"
-                name="monthly_rent"
-                required
-              />
-            </div>
-
-            <!-- Security Deposit -->
-            <div class="form-group">
-              <label class="form-label">Security Deposit (₹) <span class="required">*</span></label>
-              <input
-                type="number"
-                class="form-control"
-                placeholder="15000"
-                [(ngModel)]="roomForm.security_deposit"
-                name="security_deposit"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="form-grid-2">
-            <!-- Electricity Charge -->
-            <div class="form-group">
-              <label class="form-label">Electricity Charge (₹/mo)</label>
-              <input
-                type="number"
-                class="form-control"
-                placeholder="0"
-                [(ngModel)]="roomForm.electricity_charge"
-                name="electricity_charge"
-              />
-            </div>
-
-            <!-- Maintenance Charge -->
-            <div class="form-group">
-              <label class="form-label">Maintenance Charge (₹/mo)</label>
-              <input
-                type="number"
-                class="form-control"
-                placeholder="0"
-                [(ngModel)]="roomForm.maintenance_charge"
-                name="maintenance_charge"
-              />
-            </div>
-          </div>
-
-          <!-- Description -->
-          <div class="form-group">
-            <label class="form-label">Description / Room Amenities</label>
-            <textarea
-              class="form-control"
-              rows="2"
-              placeholder="e.g. Balcony attached, high speed WiFi, wooden wardrobe..."
-              [(ngModel)]="roomForm.description"
-              name="description"
-            ></textarea>
-          </div>
-
-          <!-- Multiple Images Upload -->
-          <div class="form-group image-upload-section">
-            <label class="form-label font-bold text-dark">
-              <i class="fa-solid fa-images me-1 text-primary"></i> Upload Multiple Room Photos
+          <!-- Photo Upload Section -->
+          <div class="form-group mt-4 border-top pt-4">
+            <label class="d-flex justify-content-between align-items-center mb-2">
+              <span><i class="fa-solid fa-camera me-1"></i> Room Photos</span>
+              <span class="text-muted small">Max 5 images</span>
             </label>
-            <p class="upload-hint">Upload photos of bedroom, bathroom, view, wardrobe, etc. (JPEG, PNG, WEBP supported)</p>
-
-            <div class="upload-dropzone">
-              <input
-                type="file"
-                id="room-images-input"
-                multiple
-                accept="image/*"
-                class="hidden-file-input"
-                (change)="onFileSelected($event)"
-              />
-              <label for="room-images-input" class="upload-trigger-btn">
-                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                <span>Choose / Drag Multiple Images</span>
-                <small>Select one or multiple photo files</small>
-              </label>
+            
+            <div class="upload-area" (click)="fileInput.click()">
+              <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2 text-primary"></i>
+              <p class="mb-0">Click to browse or drag images here</p>
+              <input type="file" #fileInput multiple accept="image/*" class="d-none" (change)="onFileSelected($event)">
             </div>
 
-            <!-- Previews Grid -->
             @if (imagePreviews.length > 0) {
-              <div class="previews-header">
-                Selected Photos ({{ imagePreviews.length }})
-              </div>
-              <div class="image-previews-grid">
+              <div class="preview-grid mt-3">
                 @for (img of imagePreviews; track $index) {
                   <div class="preview-item">
-                    <img [src]="img" alt="Selected photo preview" />
-                    <button type="button" class="remove-img-btn" (click)="removeImage($index)" title="Remove photo">✕</button>
+                    <img [src]="img" alt="Preview">
+                    <button type="button" class="remove-img-btn" (click)="removeImage($index)">
+                      <i class="fa-solid fa-times"></i>
+                    </button>
                   </div>
                 }
               </div>
             }
           </div>
 
-          <!-- Form Actions -->
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline" (click)="handleCloseModal()" [disabled]="isUploading">
-              Cancel
-            </button>
+          <div class="modal-footer mt-4">
+            <button type="button" class="btn btn-outline" (click)="handleCloseModal()">Cancel</button>
             <button type="submit" class="btn btn-primary" [disabled]="isUploading">
               @if (isUploading) {
-                <i class="fa-solid fa-spinner fa-spin me-1"></i> Uploading & Saving...
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...
               } @else {
-                <i class="fa-solid fa-check me-1"></i> Save Room
+                <i class="fa-solid fa-check me-2"></i> Save Room
               }
             </button>
           </div>
-
         </form>
       </div>
     </div>
   </div>
 }
 
-<!-- ========================================== -->
-<!-- FLOOR MANAGEMENT CRUD MODAL                -->
-<!-- ========================================== -->
-@if (showFloorManager) {
-  <div class="modal-backdrop" (click)="closeFloorManager()">
-    <div class="modal-card modal-md" (click)="$event.stopPropagation()">
+<!-- Manage Beds Modal -->
+@if (showBedManager && selectedRoomForBeds) {
+  <div class="modal-backdrop">
+    <div class="modal-content large-modal">
       <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon text-amber"><i class="fa-solid fa-layer-group"></i></div>
-          <div>
-            <h3 class="modal-title">Manage Branch Floors</h3>
-            <p class="modal-subtitle">Add, edit, or remove floor designations for this property.</p>
-          </div>
-        </div>
-        <button class="modal-close-btn" (click)="closeFloorManager()">✕</button>
+        <h2><i class="fa-solid fa-bed me-2"></i> Manage Beds: {{ selectedRoomForBeds.room_number }}</h2>
+        <button class="close-btn" (click)="closeBedManager()"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div class="modal-body">
-        <!-- Create / Edit Floor Form -->
-        <div class="floor-form-box">
-          <h4 class="box-title">
-            @if (editingFloorId) { Edit Floor } @else { Add New Floor }
-          </h4>
-          <div class="form-grid-2">
-            <div class="form-group mb-2">
-              <label class="form-label">Floor Number</label>
-              <input type="number" class="form-control" [(ngModel)]="floorForm.floor_number" placeholder="0" />
+      <div class="modal-body bed-manager-body">
+        
+        <!-- Add New Bed Form -->
+        <div class="add-bed-box">
+          <h4>Add New Bed</h4>
+          <form class="d-flex gap-3 align-items-end flex-wrap" (submit)="addBedToRoom(); $event.preventDefault()">
+            <div class="form-group mb-0 flex-grow-1">
+              <label>Bed Number/ID</label>
+              <input type="text" class="form-control form-control-sm" name="bed_number" [(ngModel)]="newBedForm.bed_number" required>
             </div>
-            <div class="form-group mb-2">
-              <label class="form-label">Floor Name <span class="required">*</span></label>
-              <input type="text" class="form-control" [(ngModel)]="floorForm.floor_name" placeholder="e.g. Ground Floor, 1st Floor" />
+            <div class="form-group mb-0">
+              <label>Rent</label>
+              <input type="number" class="form-control form-control-sm" style="width: 100px;" name="monthly_rent" [(ngModel)]="newBedForm.monthly_rent">
             </div>
-          </div>
-          <div class="form-group mb-2">
-            <label class="form-label">Description (Optional)</label>
-            <input type="text" class="form-control" [(ngModel)]="floorForm.description" placeholder="e.g. Executive Rooms Floor" />
-          </div>
-          <div class="d-flex justify-content-end gap-2 mt-2">
-            @if (editingFloorId) {
-              <button type="button" class="btn btn-outline-sm" (click)="resetFloorForm()">Cancel Edit</button>
-            }
-            <button type="button" class="btn btn-primary-sm" (click)="saveFloor()" [disabled]="isSavingFloor">
-              @if (editingFloorId) { Save Changes } @else { <i class="fa-solid fa-plus me-1"></i> Add Floor }
+            <div class="form-group mb-0">
+              <label>Deposit</label>
+              <input type="number" class="form-control form-control-sm" style="width: 100px;" name="security_deposit" [(ngModel)]="newBedForm.security_deposit">
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary" [disabled]="isAddingBed">
+              <i class="fa-solid fa-plus"></i> Add
             </button>
-          </div>
+          </form>
         </div>
 
-        <!-- Floors List Table -->
-        <div class="floors-list-box mt-4">
-          <h4 class="box-title">Configured Floors ({{ floors.length }})</h4>
-          @if (floors.length === 0) {
-            <p class="text-muted fs-085">No floors configured yet.</p>
-          } @else {
-            <div class="floor-items-list">
-              @for (f of floors; track f.id) {
-                <div class="floor-item-card" [class.editing]="f.id === editingFloorId">
-                  <div class="floor-item-info">
-                    <span class="floor-num-badge">#{{ f.floor_number }}</span>
-                    <div>
-                      <div class="floor-name-text">{{ f.floor_name }}</div>
-                      @if (f.description) {
-                        <div class="floor-desc-text">{{ f.description }}</div>
-                      }
-                    </div>
-                  </div>
-                  <div class="floor-item-actions">
-                    <button class="icon-btn edit-btn" (click)="editFloor(f)" title="Edit Floor"><i class="fa-solid fa-pen"></i></button>
-                    <button class="icon-btn delete-btn" (click)="deleteFloor(f)" title="Delete Floor"><i class="fa-solid fa-trash"></i></button>
-                  </div>
-                </div>
-              }
-            </div>
+        <!-- Existing Beds List -->
+        <div class="beds-list mt-4">
+          <h4 class="mb-3">Existing Beds ({{ roomBeds.length }})</h4>
+          
+          @if (roomBeds.length === 0) {
+            <p class="text-muted text-center py-4">No beds added yet.</p>
           }
-        </div>
-      </div>
-    </div>
-  </div>
-}
 
-<!-- ========================================== -->
-<!-- PHOTO GALLERY PREVIEW LIGHTBOX MODAL       -->
-<!-- ========================================== -->
-@if (previewRoom) {
-  <div class="modal-backdrop" (click)="closePreview()">
-    <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div>
-          <h3 class="modal-title">Room {{ previewRoom.room_number }} — Photo Gallery</h3>
-          <p class="modal-subtitle">{{ previewRoom.room_name || 'Room Overview' }} • ₹{{ previewRoom.monthly_rent }}/mo</p>
-        </div>
-        <button class="modal-close-btn" (click)="closePreview()">✕</button>
-      </div>
+          <div class="bed-items">
+            @for (bed of roomBeds; track bed.id) {
+              <div class="bed-item-row" [class.editing]="editingBedId === bed.id">
+                
+                <!-- View Mode -->
+                @if (editingBedId !== bed.id) {
+                  <div class="bed-info flex-grow-1">
+                    <span class="bed-badge" [ngClass]="{
+                      'bg-success': bed.status === 'AVAILABLE',
+                      'bg-danger': bed.status === 'OCCUPIED'
+                    }">{{ bed.status }}</span>
+                    <strong class="ms-2">{{ bed.bed_number }}</strong>
+                    <span class="ms-3 text-muted">₹{{ bed.monthly_rent }}/mo</span>
+                  </div>
+                  
+                  <div class="bed-actions">
+                    <button class="btn btn-sm btn-outline-secondary me-2" (click)="editBed(bed)">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="deleteBed(bed)" [disabled]="bed.status === 'OCCUPIED'">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                }
 
-      <div class="modal-body">
-        @if (previewRoom.images && previewRoom.images.length > 0) {
-          <div class="gallery-grid">
-            @for (photo of previewRoom.images; track $index) {
-              <div class="gallery-item">
-                <img [src]="getImageUrl(photo)" [alt]="'Room ' + previewRoom.room_number + ' photo ' + ($index + 1)" />
+                <!-- Edit Mode -->
+                @if (editingBedId === bed.id) {
+                  <form class="d-flex gap-2 w-100 align-items-center flex-wrap" (submit)="saveEditBed(); $event.preventDefault()">
+                    <input type="text" class="form-control form-control-sm flex-grow-1" name="e_bed_num" [(ngModel)]="editBedForm.bed_number">
+                    <input type="number" class="form-control form-control-sm" style="width: 100px;" name="e_rent" [(ngModel)]="editBedForm.monthly_rent" placeholder="Rent">
+                    <input type="number" class="form-control form-control-sm" style="width: 100px;" name="e_dep" [(ngModel)]="editBedForm.security_deposit" placeholder="Deposit">
+                    <select class="form-select form-select-sm" style="width: 120px;" name="e_status" [(ngModel)]="editBedForm.status">
+                      <option value="AVAILABLE">Available</option>
+                      <option value="OCCUPIED">Occupied</option>
+                      <option value="MAINTENANCE">Maintenance</option>
+                    </select>
+                    
+                    <button type="submit" class="btn btn-sm btn-success" [disabled]="isSavingBed"><i class="fa-solid fa-check"></i></button>
+                    <button type="button" class="btn btn-sm btn-secondary" (click)="cancelEditBed()"><i class="fa-solid fa-times"></i></button>
+                  </form>
+                }
               </div>
             }
           </div>
-        } @else {
-          <div class="empty-gallery">
-            <i class="fa-solid fa-image-slash empty-icon"></i>
-            <p>No photos uploaded for this room yet.</p>
-          </div>
-        }
-
-        <div class="room-details-summary mt-4">
-          <h4>Room Information</h4>
-          <div class="details-grid">
-            <div><strong>Floor:</strong> {{ previewRoom.floor_name || 'N/A' }}</div>
-            <div><strong>Room Type:</strong> {{ previewRoom.room_type_name || 'N/A' }}</div>
-            <div><strong>Monthly Rent:</strong> ₹{{ previewRoom.monthly_rent }}</div>
-            <div><strong>Security Deposit:</strong> ₹{{ previewRoom.security_deposit }}</div>
-            <div><strong>Status:</strong> {{ previewRoom.status || 'AVAILABLE' }}</div>
-          </div>
-          @if (previewRoom.description) {
-            <div class="mt-2"><strong>Description:</strong> {{ previewRoom.description }}</div>
-          }
         </div>
+
       </div>
     </div>
   </div>
 }
 
-<!-- ========================================== -->
-<!-- BED MANAGER MODAL                          -->
-<!-- ========================================== -->
-@if (showBedManager && selectedRoomForBeds) {
-  <div class="modal-backdrop" (click)="closeBedManager()">
-    <div class="modal-card modal-md" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon text-primary"><i class="fa-solid fa-bed"></i></div>
-          <div>
-            <h3 class="modal-title">Manage Beds — Room {{ selectedRoomForBeds.room_number }}</h3>
-            <p class="modal-subtitle">Add or view beds allocated for this room (Sharing inventory).</p>
-          </div>
-        </div>
-        <button class="modal-close-btn" (click)="closeBedManager()">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <!-- Add Bed Form -->
-        <div class="floor-form-box mb-4">
-          <h4 class="box-title"><i class="fa-solid fa-plus-circle me-1"></i> Add New Bed to Room</h4>
-          <div class="form-grid-2">
-            <div class="form-group mb-2">
-              <label class="form-label">Bed Identifier <span class="required">*</span></label>
-              <input type="text" class="form-control" [(ngModel)]="newBedForm.bed_number" placeholder="e.g. Bed 3, Bed C" />
-            </div>
-            <div class="form-group mb-2">
-              <label class="form-label">Bed Monthly Rent (₹)</label>
-              <input type="number" class="form-control" [(ngModel)]="newBedForm.monthly_rent" placeholder="8500" />
-            </div>
-          </div>
-          <div class="d-flex justify-content-end mt-2">
-            <button type="button" class="btn btn-primary-sm" (click)="addBedToRoom()" [disabled]="isAddingBed">
-              @if (isAddingBed) { <i class="fa-solid fa-spinner fa-spin me-1"></i> Adding... } @else { <i class="fa-solid fa-plus me-1"></i> Add Bed }
-            </button>
-          </div>
-        </div>
-
-        <!-- Room Beds Table -->
-        <div class="floors-list-box">
-          <h4 class="box-title">Configured Beds in Room {{ selectedRoomForBeds.room_number }} ({{ roomBeds.length }})</h4>
-          @if (roomBeds.length === 0) {
-            <p class="text-muted fs-085">No beds configured yet for this room.</p>
+<!-- Room Preview Modal -->
+@if (previewRoom) {
+  <div class="modal-backdrop" (click)="closePreview()">
+    <div class="preview-modal" (click)="$event.stopPropagation()">
+      <button class="close-preview-btn" (click)="closePreview()"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="preview-layout">
+        <div class="preview-images">
+          @if (previewRoom.images?.length > 0) {
+            <img [src]="getImageUrl(previewRoom.images[0])" class="main-preview-img" alt="Main Photo">
           } @else {
-            <div class="floor-items-list">
-              @for (b of roomBeds; track b.id) {
-                <div class="floor-item-card flex-column align-items-stretch">
-                  @if (editingBedId === b.id) {
-                    <!-- Inline Edit Form -->
-                    <div class="bed-edit-form p-2 border rounded bg-light">
-                      <h5 class="fs-085 fw-bold mb-2">Edit {{ b.bed_number }}</h5>
-                      <div class="form-grid-2 mb-2">
-                        <div>
-                          <label class="form-label fs-075 mb-1">Bed Number / Name</label>
-                          <input type="text" class="form-control form-control-sm" [(ngModel)]="editBedForm.bed_number" />
-                        </div>
-                        <div>
-                          <label class="form-label fs-075 mb-1">Monthly Rent (₹)</label>
-                          <input type="number" class="form-control form-control-sm" [(ngModel)]="editBedForm.monthly_rent" />
-                        </div>
-                        <div>
-                          <label class="form-label fs-075 mb-1">Deposit (₹)</label>
-                          <input type="number" class="form-control form-control-sm" [(ngModel)]="editBedForm.security_deposit" />
-                        </div>
-                        <div>
-                          <label class="form-label fs-075 mb-1">Status</label>
-                          <select class="form-control form-control-sm" [(ngModel)]="editBedForm.status">
-                            <option value="AVAILABLE">AVAILABLE</option>
-                            <option value="OCCUPIED">OCCUPIED</option>
-                            <option value="RESERVED">RESERVED</option>
-                            <option value="MAINTENANCE">MAINTENANCE</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div class="d-flex justify-content-end gap-2 mt-2">
-                        <button type="button" class="btn btn-secondary-sm" (click)="cancelEditBed()">Cancel</button>
-                        <button type="button" class="btn btn-primary-sm" (click)="saveEditBed()" [disabled]="isSavingBed">
-                          @if (isSavingBed) { <i class="fa-solid fa-spinner fa-spin me-1"></i> Saving... } @else { Save Changes }
-                        </button>
-                      </div>
-                    </div>
-                  } @else {
-                    <!-- Standard View Card -->
-                    <div class="d-flex align-items-center justify-content-between w-100">
-                      <div class="floor-item-info">
-                        <span class="floor-num-badge"><i class="fa-solid fa-bed"></i></span>
-                        <div>
-                          <div class="floor-name-text">{{ b.bed_number }} — {{ b.bed_name || 'Sharing Bed' }}</div>
-                          <div class="floor-desc-text">Rent: ₹{{ b.monthly_rent }} | Deposit: ₹{{ b.security_deposit }}</div>
-                        </div>
-                      </div>
-                      <div class="d-flex align-items-center gap-2">
-                        <span class="badge" [class.badge-success]="b.status === 'AVAILABLE'" [class.badge-warning]="b.status !== 'AVAILABLE'">
-                          {{ b.status }}
-                        </span>
-                        <button type="button" class="btn btn-icon-sm btn-outline-primary" (click)="editBed(b)" title="Edit Bed">
-                          ✏️
-                        </button>
-                        <button type="button" class="btn btn-icon-sm btn-outline-danger" (click)="deleteBed(b)" title="Delete Bed">
-                          🗑️
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
+            <div class="no-image-preview">
+              <i class="fa-solid fa-image fa-3x"></i>
+              <p>No photos available</p>
             </div>
           }
+        </div>
+        
+        <div class="preview-details">
+          <h2>Room {{ previewRoom.room_number }}</h2>
+          <p class="type-badge">{{ previewRoom.room_type }}</p>
+          
+          <div class="preview-specs mt-4">
+            <div class="spec-row">
+              <span class="spec-label">Floor</span>
+              <span class="spec-value">{{ previewRoom.floor_number }}</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Rent</span>
+              <span class="spec-value">₹{{ previewRoom.monthly_rent }}/mo</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Deposit</span>
+              <span class="spec-value">₹{{ previewRoom.security_deposit }}</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Capacity</span>
+              <span class="spec-value">{{ previewRoom.total_beds || previewRoom.capacity }} Beds</span>
+            </div>
+          </div>
+          
+          <button class="btn btn-primary w-100 mt-4" (click)="closePreview(); openBedManager(previewRoom)">
+            Manage Beds
+          </button>
         </div>
       </div>
     </div>

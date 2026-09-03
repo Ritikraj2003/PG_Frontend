@@ -1,0 +1,70 @@
+<div class="settings-container">
+  <div class="header">
+    <h2>Branch Settings</h2>
+    <p>Configure payments and notifications for this branch.</p>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading">Loading...</div>
+  } @else {
+    <form (submit)="saveSettings(); $event.preventDefault()">
+      
+      <!-- Payments Section -->
+      <div class="settings-section">
+        <h3><i class="fa-solid fa-credit-card me-2"></i> Payment Gateway (Razorpay)</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Razorpay Key ID</label>
+            <input type="text" class="form-control" name="razorpay_key" [(ngModel)]="settings.razorpay_key" placeholder="rzp_test_xxxx">
+          </div>
+          <div class="form-group">
+            <label>Razorpay Secret</label>
+            <input type="password" class="form-control" name="razorpay_secret" [(ngModel)]="settings.razorpay_secret" placeholder="Your secret key">
+          </div>
+        </div>
+      </div>
+
+      <!-- UPI / QR Section -->
+      <div class="settings-section">
+        <h3><i class="fa-solid fa-qrcode me-2"></i> Manual UPI / QR Code</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>UPI ID</label>
+            <input type="text" class="form-control" name="upi_id" [(ngModel)]="settings.upi_id" placeholder="yourname@bank">
+          </div>
+          <div class="form-group">
+            <label>Upload QR Code</label>
+            <input type="file" class="form-control" (change)="onFileChange($event)" accept="image/*">
+            
+            @if (qrPreview) {
+              <img [src]="qrPreview" class="qr-preview mt-2" alt="QR Preview">
+            } @else if (settings.upi_qr_url) {
+              <img [src]="apiUrl + settings.upi_qr_url" class="qr-preview mt-2" alt="Current QR">
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Email Notifications -->
+      <div class="settings-section">
+        <h3><i class="fa-solid fa-envelope me-2"></i> Email SMTP (For Invoices & Alerts)</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>SMTP Email</label>
+            <input type="email" class="form-control" name="smtp_email" [(ngModel)]="settings.smtp_email" placeholder="billing@yourpg.com">
+          </div>
+          <div class="form-group">
+            <label>SMTP Password / App Password</label>
+            <input type="password" class="form-control" name="smtp_password" [(ngModel)]="settings.smtp_password">
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          <i class="fa-solid fa-save me-1"></i> Save Settings
+        </button>
+      </div>
+    </form>
+  }
+</div>

@@ -90,21 +90,113 @@ export class TenantDashboardComponent implements OnInit {
     }
   }
 
-  async payInvoice(inv: any) {
+  showPaymentModal = false;
+  selectedInvoice: any = null;
+  paymentMethod: 'RAZORPAY' | 'MANUAL_QR' = 'RAZORPAY';
+  branchSettings: any = null;
+  screenshotFile: File | null = null;
+  screenshotPreview: string | null = null;
+  isPaying = false;
+  
+  apiUrl = 'http://localhost:5000'; // Or from environment
+
+  async openPaymentModal(inv: any) {
+    this.selectedInvoice = inv;
+    this.paymentMethod = 'RAZORPAY';
+    this.showPaymentModal = true;
+    this.screenshotFile = null;
+    this.screenshotPreview = null;
+    if (inv.branch_id) {
+      try {
+        this.branchSettings = await this.apiService.tenant.getBranchSettings(inv.branch_id);
+      } catch (err) {
+        console.error('Could not load branch settings', err);
+      }
+    }
+  }
+
+  async openPaymentModalForBooking(bk: any) {
+    const rent = Number(bk.monthly_rent) || 0;
+    const deposit = Number(bk.security_deposit) || 0;
+    
+    this.selectedInvoice = {
+      ...bk,
+      isBooking: true,
+      balance_amount: rent + deposit,
+      billing_month: 'Initial Rent/Deposit',
+      invoice_number: bk.booking_number
+    };
+    this.paymentMethod = 'RAZORPAY';
+    this.showPaymentModal = true;
+    this.screenshotFile = null;
+    this.screenshotPreview = null;
+    if (bk.branch_id) {
+      try {
+        this.branchSettings = await this.apiService.tenant.getBranchSettings(bk.branch_id);
+      } catch (err) {
+        console.error('Could not load branch settings', err);
+      }
+    }
+  }
+  closePaymentModal() {
+    this.showPaymentModal = false;
+    this.selectedInvoice = null;
+  }
+
+  onScreenshotSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.screenshotFile = file;
+      const reader = new FileReader();
+      reader.onload = () => this.screenshotPreview = reader.result as string;
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async processPayment() {
+    if (!this.selectedInvoice) return;
+    this.isPaying = true;
+
     try {
-      const order = await this.apiService.payments.createRazorpayOrder(inv.balance_amount, `inv_${inv.invoice_number}`);
-      await this.apiService.payments.verifyPayment({
-        razorpay_order_id: order.id,
-        razorpay_payment_id: `pay_${Date.now()}`,
-        razorpay_signature: 'simulated_valid_signature',
-        rent_invoice_id: inv.id,
-        amount: inv.balance_amount,
-        payment_method: 'RAZORPAY_UPI',
-      });
-      alert(`🎉 Payment of ₹${inv.balance_amount} completed successfully!`);
-      this.fetchData();
+      if (this.paymentMethod === 'RAZORPAY') {
+        const order = await this.apiService.payments.createRazorpayOrder(this.selectedInvoice.balance_amount, `inv_${this.selectedInvoice.invoice_number}`);
+        await this.apiService.payments.verifyPayment({
+          razorpay_order_id: order.id,
+          razorpay_payment_id: `pay_${Date.now()}`,
+          razorpay_signature: 'simulated_valid_signature',
+          rent_invoice_id: this.selectedInvoice.isBooking ? undefined : this.selectedInvoice.id,
+          booking_id: this.selectedInvoice.isBooking ? this.selectedInvoice.id : undefined,
+          amount: this.selectedInvoice.balance_amount,
+          payment_method: 'RAZORPAY_UPI',
+        });
+        alert(`🎉 Payment of ₹${this.selectedInvoice.balance_amount} completed successfully!`);
+        this.closePaymentModal();
+        this.fetchData();
+      } else {
+        if (!this.screenshotFile) {
+          alert('Please upload payment screenshot');
+          this.isPaying = false;
+          return;
+        }
+        const formData = new FormData();
+        formData.append('branch_id', this.selectedInvoice.branch_id);
+        if (this.selectedInvoice.isBooking) {
+          formData.append('booking_id', this.selectedInvoice.id);
+        } else {
+          formData.append('invoice_id', this.selectedInvoice.id);
+        }
+        formData.append('amount', this.selectedInvoice.balance_amount.toString());
+        formData.append('screenshot', this.screenshotFile);
+
+        await this.apiService.tenant.submitManualPayment(formData);
+        alert('Payment screenshot submitted for verification!');
+        this.closePaymentModal();
+        this.fetchData();
+      }
     } catch (err: any) {
       alert(`Payment failed: ${err.message}`);
+    } finally {
+      this.isPaying = false;
     }
   }
 }

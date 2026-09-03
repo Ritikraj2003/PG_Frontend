@@ -122,6 +122,8 @@ export class ApiService {
   // Owner
   owner = {
     getDashboard: (branchId?: string) => this.request(`/owner/dashboard${branchId ? `?branch_id=${branchId}` : ''}`),
+    getBranchSettings: (branchId: string) => this.request(`/owner/branch-settings?branch_id=${branchId}`),
+    updateBranchSettings: (branchId: string, data: any) => this.request(`/owner/branch-settings?branch_id=${branchId}`, { method: 'PUT', body: data instanceof FormData ? data : JSON.stringify(data) }),
     getFloors: (branchId: string) => this.request(`/owner/floors?branch_id=${branchId}`),
     createFloor: (data: any) => this.request('/owner/floors', { method: 'POST', body: data instanceof FormData ? data : JSON.stringify(data) }),
     updateFloor: (id: string, data: any) => this.request(`/owner/floors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -144,6 +146,8 @@ export class ApiService {
     getExpenses: (branchId: string) => this.request(`/owner/expenses?branch_id=${branchId}`),
     createExpense: (data: any) => this.request('/owner/expenses', { method: 'POST', body: JSON.stringify(data) }),
     getTenants: (branchId: string) => this.request(`/owner/tenants?branch_id=${branchId}`),
+    getPayments: (branchId: string) => this.request(`/owner/payments?branch_id=${branchId}`),
+    verifyManualPayment: (id: string, status: string, remarks?: string) => this.request(`/owner/payments/${id}/verify`, { method: 'POST', body: JSON.stringify({ status, remarks }) }),
   };
 
   // Tenant
@@ -154,6 +158,8 @@ export class ApiService {
     getInvoices: () => this.request('/tenant/rent'),
     getComplaints: () => this.request('/tenant/complaints'),
     createComplaint: (data: any) => this.request('/tenant/complaints', { method: 'POST', body: JSON.stringify(data) }),
+    getBranchSettings: (branchId: string) => this.request(`/tenant/branch-settings?branch_id=${branchId}`),
+    submitManualPayment: (data: any) => this.request('/tenant/payments/manual', { method: 'POST', body: data instanceof FormData ? data : JSON.stringify(data) }),
   };
 
   // Payments

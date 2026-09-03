@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
@@ -11,7 +11,7 @@ import { environment } from '../../../../environments/environment';
   templateUrl: './owner-rooms.component.html',
   styleUrl: './owner-rooms.component.css',
 })
-export class OwnerRoomsComponent implements OnInit, OnChanges {
+export class OwnerRoomsComponent {
   private apiService = inject(ApiService);
 
   @Input() rooms: any[] = [];
@@ -25,7 +25,6 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
   openAddRoomModal() {
     this.showModal = true;
     this.showModalChange.emit(true);
-    this.loadMasterData(true);
   }
 
   handleCloseModal() {
@@ -34,37 +33,27 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
     this.closeModal.emit();
   }
 
-  floors: any[] = [];
-  roomTypes: any[] = [];
+  roomTypes = ['Single', 'Double Sharing', 'Triple Sharing', 'Dormitory', 'Studio'];
 
-  // Form Model
   roomForm = {
     room_number: '',
-    room_name: '',
-    floor_id: '',
-    room_type_id: '',
+    floor_number: 1,
+    room_type: 'Double Sharing',
     capacity: 2,
     monthly_rent: 8500,
     security_deposit: 15000,
-    electricity_charge: 0,
-    maintenance_charge: 0,
-    description: '',
   };
 
-  // Image Upload State
   selectedFiles: File[] = [];
   imagePreviews: string[] = [];
   isUploading = false;
 
-  // Selected Room for Managing Beds
   selectedRoomForBeds: any = null;
   showBedManager = false;
   roomBeds: any[] = [];
 
-  // Preview Image Modal
   previewRoom: any = null;
 
-  // Bed Management Modal state
   isAddingBed = false;
   newBedForm = {
     bed_number: '',
@@ -72,150 +61,15 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
     security_deposit: 15000,
   };
 
-  // Floor Management Modal State
-  showFloorManager = false;
-  editingFloorId: string | null = null;
-  floorForm = {
-    floor_number: 1,
-    floor_name: '',
-    description: '',
+  editingBedId: string | null = null;
+  editBedForm = {
+    bed_number: '',
+    monthly_rent: 8500,
+    security_deposit: 15000,
+    status: 'AVAILABLE',
   };
-  isSavingFloor = false;
+  isSavingBed = false;
 
-  private lastLoadedBranchId: string | null = null;
-  private isMasterDataLoading = false;
-
-  ngOnInit() {
-    // Only load master data if modal is already requested open on init
-    if (this.showModal || this.showFloorManager) {
-      this.loadMasterData();
-    }
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    // Only fetch master data when user opens Add Room modal
-    const modalOpened = changes['showModal']?.currentValue === true;
-    if (modalOpened) {
-      this.loadMasterData(true);
-    }
-  }
-
-  async loadMasterData(force = false) {
-    if (!this.branchId) return;
-
-    // Skip if already loading or if already cached for this branch
-    if (this.isMasterDataLoading) return;
-    if (!force && this.lastLoadedBranchId === this.branchId && this.floors.length > 0 && this.roomTypes.length > 0) {
-      return;
-    }
-
-    this.isMasterDataLoading = true;
-
-    try {
-      const [floorsRes, typesRes] = await Promise.all([
-        this.apiService.owner.getFloors(this.branchId).catch(() => []),
-        this.roomTypes.length > 0 ? Promise.resolve(this.roomTypes) : this.apiService.owner.getRoomTypes().catch(() => []),
-      ]);
-      this.floors = floorsRes || [];
-      this.roomTypes = typesRes || [];
-      this.lastLoadedBranchId = this.branchId;
-
-      if (this.floors.length > 0 && (!this.roomForm.floor_id || !this.floors.some(f => f.id === this.roomForm.floor_id))) {
-        this.roomForm.floor_id = this.floors[0].id;
-      }
-      if (this.roomTypes.length > 0 && !this.roomForm.room_type_id) {
-        this.roomForm.room_type_id = this.roomTypes[0].id;
-      }
-    } catch (err) {
-      console.error('Failed to load master data:', err);
-    } finally {
-      this.isMasterDataLoading = false;
-    }
-  }
-
-  // --- Floor Management CRUD ---
-  openFloorManager() {
-    this.showFloorManager = true;
-    this.loadMasterData(true);
-    this.resetFloorForm();
-  }
-
-  closeFloorManager() {
-    this.showFloorManager = false;
-    this.editingFloorId = null;
-    this.resetFloorForm();
-  }
-
-  resetFloorForm() {
-    const nextNum = (this.floors?.length || 0);
-    this.floorForm = {
-      floor_number: nextNum,
-      floor_name: nextNum === 0 ? 'Ground Floor' : `${nextNum}${this.getOrdinalSuffix(nextNum)} Floor`,
-      description: '',
-    };
-    this.editingFloorId = null;
-  }
-
-  getOrdinalSuffix(i: number) {
-    const j = i % 10, k = i % 100;
-    if (j === 1 && k !== 11) return 'st';
-    if (j === 2 && k !== 12) return 'nd';
-    if (j === 3 && k !== 13) return 'rd';
-    return 'th';
-  }
-
-  editFloor(floor: any) {
-    this.editingFloorId = floor.id;
-    this.floorForm = {
-      floor_number: floor.floor_number,
-      floor_name: floor.floor_name,
-      description: floor.description || '',
-    };
-  }
-
-  async saveFloor() {
-    if (!this.floorForm.floor_name) {
-      alert('Please enter Floor Name (e.g. 1st Floor)');
-      return;
-    }
-    if (!this.branchId) {
-      alert('Please select a branch first');
-      return;
-    }
-
-    try {
-      this.isSavingFloor = true;
-      if (this.editingFloorId) {
-        await this.apiService.owner.updateFloor(this.editingFloorId, this.floorForm);
-      } else {
-        await this.apiService.owner.createFloor({
-          branch_id: this.branchId,
-          ...this.floorForm,
-        });
-      }
-      await this.loadMasterData();
-      this.resetFloorForm();
-    } catch (err: any) {
-      alert(`Error saving floor: ${err.message}`);
-    } finally {
-      this.isSavingFloor = false;
-    }
-  }
-
-  async deleteFloor(floor: any) {
-    if (!confirm(`Are you sure you want to delete "${floor.floor_name}"?`)) return;
-    try {
-      await this.apiService.owner.deleteFloor(floor.id);
-      await this.loadMasterData();
-      if (this.roomForm.floor_id === floor.id) {
-        this.roomForm.floor_id = this.floors[0]?.id || '';
-      }
-    } catch (err: any) {
-      alert(`Error deleting floor: ${err.message}`);
-    }
-  }
-
-  // --- Room Operations & Files ---
   onFileSelected(event: any) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -256,17 +110,12 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
       const formData = new FormData();
       formData.append('branch_id', this.branchId);
       formData.append('room_number', this.roomForm.room_number);
-      if (this.roomForm.room_name) formData.append('room_name', this.roomForm.room_name);
-      if (this.roomForm.floor_id) formData.append('floor_id', this.roomForm.floor_id);
-      if (this.roomForm.room_type_id) formData.append('room_type_id', this.roomForm.room_type_id);
-      formData.append('capacity', (this.roomForm.capacity || 1).toString());
-      formData.append('monthly_rent', (this.roomForm.monthly_rent || 0).toString());
-      formData.append('security_deposit', (this.roomForm.security_deposit || 0).toString());
-      formData.append('electricity_charge', (this.roomForm.electricity_charge || 0).toString());
-      formData.append('maintenance_charge', (this.roomForm.maintenance_charge || 0).toString());
-      if (this.roomForm.description) formData.append('description', this.roomForm.description);
+      formData.append('floor_number', this.roomForm.floor_number.toString());
+      formData.append('room_type', this.roomForm.room_type);
+      formData.append('capacity', this.roomForm.capacity.toString());
+      formData.append('monthly_rent', this.roomForm.monthly_rent.toString());
+      formData.append('security_deposit', this.roomForm.security_deposit.toString());
 
-      // Append image files directly to FormData
       if (this.selectedFiles && this.selectedFiles.length > 0) {
         for (const file of this.selectedFiles) {
           formData.append('images', file);
@@ -274,7 +123,7 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
       }
 
       await this.apiService.owner.createRoom(formData);
-      alert('🎉 Room & Beds added successfully!');
+      alert('🎉 Room added successfully!');
 
       this.resetForm();
       this.handleCloseModal();
@@ -285,17 +134,6 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
       this.isUploading = false;
     }
   }
-
-  // --- Bed Management Modal ---
-  editingBedId: string | null = null;
-  editBedForm = {
-    bed_number: '',
-    bed_name: '',
-    monthly_rent: 8500,
-    security_deposit: 15000,
-    status: 'AVAILABLE',
-  };
-  isSavingBed = false;
 
   async openBedManager(room: any) {
     this.selectedRoomForBeds = room;
@@ -341,7 +179,6 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
         branch_id: this.branchId,
         room_id: this.selectedRoomForBeds.id,
         bed_number: this.newBedForm.bed_number,
-        bed_name: `${this.selectedRoomForBeds.room_number} - ${this.newBedForm.bed_number}`,
         monthly_rent: this.newBedForm.monthly_rent,
         security_deposit: this.newBedForm.security_deposit,
       });
@@ -362,7 +199,6 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
     this.editingBedId = bed.id;
     this.editBedForm = {
       bed_number: bed.bed_number,
-      bed_name: bed.bed_name || '',
       monthly_rent: bed.monthly_rent || 8500,
       security_deposit: bed.security_deposit || 15000,
       status: bed.status || 'AVAILABLE',
@@ -408,15 +244,11 @@ export class OwnerRoomsComponent implements OnInit, OnChanges {
   resetForm() {
     this.roomForm = {
       room_number: '',
-      room_name: '',
-      floor_id: this.floors[0]?.id || '',
-      room_type_id: this.roomTypes[0]?.id || '',
+      floor_number: 1,
+      room_type: 'Double Sharing',
       capacity: 2,
       monthly_rent: 8500,
       security_deposit: 15000,
-      electricity_charge: 0,
-      maintenance_charge: 0,
-      description: '',
     };
     this.selectedFiles = [];
     this.imagePreviews = [];

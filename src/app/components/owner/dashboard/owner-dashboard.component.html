@@ -25,8 +25,10 @@
         @else if (activeTab === 'rooms') { Rooms Directory }
         @else if (activeTab === 'bookings') { Bookings }
         @else if (activeTab === 'invoices') { Rent Invoices }
+        @else if (activeTab === 'payments') { Payments Verification }
         @else if (activeTab === 'expenses') { Expenses }
         @else if (activeTab === 'tenants') { Tenants & Users }
+        @else if (activeTab === 'settings') { Branch Settings }
       </div>
 
       <div class="topbar-right">
@@ -121,11 +123,17 @@
       @if (activeTab === 'invoices') {
         <app-owner-invoices [invoices]="invoices" [branchId]="selectedBranchId" [tenants]="tenants" (refresh)="loadActiveTabData(true)"></app-owner-invoices>
       }
+      @if (activeTab === 'payments') {
+        <app-owner-payments [branchId]="selectedBranchId"></app-owner-payments>
+      }
       @if (activeTab === 'expenses') {
         <app-owner-expenses [expenses]="expenses"></app-owner-expenses>
       }
       @if (activeTab === 'tenants') {
         <app-owner-tenants [tenants]="tenants"></app-owner-tenants>
+      }
+      @if (activeTab === 'settings') {
+        <app-owner-settings [branchId]="selectedBranchId"></app-owner-settings>
       }
 
     </div>

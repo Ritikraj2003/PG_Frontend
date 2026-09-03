@@ -74,6 +74,7 @@ export class AdminDashboardComponent implements OnInit {
     address: '',
     city: 'Bengaluru',
     state: 'Karnataka',
+    contact_number: '',
   };
 
   activeTab: string = 'overview';
@@ -202,10 +203,11 @@ export class AdminDashboardComponent implements OnInit {
     this.showViewModal = true;
     this.selectedOwnerBranches = [];
 
-    if (owner.property_id) {
+    const prop = this.properties.find(p => p.owner_id === owner.id);
+    if (prop) {
       try {
         const branches = await this.apiService.admin.getBranches();
-        this.selectedOwnerBranches = branches.filter((b: any) => b.property_id === owner.property_id);
+        this.selectedOwnerBranches = branches.filter((b: any) => b.property_id === prop.id);
       } catch (err) {
         console.error(err);
       }
@@ -232,9 +234,9 @@ export class AdminDashboardComponent implements OnInit {
     this.editOwnerData = {
       id: owner.id,
       full_name: owner.full_name || '',
-      business_name: owner.business_name || '',
+      business_name: owner.full_name || '',
       email: owner.email || '',
-      contact_number: owner.contact_number || '',
+      contact_number: owner.contact_number || owner.mobile_number || '',
       address: owner.address || '',
       city: owner.city || 'Bengaluru',
       property_name: propName,
@@ -264,7 +266,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   async deleteOwner(owner: any) {
-    if (confirm(`Are you sure you want to delete "${owner.business_name}" (${owner.full_name})?\nThis will remove all associated properties and branches!`)) {
+    if (confirm(`Are you sure you want to delete "${owner.full_name}"?\nThis will remove all associated properties and branches!`)) {
       try {
         await this.apiService.admin.deleteOwner(owner.id);
         alert('Owner deleted successfully!');
@@ -317,16 +319,18 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   addBranchForOwner(owner: any) {
-    if (!owner.property_id) {
-      alert(`Owner "${owner.business_name}" does not have a property assigned yet.`);
+    const prop = this.properties.find(p => p.owner_id === owner.id);
+    if (!prop) {
+      alert(`Owner "${owner.full_name}" does not have a property assigned yet.`);
       return;
     }
     this.branchData = {
-      property_id: owner.property_id,
+      property_id: prop.id,
       branch_name: '',
       address: '',
       city: owner.city || 'Bengaluru',
-      state: 'Karnataka',
+      state: owner.state || 'Karnataka',
+      contact_number: owner.contact_number || '',
     };
     this.showAddBranchModal = true;
   }

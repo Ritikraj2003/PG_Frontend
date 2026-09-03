@@ -27,7 +27,7 @@ export class AuthModalComponent {
   fullName = '';
   email = '';
   mobileNumber = '';
-  role = 'TENANT';
+  role = 'USER';
   selectedBranchId = '';
   availableProperties: any[] = [];
 

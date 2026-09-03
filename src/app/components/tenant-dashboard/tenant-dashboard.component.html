@@ -251,7 +251,9 @@
                   <th>Room No</th>
                   <th>Check-in Date</th>
                   <th>Monthly Rent</th>
+                  <th>Security Deposit</th>
                   <th>Booking Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -262,13 +264,21 @@
                     <td>Room {{ bk.room_number }} {{ bk.bed_number ? '(Bed ' + bk.bed_number + ')' : '' }}</td>
                     <td>{{ bk.expected_check_in_date | date }}</td>
                     <td>₹{{ bk.monthly_rent }}</td>
+                    <td>₹{{ bk.security_deposit }}</td>
                     <td>
                       <span class="badge" 
                         [class.badge-warning]="bk.status === 'PENDING'"
-                        [class.badge-success]="bk.status === 'APPROVED' || bk.status === 'CHECKED_IN'"
+                        [class.badge-success]="bk.status === 'APPROVED' || bk.status === 'CHECKED_IN' || bk.status === 'CONFIRMED'"
                         [class.badge-danger]="bk.status === 'REJECTED' || bk.status === 'CANCELLED'">
                         {{ bk.status }}
                       </span>
+                    </td>
+                    <td>
+                      @if (bk.status === 'APPROVED' || bk.status === 'CONFIRMED') {
+                        <button class="btn btn-primary btn-sm pay-btn" (click)="openPaymentModalForBooking(bk)">
+                          <i class="fa-solid fa-credit-card"></i> Pay Now
+                        </button>
+                      }
                     </td>
                   </tr>
                 }
@@ -312,7 +322,7 @@
                     <td><span class="badge" [class.badge-success]="inv.status === 'PAID'">{{ inv.status }}</span></td>
                     <td>
                       @if (inv.status !== 'PAID') {
-                        <button class="btn btn-primary pay-btn" (click)="payInvoice(inv)">
+                        <button class="btn btn-primary pay-btn" (click)="openPaymentModal(inv)">
                           <i class="fa-solid fa-credit-card"></i> Pay ₹{{ inv.balance_amount }}
                         </button>
                       } @else {
@@ -438,6 +448,80 @@
           <button type="button" class="btn btn-secondary" (click)="showComplaintModal = false">Cancel</button>
         </div>
       </form>
+    </div>
+  </div>
+}
+
+<!-- PAYMENT MODAL -->
+@if (showPaymentModal && selectedInvoice) {
+  <div class="modal-overlay">
+    <div class="modal-content glass-card large-modal">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-indian-rupee-sign me-2"></i> Make Payment</h3>
+        <button type="button" class="close-icon-btn" (click)="closePaymentModal()">&times;</button>
+      </div>
+      
+      <div class="payment-info mb-4">
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Invoice Amount:</span>
+          <span class="font-bold">₹{{ selectedInvoice.balance_amount }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Billing Month:</span>
+          <span class="font-bold">{{ selectedInvoice.billing_month }}</span>
+        </div>
+      </div>
+
+      <div class="payment-methods mb-4">
+        <label class="form-label">Select Payment Method</label>
+        <div class="d-flex gap-3 mt-2">
+          <label class="method-card" [class.selected]="paymentMethod === 'RAZORPAY'">
+            <input type="radio" name="payment_method" value="RAZORPAY" [(ngModel)]="paymentMethod" class="d-none">
+            <i class="fa-solid fa-credit-card fa-2x mb-2 text-primary"></i>
+            <span>Pay Online</span>
+            <small class="text-muted">(Razorpay)</small>
+          </label>
+
+          <label class="method-card" [class.selected]="paymentMethod === 'MANUAL_QR'">
+            <input type="radio" name="payment_method" value="MANUAL_QR" [(ngModel)]="paymentMethod" class="d-none">
+            <i class="fa-solid fa-qrcode fa-2x mb-2 text-success"></i>
+            <span>Scan QR</span>
+            <small class="text-muted">(Manual)</small>
+          </label>
+        </div>
+      </div>
+
+      @if (paymentMethod === 'MANUAL_QR') {
+        <div class="qr-section p-3 border rounded mb-4 text-center">
+          @if (branchSettings?.upi_qr_url) {
+            <p class="mb-2 font-bold">Scan QR Code to Pay</p>
+            <img [src]="apiUrl + branchSettings.upi_qr_url" alt="UPI QR" class="qr-image mb-3 mx-auto" style="max-width: 200px;">
+            <p class="text-muted mb-3">UPI ID: {{ branchSettings.upi_id || 'Not provided' }}</p>
+          } @else {
+            <div class="alert alert-warning">
+              <i class="fa-solid fa-triangle-exclamation"></i> The branch has not setup a QR code. Please pay via Razorpay.
+            </div>
+          }
+
+          <div class="upload-section text-left">
+            <label class="form-label">Upload Payment Screenshot *</label>
+            <input type="file" class="form-control" (change)="onScreenshotSelected($event)" accept="image/*">
+            @if (screenshotPreview) {
+              <img [src]="screenshotPreview" class="img-thumbnail mt-2" style="max-height: 150px;">
+            }
+          </div>
+        </div>
+      }
+
+      <div class="form-actions">
+        <button class="btn btn-primary flex-1" (click)="processPayment()" [disabled]="isPaying || (paymentMethod === 'MANUAL_QR' && (!screenshotFile || !branchSettings?.upi_qr_url))">
+          @if (isPaying) {
+            <i class="fa-solid fa-spinner fa-spin me-2"></i> Processing...
+          } @else {
+            <i class="fa-solid fa-check me-2"></i> Confirm Payment
+          }
+        </button>
+      </div>
     </div>
   </div>
 }
