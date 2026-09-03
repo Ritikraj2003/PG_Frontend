@@ -22,19 +22,19 @@
       <a class="nav-item" href="#contact">Contact</a>
 
       @if (user && user.roles.includes('SUPER_ADMIN')) {
-        <a class="nav-item admin-link" routerLink="/admin" routerLinkActive="active">
+        <a class="nav-item admin-link" routerLink="/admin/dashboard" routerLinkActive="active">
           <i class="fa-solid fa-shield-halved me-1"></i> Admin Portal
         </a>
       }
 
       @if (user && (user.roles.includes('COMPANY_ADMIN') || user.roles.includes('STAFF'))) {
-        <a class="nav-item owner-link" routerLink="/owner" routerLinkActive="active">
+        <a class="nav-item owner-link" routerLink="/owner/dashboard" routerLinkActive="active">
           <i class="fa-solid fa-building me-1"></i> Owner Portal
         </a>
       }
 
       @if (user && user.roles.includes('USER')) {
-        <a class="nav-item tenant-link" routerLink="/tenant" routerLinkActive="active">
+        <a class="nav-item tenant-link" routerLink="/tenant/dashboard" routerLinkActive="active">
           <i class="fa-solid fa-user me-1"></i> My Stay
         </a>
       }

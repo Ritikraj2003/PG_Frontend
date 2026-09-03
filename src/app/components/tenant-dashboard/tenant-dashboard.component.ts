@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { User } from '../../models/types';
 import { PublicBrowserComponent } from '../public-browser/public-browser.component';
@@ -16,6 +17,7 @@ export class TenantDashboardComponent implements OnInit {
   @Input() user: User | null = null;
 
   private apiService = inject(ApiService);
+  private router = inject(Router);
 
   dashboard: any = null;
   bookings: any[] = [];
@@ -34,6 +36,18 @@ export class TenantDashboardComponent implements OnInit {
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
+    const targetRoute = tab === 'overview' ? 'dashboard' : tab;
+    this.router.navigate(['/tenant', targetRoute]);
+  }
+
+  private syncTabFromUrl() {
+    const url = this.router.url;
+    if (url.includes('/tenant/bookings')) this.activeTab = 'bookings';
+    else if (url.includes('/tenant/invoices')) this.activeTab = 'invoices';
+    else if (url.includes('/tenant/complaints')) this.activeTab = 'complaints';
+    else if (url.includes('/tenant/explore')) this.activeTab = 'explore';
+    else if (url.includes('/tenant/property')) this.activeTab = 'property';
+    else if (url.includes('/tenant/overview') || url.includes('/tenant/dashboard')) this.activeTab = 'overview';
   }
 
   onLogout() {
@@ -43,6 +57,11 @@ export class TenantDashboardComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.syncTabFromUrl();
+    this.router.events.subscribe(() => {
+      this.syncTabFromUrl();
+    });
+
     if (!this.user) {
       const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
       if (savedUser) {
@@ -153,25 +172,99 @@ export class TenantDashboardComponent implements OnInit {
     }
   }
 
+  async loadRazorpayScript(): Promise<boolean> {
+    if ((window as any).Razorpay) return true;
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  }
+
   async processPayment() {
     if (!this.selectedInvoice) return;
     this.isPaying = true;
 
     try {
       if (this.paymentMethod === 'RAZORPAY') {
-        const order = await this.apiService.payments.createRazorpayOrder(this.selectedInvoice.balance_amount, `inv_${this.selectedInvoice.invoice_number}`);
-        await this.apiService.payments.verifyPayment({
-          razorpay_order_id: order.id,
-          razorpay_payment_id: `pay_${Date.now()}`,
-          razorpay_signature: 'simulated_valid_signature',
-          rent_invoice_id: this.selectedInvoice.isBooking ? undefined : this.selectedInvoice.id,
-          booking_id: this.selectedInvoice.isBooking ? this.selectedInvoice.id : undefined,
-          amount: this.selectedInvoice.balance_amount,
-          payment_method: 'RAZORPAY_UPI',
-        });
-        alert(`🎉 Payment of ₹${this.selectedInvoice.balance_amount} completed successfully!`);
-        this.closePaymentModal();
-        this.fetchData();
+        const branchId = this.selectedInvoice.branch_id;
+        const order = await this.apiService.payments.createRazorpayOrder(
+          this.selectedInvoice.balance_amount,
+          `inv_${this.selectedInvoice.invoice_number || Date.now()}`,
+          branchId
+        );
+
+        const isLoaded = await this.loadRazorpayScript();
+        const razorpayKey = order.key_id || this.branchSettings?.razorpay_key || 'rzp_test_default';
+
+        if (isLoaded && (window as any).Razorpay) {
+          const options = {
+            key: razorpayKey,
+            amount: order.amount,
+            currency: order.currency || 'INR',
+            name: 'StayPulse PG',
+            description: `Payment for ${this.selectedInvoice.billing_month || 'Rent/Deposit'}`,
+            order_id: order.id,
+            handler: async (response: any) => {
+              try {
+                await this.apiService.payments.verifyPayment({
+                  razorpay_order_id: response.razorpay_order_id || order.id,
+                  razorpay_payment_id: response.razorpay_payment_id || `pay_${Date.now()}`,
+                  razorpay_signature: response.razorpay_signature || 'simulated_valid_signature',
+                  rent_invoice_id: this.selectedInvoice.isBooking ? undefined : this.selectedInvoice.id,
+                  booking_id: this.selectedInvoice.isBooking ? this.selectedInvoice.id : undefined,
+                  amount: this.selectedInvoice.balance_amount,
+                  payment_method: 'RAZORPAY',
+                  branch_id: branchId,
+                });
+                alert(`🎉 Payment of ₹${this.selectedInvoice.balance_amount} completed successfully!`);
+                this.closePaymentModal();
+                this.fetchData();
+              } catch (err: any) {
+                alert(`Payment verification failed: ${err.message}`);
+              } finally {
+                this.isPaying = false;
+              }
+            },
+            prefill: {
+              name: this.user?.full_name || '',
+              email: this.user?.email || '',
+              contact: this.user?.mobile_number || '',
+            },
+            theme: {
+              color: '#6366f1',
+            },
+            modal: {
+              ondismiss: () => {
+                this.isPaying = false;
+              },
+            },
+          };
+
+          const rzp = new (window as any).Razorpay(options);
+          rzp.on('payment.failed', (resp: any) => {
+            alert(`Payment failed: ${resp.error?.description || 'Payment rejected'}`);
+            this.isPaying = false;
+          });
+          rzp.open();
+        } else {
+          await this.apiService.payments.verifyPayment({
+            razorpay_order_id: order.id,
+            razorpay_payment_id: `pay_${Date.now()}`,
+            razorpay_signature: 'simulated_valid_signature',
+            rent_invoice_id: this.selectedInvoice.isBooking ? undefined : this.selectedInvoice.id,
+            booking_id: this.selectedInvoice.isBooking ? this.selectedInvoice.id : undefined,
+            amount: this.selectedInvoice.balance_amount,
+            payment_method: 'RAZORPAY_UPI',
+            branch_id: branchId,
+          });
+          alert(`🎉 Payment of ₹${this.selectedInvoice.balance_amount} completed successfully!`);
+          this.closePaymentModal();
+          this.fetchData();
+          this.isPaying = false;
+        }
       } else {
         if (!this.screenshotFile) {
           alert('Please upload payment screenshot');

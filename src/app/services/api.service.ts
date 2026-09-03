@@ -164,8 +164,8 @@ export class ApiService {
 
   // Payments
   payments = {
-    createRazorpayOrder: (amount: number, receipt?: string) =>
-      this.request('/payments/razorpay/order', { method: 'POST', body: JSON.stringify({ amount, receipt }) }),
+    createRazorpayOrder: (amount: number, receipt?: string, branchId?: string) =>
+      this.request('/payments/razorpay/order', { method: 'POST', body: JSON.stringify({ amount, receipt, branch_id: branchId }) }),
     verifyPayment: (data: any) =>
       this.request('/payments/razorpay/verify', { method: 'POST', body: JSON.stringify(data) }),
   };

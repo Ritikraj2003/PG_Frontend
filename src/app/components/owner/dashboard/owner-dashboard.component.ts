@@ -51,7 +51,26 @@ export class OwnerDashboardComponent implements OnInit {
   showRoomModal = false;
 
   ngOnInit() {
+    this.syncTabFromUrl();
+    this.router.events.subscribe(() => {
+      this.syncTabFromUrl();
+    });
     this.fetchDashboard();
+  }
+
+  private syncTabFromUrl() {
+    const url = this.router.url;
+    const segments = url.split('?')[0].split('/');
+    const lastSegment = segments[segments.length - 1];
+    const validTabs = ['dashboard', 'rooms', 'bookings', 'invoices', 'payments', 'expenses', 'tenants', 'settings'];
+    if (validTabs.includes(lastSegment)) {
+      if (this.activeTab !== lastSegment) {
+        this.activeTab = lastSegment as any;
+        this.loadActiveTabData();
+      }
+    } else {
+      this.activeTab = 'dashboard';
+    }
   }
 
   async fetchDashboard() {
@@ -117,6 +136,7 @@ export class OwnerDashboardComponent implements OnInit {
 
   setActiveTab(tab: 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'payments' | 'expenses' | 'tenants' | 'settings') {
     this.activeTab = tab;
+    this.router.navigate(['/owner', tab]);
     this.loadActiveTabData();
   }
 

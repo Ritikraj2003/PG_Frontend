@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 
 @Component({
@@ -12,6 +13,7 @@ import { ApiService } from '../../services/api.service';
 })
 export class AdminDashboardComponent implements OnInit {
   private apiService = inject(ApiService);
+  private router = inject(Router);
 
   reports: any = null;
   owners: any[] = [];
@@ -81,6 +83,17 @@ export class AdminDashboardComponent implements OnInit {
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
+    const targetRoute = tab === 'overview' ? 'dashboard' : tab;
+    this.router.navigate(['/admin', targetRoute]);
+  }
+
+  private syncTabFromUrl() {
+    const url = this.router.url;
+    if (url.includes('/admin/owners')) this.activeTab = 'owners';
+    else if (url.includes('/admin/properties')) this.activeTab = 'properties';
+    else if (url.includes('/admin/branches')) this.activeTab = 'branches';
+    else if (url.includes('/admin/users')) this.activeTab = 'users';
+    else if (url.includes('/admin/overview') || url.includes('/admin/dashboard')) this.activeTab = 'overview';
   }
 
   onLogout() {
@@ -90,6 +103,10 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.syncTabFromUrl();
+    this.router.events.subscribe(() => {
+      this.syncTabFromUrl();
+    });
     this.fetchData();
   }
 

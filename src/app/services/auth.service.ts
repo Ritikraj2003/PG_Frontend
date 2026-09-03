@@ -48,11 +48,11 @@ export class AuthService {
     this.closeAuthModal();
 
     if (user.roles.includes('SUPER_ADMIN')) {
-      this.router.navigate(['/admin']);
+      this.router.navigate(['/admin/dashboard']);
     } else if (user.roles.includes('COMPANY_ADMIN') || user.roles.includes('STAFF')) {
-      this.router.navigate(['/owner']);
+      this.router.navigate(['/owner/dashboard']);
     } else {
-      this.router.navigate(['/tenant']);
+      this.router.navigate(['/tenant/dashboard']);
     }
   }
 
