@@ -1,3 +1,4 @@
+import { AuthService } from '../../../services/auth.service';
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +12,8 @@ import { ApiService } from '../../../services/api.service';
   styleUrl: './owner-invoices.component.css'
 })
 export class OwnerInvoicesComponent {
+  public authService = inject(AuthService);
+
   private apiService = inject(ApiService);
 
   @Input() invoices: any[] = [];

@@ -1,4 +1,4 @@
-﻿export type RoleType = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'STAFF' | 'USER';
+﻿export type RoleType = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'STAFF' | 'USER' | string;
 
 export interface SubscriptionPlan {
   id: string;
@@ -36,6 +36,10 @@ export interface User {
   mobile_number: string;
   roles: RoleType[];
   subscription?: Subscription | null;
+  permissions?: string[];
+  owner_id?: string;
+  is_owner?: boolean;
+  branch_id?: string;
 }
 
 export interface Property {
@@ -154,4 +158,39 @@ export interface Payment {
   reference_number?: string;
   remarks?: string;
   user_name?: string;
+}
+
+export interface Permission {
+  id: number;
+  permission_name: string;
+  permission_code: string;
+  created_by?: string;
+  created_on?: string;
+  last_modified_by?: string;
+  last_modified_on?: string;
+}
+
+export interface CustomRole {
+  id: number;
+  name: string;
+  description?: string;
+  owner_id?: string;
+  created_by?: string;
+  created_on?: string;
+  permission_ids?: number[];
+  staff_count?: number;
+  is_active?: boolean;
+}
+
+export interface StaffMember {
+  id: string;
+  full_name: string;
+  email: string;
+  mobile_number: string;
+  is_active: boolean;
+  created_at: string;
+  role_id?: number;
+  role_name?: string;
+  branch_id?: string;
+  branch_name?: string;
 }

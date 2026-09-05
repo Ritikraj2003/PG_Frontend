@@ -1,4 +1,6 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { AuthService } from '../../../services/auth.service';
+
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../../environments/environment';
 
@@ -10,6 +12,8 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './owner-bookings.component.css'
 })
 export class OwnerBookingsComponent {
+  public authService = inject(AuthService);
+
   @Input() bookings: any[] = [];
   @Output() updateStatus = new EventEmitter<{ id: string; status: string }>();
 

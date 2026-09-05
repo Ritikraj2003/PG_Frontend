@@ -31,66 +31,89 @@
   </div>
 
   <!-- Dashboard item -->
-  <nav class="sidebar-nav sidebar-nav-top">
-    <button class="nav-item" [class.active]="activeTab === 'dashboard'" (click)="onTabClick('dashboard')">
-      <i class="fa-solid fa-chart-pie nav-icon"></i>
-      <span class="nav-label">Dashboard</span>
-    </button>
-  </nav>
+  @if (authService.hasPermission('DASH')) {
+    <nav class="sidebar-nav sidebar-nav-top">
+      <button class="nav-item" [class.active]="activeTab === 'dashboard'" (click)="onTabClick('dashboard')">
+        <i class="fa-solid fa-chart-pie nav-icon"></i>
+        <span class="nav-label">Dashboard</span>
+      </button>
+    </nav>
+  }
 
   <!-- Management Section -->
   <div class="sidebar-section-label">Management</div>
 
   <nav class="sidebar-nav">
-    <button class="nav-item" [class.active]="activeTab === 'rooms'" (click)="onTabClick('rooms')">
-      <i class="fa-solid fa-door-open nav-icon"></i>
-      <span class="nav-label">Rooms</span>
-      @if (loadedTabs.has('rooms') && roomsCount > 0) {
-        <span class="nav-badge">{{ roomsCount }}</span>
-      }
-    </button>
+    @if (authService.hasPermission('RMS_VIEW')) {
+      <button class="nav-item" [class.active]="activeTab === 'rooms'" (click)="onTabClick('rooms')">
+        <i class="fa-solid fa-door-open nav-icon"></i>
+        <span class="nav-label">Rooms</span>
+        @if (loadedTabs.has('rooms') && roomsCount > 0) {
+          <span class="nav-badge">{{ roomsCount }}</span>
+        }
+      </button>
+    }
 
-    <button class="nav-item" [class.active]="activeTab === 'bookings'" (click)="onTabClick('bookings')">
-      <i class="fa-solid fa-calendar-check nav-icon"></i>
-      <span class="nav-label">Bookings</span>
-      @if (loadedTabs.has('bookings') && bookingsCount > 0) {
-        <span class="nav-badge">{{ bookingsCount }}</span>
-      }
-    </button>
+    @if (authService.hasPermission('BKG_VIEW')) {
+      <button class="nav-item" [class.active]="activeTab === 'bookings'" (click)="onTabClick('bookings')">
+        <i class="fa-solid fa-calendar-check nav-icon"></i>
+        <span class="nav-label">Bookings</span>
+        @if (loadedTabs.has('bookings') && bookingsCount > 0) {
+          <span class="nav-badge">{{ bookingsCount }}</span>
+        }
+      </button>
+    }
 
-    <button class="nav-item" [class.active]="activeTab === 'invoices'" (click)="onTabClick('invoices')">
-      <i class="fa-solid fa-file-invoice-dollar nav-icon"></i>
-      <span class="nav-label">Invoices</span>
-      @if (loadedTabs.has('invoices') && invoicesCount > 0) {
-        <span class="nav-badge">{{ invoicesCount }}</span>
-      }
-    </button>
+    @if (authService.hasPermission('INV_VIEW')) {
+      <button class="nav-item" [class.active]="activeTab === 'invoices'" (click)="onTabClick('invoices')">
+        <i class="fa-solid fa-file-invoice-dollar nav-icon"></i>
+        <span class="nav-label">Invoices</span>
+        @if (loadedTabs.has('invoices') && invoicesCount > 0) {
+          <span class="nav-badge">{{ invoicesCount }}</span>
+        }
+      </button>
+    }
 
-    <button class="nav-item" [class.active]="activeTab === 'payments'" (click)="onTabClick('payments')">
-      <i class="fa-solid fa-money-check-dollar nav-icon"></i>
-      <span class="nav-label">Payments</span>
-    </button>
+    @if (authService.hasPermission('PYT_VIEW')) {
+      <button class="nav-item" [class.active]="activeTab === 'payments'" (click)="onTabClick('payments')">
+        <i class="fa-solid fa-money-check-dollar nav-icon"></i>
+        <span class="nav-label">Payments</span>
+      </button>
+    }
 
-    <button class="nav-item" [class.active]="activeTab === 'expenses'" (click)="onTabClick('expenses')">
-      <i class="fa-solid fa-receipt nav-icon"></i>
-      <span class="nav-label">Expenses</span>
-      @if (loadedTabs.has('expenses') && expensesCount > 0) {
-        <span class="nav-badge">{{ expensesCount }}</span>
-      }
-    </button>
+    @if (authService.hasPermission('EXP_VIEW')) {
+      <button class="nav-item" [class.active]="activeTab === 'expenses'" (click)="onTabClick('expenses')">
+        <i class="fa-solid fa-receipt nav-icon"></i>
+        <span class="nav-label">Expenses</span>
+        @if (loadedTabs.has('expenses') && expensesCount > 0) {
+          <span class="nav-badge">{{ expensesCount }}</span>
+        }
+      </button>
+    }
 
-    <button class="nav-item" [class.active]="activeTab === 'tenants'" (click)="onTabClick('tenants')">
-      <i class="fa-solid fa-users nav-icon"></i>
-      <span class="nav-label">Tenants / Users</span>
-      @if (loadedTabs.has('tenants') && tenantsCount > 0) {
-        <span class="nav-badge">{{ tenantsCount }}</span>
-      }
-    </button>
+    @if (authService.hasPermission('TNT_VIEW')) {
+      <button class="nav-item" [class.active]="activeTab === 'tenants'" (click)="onTabClick('tenants')">
+        <i class="fa-solid fa-users nav-icon"></i>
+        <span class="nav-label">Tenants / Users</span>
+        @if (loadedTabs.has('tenants') && tenantsCount > 0) {
+          <span class="nav-badge">{{ tenantsCount }}</span>
+        }
+      </button>
+    }
 
-    <button class="nav-item" [class.active]="activeTab === 'settings'" (click)="onTabClick('settings')">
-      <i class="fa-solid fa-gear nav-icon"></i>
-      <span class="nav-label">Branch Settings</span>
-    </button>
+    @if (authService.hasPermission('ROL_VIEW') || isOwner) {
+      <button class="nav-item" [class.active]="activeTab === 'roles'" (click)="onTabClick('roles')">
+        <i class="fa-solid fa-user-shield nav-icon"></i>
+        <span class="nav-label">Roles & Staff</span>
+      </button>
+    }
+
+    @if (authService.hasPermission('SET_VIEW')) {
+      <button class="nav-item" [class.active]="activeTab === 'settings'" (click)="onTabClick('settings')">
+        <i class="fa-solid fa-gear nav-icon"></i>
+        <span class="nav-label">Branch Settings</span>
+      </button>
+    }
   </nav>
 
   <!-- Logout Footer -->

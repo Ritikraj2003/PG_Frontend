@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../services/auth.service';
 
-export type OwnerTab = 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'payments' | 'expenses' | 'tenants' | 'settings';
+export type OwnerTab = 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'payments' | 'expenses' | 'tenants' | 'settings' | 'roles';
 
 @Component({
   selector: 'app-owner-sidebar',
@@ -11,6 +12,8 @@ export type OwnerTab = 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'paymen
   styleUrl: './owner-sidebar.component.css'
 })
 export class OwnerSidebarComponent {
+  public authService = inject(AuthService);
+
   @Input() activeTab: OwnerTab = 'rooms';
   @Input() loadedTabs: Set<string> = new Set<string>();
   @Input() roomsCount: number = 0;
@@ -24,13 +27,18 @@ export class OwnerSidebarComponent {
 
   isMobileOpen = false;
 
+  get isOwner(): boolean {
+    const user = this.authService.currentUser;
+    return Boolean(user?.roles?.includes('COMPANY_ADMIN') || user?.roles?.includes('SUPER_ADMIN') || user?.is_owner);
+  }
+
   toggleMobile() {
     this.isMobileOpen = !this.isMobileOpen;
   }
 
   onTabClick(tab: OwnerTab) {
     this.selectTab.emit(tab);
-    this.isMobileOpen = false; // close drawer on mobile after selection
+    this.isMobileOpen = false;
   }
 
   @HostListener('document:keydown.escape')

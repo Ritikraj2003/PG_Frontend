@@ -118,9 +118,11 @@
       </select>
 
       <!-- Add Room CTA Button -->
+      @if (authService.hasPermission('RMS_ADD')) {
       <button class="btn btn-add-room" (click)="openAddRoomModal()">
         <i class="fa-solid fa-plus me-1"></i> Add Room
       </button>
+      }
     </div>
   </div>
 
@@ -414,12 +416,16 @@
                   </div>
                   
                   <div class="bed-actions">
-                    <button class="btn btn-sm btn-outline-secondary me-2" (click)="editBed(bed)" title="Edit Bed">
-                      <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" (click)="deleteBed(bed)" [disabled]="bed.status === 'OCCUPIED'" title="Delete Bed">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
+                    @if (authService.hasPermission('RMS_EDIT')) {
+                      <button class="btn btn-sm btn-outline-secondary me-2" (click)="editBed(bed)" title="Edit Bed">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                    }
+                    @if (authService.hasPermission('RMS_DEL')) {
+                      <button class="btn btn-sm btn-outline-danger" (click)="deleteBed(bed)" [disabled]="bed.status === 'OCCUPIED'" title="Delete Bed">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    }
                   </div>
                 }
 

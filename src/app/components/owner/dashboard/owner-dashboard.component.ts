@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
-import { OwnerSidebarComponent } from '../sidebar/owner-sidebar.component';
+import { OwnerSidebarComponent, OwnerTab } from '../sidebar/owner-sidebar.component';
 import { OwnerRoomsComponent } from '../rooms/owner-rooms.component';
 import { OwnerBookingsComponent } from '../bookings/owner-bookings.component';
 import { OwnerInvoicesComponent } from '../invoices/owner-invoices.component';
@@ -12,6 +12,7 @@ import { OwnerExpensesComponent } from '../expenses/owner-expenses.component';
 import { OwnerTenantsComponent } from '../tenants/owner-tenants.component';
 import { OwnerSettingsComponent } from '../settings/owner-settings.component';
 import { OwnerPaymentsComponent } from '../payments/owner-payments.component';
+import { OwnerRolesComponent } from '../roles/owner-roles.component';
 import { SubscriptionPlan } from '../../../models/types';
 import { environment } from '../../../../environments/environment';
 
@@ -28,14 +29,15 @@ import { environment } from '../../../../environments/environment';
     OwnerPaymentsComponent,
     OwnerExpensesComponent,
     OwnerTenantsComponent,
-    OwnerSettingsComponent
+    OwnerSettingsComponent,
+    OwnerRolesComponent
   ],
   templateUrl: './owner-dashboard.component.html',
   styleUrl: './owner-dashboard.component.css',
 })
 export class OwnerDashboardComponent implements OnInit {
   private apiService = inject(ApiService);
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
   private router = inject(Router);
 
   dashboard: any = null;
@@ -48,7 +50,7 @@ export class OwnerDashboardComponent implements OnInit {
   expenses: any[] = [];
   tenants: any[] = [];
 
-  activeTab: 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'payments' | 'expenses' | 'tenants' | 'settings' = 'dashboard';
+  activeTab: OwnerTab = 'dashboard';
   loadedTabs = new Set<string>();
   showRoomModal = false;
 
@@ -79,10 +81,10 @@ export class OwnerDashboardComponent implements OnInit {
     const url = this.router.url;
     const segments = url.split('?')[0].split('/');
     const lastSegment = segments[segments.length - 1];
-    const validTabs = ['dashboard', 'rooms', 'bookings', 'invoices', 'payments', 'expenses', 'tenants', 'settings'];
-    if (validTabs.includes(lastSegment)) {
+    const validTabs: OwnerTab[] = ['dashboard', 'rooms', 'bookings', 'invoices', 'payments', 'expenses', 'tenants', 'settings', 'roles'];
+    if (validTabs.includes(lastSegment as OwnerTab)) {
       if (this.activeTab !== lastSegment) {
-        this.activeTab = lastSegment as any;
+        this.activeTab = lastSegment as OwnerTab;
         this.loadActiveTabData();
       }
     } else {
@@ -181,7 +183,7 @@ export class OwnerDashboardComponent implements OnInit {
     await this.loadActiveTabData(true);
   }
 
-  setActiveTab(tab: 'dashboard' | 'rooms' | 'bookings' | 'invoices' | 'payments' | 'expenses' | 'tenants' | 'settings') {
+  setActiveTab(tab: OwnerTab) {
     this.activeTab = tab;
     this.router.navigate(['/owner', tab]);
     this.loadActiveTabData();

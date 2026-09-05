@@ -41,6 +41,7 @@ export const routes: Routes = [
       { path: 'expenses', component: OwnerDashboardComponent },
       { path: 'tenants', component: OwnerDashboardComponent },
       { path: 'settings', component: OwnerDashboardComponent },
+      { path: 'roles', component: OwnerDashboardComponent },
     ],
   },
 

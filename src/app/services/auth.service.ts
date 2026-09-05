@@ -49,11 +49,32 @@ export class AuthService {
 
     if (user.roles.includes('SUPER_ADMIN')) {
       this.router.navigate(['/admin/dashboard']);
-    } else if (user.roles.includes('COMPANY_ADMIN') || user.roles.includes('STAFF')) {
+    } else if (user.roles.includes('COMPANY_ADMIN') || user.roles.includes('STAFF') || user.is_owner || Boolean(user.owner_id)) {
       this.router.navigate(['/owner/dashboard']);
     } else {
       this.router.navigate(['/tenant/dashboard']);
     }
+  }
+
+  
+  public hasPermission(permissionCode: string): boolean {
+    const user = this.currentUser;
+    if (!user) return false;
+    if (user.roles?.includes('SUPER_ADMIN') || user.roles?.includes('COMPANY_ADMIN') || user.is_owner) {
+      return true;
+    }
+    const perms = user.permissions || [];
+    return perms.includes(permissionCode);
+  }
+
+  public hasAnyPermission(permissionCodes: string[]): boolean {
+    const user = this.currentUser;
+    if (!user) return false;
+    if (user.roles?.includes('SUPER_ADMIN') || user.roles?.includes('COMPANY_ADMIN') || user.is_owner) {
+      return true;
+    }
+    const perms = user.permissions || [];
+    return permissionCodes.some((p) => perms.includes(p));
   }
 
   public logout() {

@@ -43,7 +43,7 @@ export const ownerGuard: CanActivateFn = (route, state) => {
   const user = authService.currentUser;
   const token = sessionStorage.getItem('token') || localStorage.getItem('token');
 
-  if (user && token && user.roles && (user.roles.includes('COMPANY_ADMIN') || user.roles.includes('STAFF') || user.roles.includes('SUPER_ADMIN'))) {
+  if (user && token && user.roles && (user.roles.includes('COMPANY_ADMIN') || user.roles.includes('STAFF') || user.roles.includes('SUPER_ADMIN') || user.is_owner || Boolean(user.owner_id))) {
     return true;
   }
 

@@ -99,6 +99,7 @@ export class ApiService {
     getRooms: (branchId?: string) =>
       this.request(`/public/rooms${branchId ? `?branch_id=${branchId}` : ''}`),
     getPlans: () => this.request('/public/plans'),
+    
     getPlatformPaymentInfo: () => this.request('/public/platform-payment-info'),
   };
 
@@ -137,6 +138,20 @@ export class ApiService {
 
   // Owner
   owner = {
+    // Roles & Permissions (RBAC)
+    getPermissions: () => this.request('/owner/permissions'),
+    getRoles: () => this.request('/owner/roles'),
+    createRole: (data: any) => this.request('/owner/roles', { method: 'POST', body: JSON.stringify(data) }),
+    updateRole: (id: number | string, data: any) => this.request(`/owner/roles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteRole: (id: number | string) => this.request(`/owner/roles/${id}`, { method: 'DELETE' }),
+
+    // Staff / Team Members
+    getTeam: () => this.request('/owner/team'),
+    createStaff: (data: any) => this.request('/owner/team', { method: 'POST', body: JSON.stringify(data) }),
+    updateStaff: (id: string, data: any) => this.request(`/owner/team/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteStaff: (id: string) => this.request(`/owner/team/${id}`, { method: 'DELETE' }),
+    getBranches: () => this.request('/owner/branches'),
+
     getDashboard: (branchId?: string) => this.request(`/owner/dashboard${branchId ? `?branch_id=${branchId}` : ''}`),
     getBranchSettings: (branchId: string) => this.request(`/owner/branch-settings?branch_id=${branchId}`),
     updateBranchSettings: (branchId: string, data: any) => this.request(`/owner/branch-settings?branch_id=${branchId}`, { method: 'PUT', body: data instanceof FormData ? data : JSON.stringify(data) }),

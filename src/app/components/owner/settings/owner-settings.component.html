@@ -61,9 +61,11 @@
       </div>
 
       <div class="actions">
-        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
-          <i class="fa-solid fa-save me-1"></i> Save Settings
-        </button>
+        @if (authService.hasPermission('SET_EDIT')) {
+          <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+            <i class="fa-solid fa-save me-1"></i> Save Settings
+          </button>
+        }
       </div>
     </form>
   }

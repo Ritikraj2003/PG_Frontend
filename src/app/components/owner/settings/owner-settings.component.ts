@@ -1,3 +1,4 @@
+import { AuthService } from '../../../services/auth.service';
 import { Component, Input, OnInit, OnChanges, inject, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,6 +14,8 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './owner-settings.component.css'
 })
 export class OwnerSettingsComponent implements OnInit, OnChanges {
+  public authService = inject(AuthService);
+
   @Input() branchId!: string;
   private apiService = inject(ApiService);
   

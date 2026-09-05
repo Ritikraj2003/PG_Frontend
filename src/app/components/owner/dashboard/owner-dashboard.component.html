@@ -29,6 +29,7 @@
         @else if (activeTab === 'expenses') { Expenses }
         @else if (activeTab === 'tenants') { Tenants & Users }
         @else if (activeTab === 'settings') { Branch Settings }
+        @else if (activeTab === 'roles') { Roles & Staff Management }
       </div>
 
       <div class="topbar-right">
@@ -166,6 +167,9 @@
       }
       @if (activeTab === 'settings') {
         <app-owner-settings [branchId]="selectedBranchId"></app-owner-settings>
+      }
+      @if (activeTab === 'roles') {
+        <app-owner-roles [branchId]="selectedBranchId"></app-owner-roles>
       }
 
     </div>

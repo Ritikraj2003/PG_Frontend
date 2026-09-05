@@ -1,4 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
+import { AuthService } from '../../../services/auth.service';
+
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -9,5 +11,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './owner-expenses.component.css'
 })
 export class OwnerExpensesComponent {
+  public authService = inject(AuthService);
+
   @Input() expenses: any[] = [];
 }

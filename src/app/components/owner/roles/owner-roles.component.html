@@ -1,0 +1,457 @@
+<div class="roles-container animate-fade-in">
+
+  <!-- Alert Messages -->
+  @if (successMessage) {
+    <div class="alert alert-success d-flex align-items-center gap-2 mb-4 shadow-sm">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>{{ successMessage }}</span>
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="alert alert-danger d-flex align-items-center gap-2 mb-4 shadow-sm">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span>{{ errorMessage }}</span>
+    </div>
+  }
+
+  <!-- Header & Sub-Tabs -->
+  <div class="roles-header-card">
+    <div class="roles-title-wrap">
+      <div class="roles-icon-badge">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <div>
+        <h2 class="roles-title">Roles & Staff Management</h2>
+        <p class="roles-sub">Create custom roles with dual transfer permission selector and manage staff assignments.</p>
+      </div>
+    </div>
+
+    <!-- Sub-tab switchers -->
+    <div class="sub-tabs-pill">
+      <button 
+        type="button" 
+        class="sub-tab-btn" 
+        [class.active]="activeSubTab === 'roles'"
+        (click)="activeSubTab = 'roles'">
+        <i class="fa-solid fa-shield-halved me-2"></i> Roles & Permissions ({{ roles.length }})
+      </button>
+      <button 
+        type="button" 
+        class="sub-tab-btn" 
+        [class.active]="activeSubTab === 'staff'"
+        (click)="activeSubTab = 'staff'">
+        <i class="fa-solid fa-users-gear me-2"></i> Staff Members ({{ staffList.length }})
+      </button>
+    </div>
+  </div>
+
+  <!-- TAB 1: ROLES & PERMISSIONS -->
+  @if (activeSubTab === 'roles') {
+    <div class="roles-tab-content">
+      <div class="tab-action-bar">
+        <div>
+          <h3 class="section-heading">Roles Directory</h3>
+          <p class="section-sub">Define what each role can view, add, edit, or delete.</p>
+        </div>
+        @if (authService.hasPermission('ROL_MANAGE')) {
+          <button type="button" class="btn btn-save-orange shadow-sm" (click)="openCreateRoleModal()">
+            <i class="fa-solid fa-plus me-2"></i> Add Role
+          </button>
+        }
+      </div>
+
+      <div class="roles-grid">
+        @for (role of roles; track role.id) {
+          <div class="role-card glass-card">
+            <div class="role-card-header">
+              <div class="d-flex align-items-center gap-2">
+                <div class="role-avatar-icon" [class.system]="!role.owner_id">
+                  <i class="fa-solid" [class.fa-lock]="!role.owner_id" [class.fa-user-tag]="role.owner_id"></i>
+                </div>
+                <div>
+                  <h4 class="role-name">{{ role.name }}</h4>
+                  <div class="d-flex gap-1 mt-1">
+                    @if (!role.owner_id) {
+                      <span class="badge badge-system">Built-in System Role</span>
+                    } @else {
+                      <span class="badge badge-custom">Custom Role</span>
+                    }
+                    @if (role.is_active === false) {
+                      <span class="badge badge-inactive">Inactive</span>
+                    } @else {
+                      <span class="badge badge-active">Active</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p class="role-desc">{{ role.description || 'Custom role with permissions assigned' }}</p>
+
+            <div class="role-stats">
+              <div class="stat-pill">
+                <i class="fa-solid fa-users me-1 text-primary"></i>
+                <strong>{{ role.staff_count || 0 }}</strong> Staff
+              </div>
+              <div class="stat-pill">
+                <i class="fa-solid fa-key me-1 text-warning"></i>
+                <strong>{{ (!role.owner_id && role.name === 'COMPANY_ADMIN') ? 'All Permissions' : (role.permission_ids?.length || 0) + ' Permissions' }}</strong>
+              </div>
+            </div>
+
+            <div class="role-card-footer">
+              @if (role.owner_id && authService.hasPermission('ROL_MANAGE')) {
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="openEditRoleModal(role)">
+                  <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteRole(role)">
+                  <i class="fa-solid fa-trash me-1"></i> Delete
+                </button>
+              } @else {
+                <span class="text-muted small">
+                  <i class="fa-solid fa-shield-check me-1"></i> System Protected
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: STAFF / TEAM MEMBERS -->
+  @if (activeSubTab === 'staff') {
+    <div class="staff-tab-content">
+      <div class="tab-action-bar">
+        <div>
+          <h3 class="section-heading">Staff & Team Members</h3>
+          <p class="section-sub">Create logins for staff and assign roles and branches.</p>
+        </div>
+        @if (authService.hasPermission('ROL_MANAGE')) {
+          <button type="button" class="btn btn-save-orange shadow-sm" (click)="openCreateStaffModal()">
+            <i class="fa-solid fa-user-plus me-2"></i> Add Staff Member
+          </button>
+        }
+      </div>
+
+      <div class="table-card glass-card">
+        @if (staffList.length === 0) {
+          <div class="empty-state">
+            <i class="fa-solid fa-users-slash empty-icon"></i>
+            <h4>No Staff Members Found</h4>
+            <p>Click "Add Staff Member" above to create logins for your managers, receptionists, or accountants.</p>
+          </div>
+        } @else {
+          <div class="table-responsive">
+            <table class="table custom-table">
+              <thead>
+                <tr>
+                  <th>Staff Member</th>
+                  <th>Mobile</th>
+                  <th>Assigned Role</th>
+                  <th>Assigned Branch</th>
+                  <th>Status</th>
+                  @if (authService.hasPermission('ROL_MANAGE')) {
+                    <th class="text-end">Actions</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (s of staffList; track s.id) {
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="user-avatar">
+                          {{ s.full_name ? s.full_name.charAt(0).toUpperCase() : 'U' }}
+                        </div>
+                        <div>
+                          <div class="font-bold text-dark">{{ s.full_name }}</div>
+                          <div class="text-muted small">{{ s.email }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="font-medium">{{ s.mobile_number }}</span>
+                    </td>
+                    <td>
+                      <span class="badge badge-role">{{ s.role_name || 'Staff' }}</span>
+                    </td>
+                    <td>
+                      <span class="branch-tag">
+                        <i class="fa-solid fa-building me-1"></i>
+                        {{ s.branch_name || 'All Branches' }}
+                      </span>
+                    </td>
+                    <td>
+                      @if (s.is_active) {
+                        <span class="badge badge-active"><i class="fa-solid fa-circle-check me-1"></i> Active</span>
+                      } @else {
+                        <span class="badge badge-inactive"><i class="fa-solid fa-circle-xmark me-1"></i> Inactive</span>
+                      }
+                    </td>
+                    @if (authService.hasPermission('ROL_MANAGE')) {
+                      <td class="text-end">
+                        <div class="d-inline-flex gap-2">
+                          <button type="button" class="btn btn-icon btn-outline-secondary" (click)="toggleStaffStatus(s)" [title]="s.is_active ? 'Deactivate Account' : 'Activate Account'">
+                            <i class="fa-solid" [class.fa-toggle-on]="s.is_active" [class.fa-toggle-off]="!s.is_active" [class.text-success]="s.is_active"></i>
+                          </button>
+                          <button type="button" class="btn btn-icon btn-outline-primary" (click)="openEditStaffModal(s)" title="Edit Staff">
+                            <i class="fa-solid fa-pen"></i>
+                          </button>
+                          <button type="button" class="btn btn-icon btn-outline-danger" (click)="deleteStaff(s)" title="Delete Staff">
+                            <i class="fa-solid fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ============================================================ -->
+  <!-- ADD / EDIT ROLE MODAL (MATCHING USER SCREENSHOT EXACTLY)      -->
+  <!-- ============================================================ -->
+  @if (showRoleModal) {
+    <div class="modal-overlay">
+      <div class="modal-content custom-role-modal shadow-lg">
+        
+        <!-- Modal Top Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="modal-main-title m-0">
+            {{ isEditingRole ? 'Edit Role' : 'Add Role' }}
+          </h2>
+          <button type="button" class="btn-close-custom" (click)="closeRoleModal()" aria-label="Close">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="modal-form-body">
+          <!-- Role Name Field -->
+          <div class="mb-4">
+            <label class="form-label font-bold field-label">
+              Role Name<span class="text-danger">*</span>
+            </label>
+            <input 
+              type="text" 
+              class="form-control role-input" 
+              [(ngModel)]="roleForm.name" 
+              placeholder="Role Name">
+          </div>
+
+          <!-- User Permissions Dual Listbox -->
+          <div class="mb-4">
+            <label class="form-label font-bold field-label">
+              User Permissions<span class="text-danger">*</span>
+            </label>
+
+            <div class="dual-listbox-container">
+              
+              <!-- LEFT BOX: Available User Permissions -->
+              <div class="listbox-box available-box">
+                <div class="listbox-header available-header">
+                  Available User Permissions
+                </div>
+
+                <div class="listbox-search-wrap">
+                  <input 
+                    type="text" 
+                    class="form-control listbox-search-input" 
+                    [(ngModel)]="searchAvailable" 
+                    placeholder="Search here">
+                </div>
+
+                <div class="listbox-items-scroll">
+                  @for (p of availableList; track p.id) {
+                    <div 
+                      class="listbox-item" 
+                      [class.highlighted]="selectedAvailableIds.has(p.id)"
+                      (click)="toggleAvailableSelection(p.id)"
+                      (dblclick)="quickMoveToChosen(p.id)"
+                      title="Click to select, double click to transfer">
+                      {{ formatPermissionLabel(p) }}
+                    </div>
+                  }
+                  @if (availableList.length === 0) {
+                    <div class="empty-list-hint">
+                      No permissions available
+                    </div>
+                  }
+                </div>
+
+                <div class="listbox-footer text-end">
+                  <span class="link-orange" (click)="chooseAll()">
+                    Choose All &rarr;
+                  </span>
+                </div>
+              </div>
+
+              <!-- MIDDLE TRANSFER BUTTONS -->
+              <div class="transfer-controls">
+                <button 
+                  type="button" 
+                  class="btn-transfer-circle" 
+                  (click)="moveSelectedToChosen()"
+                  [disabled]="selectedAvailableIds.size === 0"
+                  title="Move selected to Chosen">
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+                <button 
+                  type="button" 
+                  class="btn-transfer-circle" 
+                  (click)="moveSelectedToAvailable()"
+                  [disabled]="selectedChosenIds.size === 0"
+                  title="Move selected to Available">
+                  <i class="fa-solid fa-arrow-left"></i>
+                </button>
+              </div>
+
+              <!-- RIGHT BOX: Chosen User Permissions -->
+              <div class="listbox-box chosen-box">
+                <div class="listbox-header chosen-header">
+                  Chosen User Permissions
+                </div>
+
+                <div class="listbox-items-scroll chosen-scroll">
+                  @for (p of chosenList; track p.id) {
+                    <div 
+                      class="listbox-item" 
+                      [class.highlighted]="selectedChosenIds.has(p.id)"
+                      (click)="toggleChosenSelection(p.id)"
+                      (dblclick)="quickMoveToAvailable(p.id)"
+                      title="Click to select, double click to remove">
+                      {{ formatPermissionLabel(p) }}
+                    </div>
+                  }
+                  @if (chosenList.length === 0) {
+                    <div class="empty-list-hint text-muted">
+                      No permissions chosen yet
+                    </div>
+                  }
+                </div>
+
+                <div class="listbox-footer text-end">
+                  <span class="link-orange" (click)="removeAll()">
+                    &larr; Remove All
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Status Switch -->
+          <div class="status-row-section mb-4">
+            <label class="form-label font-bold field-label mb-1">Status</label>
+            <div class="d-flex align-items-center gap-3">
+              <span class="font-bold status-label-text">Active</span>
+              <label class="switch-toggle">
+                <input type="checkbox" [(ngModel)]="roleForm.is_active">
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="modal-footer-custom d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+          <button type="button" class="btn btn-cancel-orange" (click)="closeRoleModal()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-save-orange" [disabled]="isLoading" (click)="saveRole()">
+            @if (isLoading) {
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...
+            } @else {
+              Save
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- STAFF MODAL (Create / Edit) -->
+  @if (showStaffModal) {
+    <div class="modal-overlay">
+      <div class="modal-content glass-card" style="max-width: 550px;">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <i class="fa-solid fa-user-plus text-primary me-2"></i>
+            {{ isEditingStaff ? 'Edit Staff Member' : 'Add Staff Member' }}
+          </h3>
+          <button type="button" class="btn-close" (click)="closeStaffModal()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label font-bold">Full Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="staffForm.full_name" placeholder="Staff member's full name">
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label font-bold">Email Address <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" [(ngModel)]="staffForm.email" [disabled]="isEditingStaff" placeholder="staff@example.com">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-bold">Mobile Number <span class="text-danger">*</span></label>
+              <input type="tel" class="form-control" [(ngModel)]="staffForm.mobile_number" placeholder="10-digit mobile">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-bold">
+              {{ isEditingStaff ? 'Reset Password (leave blank to keep current)' : 'Password' }}
+              @if (!isEditingStaff) { <span class="text-danger">*</span> }
+            </label>
+            <input type="password" class="form-control" [(ngModel)]="staffForm.password" placeholder="Account login password">
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label font-bold">Assign Role <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="staffForm.role_id">
+                @for (r of roles; track r.id) {
+                  <option [value]="r.id">{{ r.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label font-bold">Assign Branch</label>
+              <select class="form-select" [(ngModel)]="staffForm.branch_id">
+                <option value="">All Branches</option>
+                @for (b of branches; track b.id) {
+                  <option [value]="b.id">{{ b.name || b.branch_name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeStaffModal()">Cancel</button>
+          <button type="button" class="btn btn-save-orange px-4" [disabled]="isLoading" (click)="saveStaff()">
+            @if (isLoading) {
+              <i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...
+            } @else {
+              <i class="fa-solid fa-check me-1"></i> {{ isEditingStaff ? 'Update Staff' : 'Create Staff' }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

@@ -1,3 +1,4 @@
+import { AuthService } from '../../../services/auth.service';
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,6 +13,8 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './owner-rooms.component.css',
 })
 export class OwnerRoomsComponent {
+  public authService = inject(AuthService);
+
   private apiService = inject(ApiService);
 
   @Input() rooms: any[] = [];
