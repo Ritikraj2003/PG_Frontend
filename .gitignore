@@ -1,1 +1,22 @@
-node_modules
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node dependencies
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# Angular cache
+/.angular
+
+# IDEs and editors
+.idea/
+.vscode/
+
+# System files
+.DS_Store
+Thumbs.db
+
