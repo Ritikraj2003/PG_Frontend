@@ -83,7 +83,8 @@
   font-weight: 600;
   cursor: pointer;
   outline: none;
-  max-width: 200px;
+  min-width: 140px;
+    max-width: 240px;
 }
 
 .branch-select:focus {
@@ -331,3 +332,217 @@
 }
 
 /* Also add sidebar-nav-top to separate Dashboard from Management group */
+
+/* Subscription Chip in Topbar */
+.subscription-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(122, 66, 47, 0.08);
+  border: 1px solid rgba(122, 66, 47, 0.2);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.subscription-chip:hover {
+  background: rgba(122, 66, 47, 0.15);
+  transform: translateY(-1px);
+}
+
+.subscription-chip.expired {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Expiration Alert Banner */
+.subscription-alert-banner {
+  margin: 1rem 1.5rem 0 1.5rem;
+  padding: 0.85rem 1.25rem;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);
+}
+
+.banner-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: #991b1b;
+}
+
+.banner-icon {
+  font-size: 1.4rem;
+  color: #dc2626;
+}
+
+/* Renewal Modal Plans Grid */
+.renewal-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.renewal-plan-card {
+  position: relative;
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.renewal-plan-card:hover {
+  border-color: #7a422f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(122, 66, 47, 0.1);
+}
+
+.renewal-plan-card.selected {
+  border-color: #7a422f;
+  background: rgba(122, 66, 47, 0.04);
+  box-shadow: 0 0 0 2px rgba(122, 66, 47, 0.2);
+}
+
+.renewal-plan-card .badge-tag {
+  position: absolute;
+  top: -8px;
+  background: #6b7280;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.renewal-plan-card .badge-tag.popular {
+  background: #7a422f;
+}
+
+.renewal-plan-card .badge-tag.gold {
+  background: #f57c00;
+}
+
+.duration-num {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #7a422f;
+  line-height: 1;
+  margin-top: 0.25rem;
+}
+
+.duration-unit {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.plan-sub {
+  font-size: 0.75rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+}
+
+.plan-radio {
+  color: #7a422f;
+  font-size: 1.1rem;
+  margin-top: auto;
+}
+
+
+/* =========================================================
+   RENEWAL MODAL PAYMENT MODE STYLES
+   ========================================================= */
+.payment-tabs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.payment-tab-btn {
+  border: 1.5px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.payment-tab-btn:hover {
+  border-color: #7a422f;
+  background: rgba(122, 66, 47, 0.02);
+}
+
+.payment-tab-btn.active {
+  border-color: #7a422f;
+  background: rgba(122, 66, 47, 0.06);
+  box-shadow: 0 0 0 2px rgba(122, 66, 47, 0.15);
+}
+
+.payment-tab-btn strong {
+  font-size: 0.88rem;
+  color: #1a2744;
+}
+
+.payment-tab-btn small {
+  font-size: 0.72rem;
+}
+
+.payment-details-box {
+  animation: fadeInStep 0.25s ease forwards;
+}
+
+@media (max-width: 768px) {
+  .subscription-alert-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .subscription-alert-banner button {
+    width: 100%;
+  }
+
+  .renewal-modal {
+    width: 95% !important;
+    max-height: 90vh;
+    margin: 1rem auto;
+  }
+
+  .renewal-plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .payment-tabs-grid {
+    grid-template-columns: 1fr;
+  }
+}

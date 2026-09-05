@@ -1,0 +1,67 @@
+<!-- Metrics Grid -->
+<div class="grid-3 metrics-grid mb-4">
+  <div class="glass-card metric-card">
+    <div class="metric-label">MY REGISTERED PG</div>
+    <div class="metric-value color-purple">{{ currentProperty?.property_name || 'Stay raj' }}</div>
+    <p class="text-muted" style="margin-top: 4px; font-size: 0.85rem;">
+      <i class="fa-solid fa-location-dot me-1 text-danger"></i> {{ currentProperty?.branch_city || 'Bengaluru' }} ({{ currentProperty?.branch_name || 'BTM Branch' }})
+    </p>
+  </div>
+
+  <div class="glass-card metric-card">
+    <div class="metric-label">ROOM & BED ALLOCATION</div>
+    <div class="metric-value color-green">Room {{ currentRoom?.room_number || '101' }}</div>
+    <p class="text-muted" style="margin-top: 4px; font-size: 0.85rem;">
+      <i class="fa-solid fa-bed me-1 text-primary"></i> Bed {{ currentRoom?.bed_number || '101-B1' }} &bull; {{ currentRoom?.room_type || 'Double Sharing' }}
+    </p>
+  </div>
+
+  <div class="glass-card metric-card">
+    <div class="metric-label">PENDING DUES / INVOICES</div>
+    <div class="metric-value color-red">
+      ₹{{ invoices[0]?.balance_amount || '0' }}
+    </div>
+    <p class="text-muted" style="margin-top: 4px; font-size: 0.85rem;">
+      {{ invoices.length }} Total Invoices Recorded
+    </p>
+  </div>
+</div>
+
+<!-- Quick Action / Overview Details Card -->
+<div class="glass-card mb-4" style="padding: 1.5rem;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="m-0" style="font-size: 1.25rem; font-weight: 700; color: #1a2744;">
+      <i class="fa-solid fa-bolt me-2 text-warning"></i> Resident Quick Services
+    </h3>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-3">
+      <button class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center gap-2" (click)="onNavigate('property')">
+        <i class="fa-solid fa-building-user fa-2x"></i>
+        <span class="font-bold">View PG Details</span>
+        <small class="text-muted">Amenities, specs & rules</small>
+      </button>
+    </div>
+    <div class="col-md-3">
+      <button class="btn btn-outline-success w-100 py-3 d-flex flex-column align-items-center gap-2" (click)="onNavigate('explore')">
+        <i class="fa-solid fa-magnifying-glass-location fa-2x"></i>
+        <span class="font-bold">Browse More PGs</span>
+        <small class="text-muted">Explore branches & rooms</small>
+      </button>
+    </div>
+    <div class="col-md-3">
+      <button class="btn btn-outline-danger w-100 py-3 d-flex flex-column align-items-center gap-2" (click)="onNavigate('invoices')">
+        <i class="fa-solid fa-receipt fa-2x"></i>
+        <span class="font-bold">View Rent Invoices</span>
+        <small class="text-muted">Pay monthly dues & rent</small>
+      </button>
+    </div>
+    <div class="col-md-3">
+      <button class="btn btn-outline-secondary w-100 py-3 d-flex flex-column align-items-center gap-2" (click)="onNavigate('complaints')">
+        <i class="fa-solid fa-screwdriver-wrench fa-2x"></i>
+        <span class="font-bold">Raise Complaint</span>
+        <small class="text-muted">Report maintenance issue</small>
+      </button>
+    </div>
+  </div>
+</div>

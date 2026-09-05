@@ -1,0 +1,38 @@
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.metric-card {
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.metric-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.color-purple { color: #8b5cf6; }
+.color-pink   { color: #ec4899; }
+.color-blue   { color: #3b82f6; }
+
+@media (max-width: 900px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}

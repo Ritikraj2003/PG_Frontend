@@ -53,7 +53,7 @@
         <label class="selector-label">Select Branch:</label>
         <select class="input-field select-box" [(ngModel)]="selectedBranchId" (change)="onBranchChange()">
           @for (b of branches; track b.id) {
-            <option [value]="b.id">{{ b.branch_name }}</option>
+            <option [value]="b.id">{{ b.branch_name || b.name }}</option>
           }
         </select>
       </div>

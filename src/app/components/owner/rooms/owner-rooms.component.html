@@ -1,65 +1,258 @@
-<!-- Rooms List View -->
-<div class="rooms-container">
+<!-- ========================================== -->
+<!-- STAYPULSE OWNER ROOMS DIRECTORY (PREMIUM)   -->
+<!-- ========================================== -->
+<div class="rooms-page-wrapper">
+
+  <!-- 1. STATS OVERVIEW CARDS -->
+  <div class="rooms-stats-grid">
+    <!-- Stat 1: Total Rooms -->
+    <div class="stat-card">
+      <div class="stat-icon-box stat-indigo">
+        <i class="fa-solid fa-door-open"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Total Rooms</span>
+        <h3 class="stat-value">{{ rooms.length }}</h3>
+        <span class="stat-hint">{{ availableFloors.length || 1 }} Active Floor(s)</span>
+      </div>
+    </div>
+
+    <!-- Stat 2: Total Beds / Capacity -->
+    <div class="stat-card">
+      <div class="stat-icon-box stat-blue">
+        <i class="fa-solid fa-bed"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Total Capacity</span>
+        <h3 class="stat-value">{{ totalBedsCount }}</h3>
+        <span class="stat-hint">Across all branch rooms</span>
+      </div>
+    </div>
+
+    <!-- Stat 3: Available Beds -->
+    <div class="stat-card">
+      <div class="stat-icon-box stat-green">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Available Beds</span>
+        <h3 class="stat-value text-emerald">{{ availableBedsCount }}</h3>
+        <span class="stat-hint text-emerald-hint">Ready for new check-in</span>
+      </div>
+    </div>
+
+    <!-- Stat 4: Occupancy Rate -->
+    <div class="stat-card">
+      <div class="stat-icon-box stat-amber">
+        <i class="fa-solid fa-chart-pie"></i>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Occupancy Rate</span>
+        <h3 class="stat-value">{{ occupancyRate }}%</h3>
+        <span class="stat-hint">{{ occupiedBedsCount }} / {{ totalBedsCount }} Beds Occupied</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. TOOLBAR: SEARCH & FILTERS -->
+  <div class="rooms-toolbar">
+    <div class="toolbar-left">
+      <!-- Search Input -->
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Search room number or type..." 
+          [(ngModel)]="searchQuery" 
+        />
+        @if (searchQuery) {
+          <button class="clear-search-btn" (click)="searchQuery = ''">&times;</button>
+        }
+      </div>
+
+      <!-- Quick Status Filter Chips -->
+      <div class="filter-chips">
+        <button 
+          class="filter-chip" 
+          [class.active]="statusFilter === 'ALL'" 
+          (click)="statusFilter = 'ALL'">
+          All ({{ rooms.length }})
+        </button>
+        <button 
+          class="filter-chip chip-available" 
+          [class.active]="statusFilter === 'AVAILABLE'" 
+          (click)="statusFilter = 'AVAILABLE'">
+          <span class="chip-dot dot-available"></span> Available
+        </button>
+        <button 
+          class="filter-chip chip-partial" 
+          [class.active]="statusFilter === 'PARTIALLY_OCCUPIED'" 
+          (click)="statusFilter = 'PARTIALLY_OCCUPIED'">
+          <span class="chip-dot dot-partial"></span> Partial
+        </button>
+        <button 
+          class="filter-chip chip-full" 
+          [class.active]="statusFilter === 'FULLY_OCCUPIED'" 
+          (click)="statusFilter = 'FULLY_OCCUPIED'">
+          <span class="chip-dot dot-full"></span> Full
+        </button>
+      </div>
+    </div>
+
+    <div class="toolbar-right">
+      <!-- Floor Filter -->
+      <select class="toolbar-select" [(ngModel)]="floorFilter">
+        <option value="ALL">All Floors</option>
+        @for (f of availableFloors; track f) {
+          <option [value]="f.toString()">Floor {{ f }}</option>
+        }
+      </select>
+
+      <!-- Room Type Filter -->
+      <select class="toolbar-select" [(ngModel)]="typeFilter">
+        <option value="ALL">All Sharing Types</option>
+        @for (t of roomTypes; track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+
+      <!-- Add Room CTA Button -->
+      <button class="btn btn-add-room" (click)="openAddRoomModal()">
+        <i class="fa-solid fa-plus me-1"></i> Add Room
+      </button>
+    </div>
+  </div>
+
+  <!-- 3. ROOMS GRID / EMPTY STATE -->
   @if (rooms.length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon"><i class="fa-solid fa-door-open"></i></div>
-      <h3>No Rooms Found</h3>
-      <p>Start by adding rooms to this branch.</p>
+    <!-- Empty State: No Rooms Added in Branch -->
+    <div class="empty-state-card">
+      <div class="empty-icon-circle">
+        <i class="fa-solid fa-door-open"></i>
+      </div>
+      <h3>No Rooms Added Yet</h3>
+      <p class="text-muted">You have not registered any rooms in this branch. Get started by adding your first room!</p>
       <button class="btn btn-primary mt-3" (click)="openAddRoomModal()">
-        <i class="fa-solid fa-plus me-2"></i>Add First Room
+        <i class="fa-solid fa-plus me-2"></i> Add First Room
+      </button>
+    </div>
+  } @else if (filteredRooms.length === 0) {
+    <!-- Empty State: Filter Matched Nothing -->
+    <div class="empty-state-card">
+      <div class="empty-icon-circle">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </div>
+      <h3>No Rooms Match Your Filter</h3>
+      <p class="text-muted">No rooms found matching "{{ searchQuery }}" with the selected status/floor criteria.</p>
+      <button class="btn btn-secondary mt-3" (click)="resetFilters()">
+        <i class="fa-solid fa-rotate-left me-1"></i> Clear All Filters
       </button>
     </div>
   } @else {
+    <!-- Dynamic Responsive Grid -->
     <div class="rooms-grid">
-      @for (room of rooms; track room.id) {
-        <div class="room-card" (click)="openPreview(room)">
-          <!-- Room Status Banner -->
-          <div class="status-banner" [ngClass]="{
-            'available': room.status === 'AVAILABLE',
-            'partial': room.status === 'PARTIALLY_OCCUPIED',
-            'full': room.status === 'FULLY_OCCUPIED'
-          }">
-            {{ room.status.replace('_', ' ') }}
-          </div>
-
-          <!-- Room Image -->
-          <div class="room-image">
+      @for (room of filteredRooms; track room.id) {
+        <div class="room-card">
+          <!-- CARD BANNER -->
+          <div class="room-card-banner" (click)="openPreview(room)">
             @if (room.images && room.images.length > 0) {
-              <img [src]="getImageUrl(room.images[0])" alt="Room {{ room.room_number }}">
+              <img [src]="getImageUrl(room.images[0])" alt="Room {{ room.room_number }}" class="room-cover-img" />
+              <div class="photo-count-badge">
+                <i class="fa-solid fa-camera me-1"></i> {{ room.images.length }} photo{{ room.images.length > 1 ? 's' : '' }}
+              </div>
             } @else {
-              <div class="no-image-placeholder">
-                <i class="fa-solid fa-image"></i>
+              <!-- SLEEK AMBIENT ILLUSTRATION BANNER -->
+              <div class="room-ambient-cover">
+                <div class="ambient-glow"></div>
+                <div class="ambient-content">
+                  <div class="ambient-icon-box">
+                    <i class="fa-solid fa-bed"></i>
+                  </div>
+                  <span class="ambient-subtitle">StayPulse Living</span>
+                </div>
+                <div class="room-watermark">{{ room.room_number }}</div>
               </div>
             }
+
+            <!-- STATUS PILL (Top Left) -->
+            <div class="status-pill" [ngClass]="{
+              'status-available': room.status === 'AVAILABLE',
+              'status-partial': room.status === 'PARTIALLY_OCCUPIED',
+              'status-full': room.status === 'FULLY_OCCUPIED'
+            }">
+              <span class="pulsing-dot"></span>
+              {{ room.status === 'AVAILABLE' ? 'AVAILABLE' : (room.status === 'PARTIALLY_OCCUPIED' ? 'PARTIAL' : 'OCCUPIED') }}
+            </div>
+
+            <!-- FLOOR PILL (Top Right) -->
+            <div class="floor-pill">
+              <i class="fa-solid fa-layer-group me-1"></i> Floor {{ room.floor_number || 1 }}
+            </div>
           </div>
 
-          <!-- Room Details -->
-          <div class="room-info">
-            <div class="room-header">
-              <h3>{{ room.room_number }}</h3>
-              <span class="room-type">{{ room.room_type }}</span>
-            </div>
-
-            <div class="room-stats">
-              <div class="stat">
-                <i class="fa-solid fa-bed text-muted"></i>
-                <span>{{ room.available_beds || 0 }} / {{ room.total_beds || room.capacity || 2 }} beds free</span>
+          <!-- CARD BODY -->
+          <div class="room-card-body">
+            <!-- Header Row: Room Number & Rent -->
+            <div class="room-header-row">
+              <div>
+                <h3 class="room-number" (click)="openPreview(room)">Room {{ room.room_number }}</h3>
+                <span class="room-type-badge">{{ room.room_type }}</span>
               </div>
-              <div class="stat">
-                <i class="fa-solid fa-layer-group text-muted"></i>
-                <span>Floor {{ room.floor_number }}</span>
+              <div class="rent-badge-block">
+                <div class="rent-amount">₹{{ room.monthly_rent | number:'1.0-0' }}</div>
+                <span class="rent-term">/mo per bed</span>
               </div>
             </div>
 
-            <div class="room-price">
-              <span class="price-val">₹{{ room.monthly_rent }}</span>
-              <span class="price-term">/mo per bed</span>
+            <!-- BED OCCUPANCY PROGRESS SECTION -->
+            <div class="bed-occupancy-section">
+              <div class="bed-occupancy-labels">
+                <span class="occupancy-info">
+                  <i class="fa-solid fa-bed me-1" style="color: #7a422f;"></i>
+                  <strong>{{ room.available_beds !== undefined ? room.available_beds : (room.total_beds || room.capacity || 2) }}</strong> of {{ room.total_beds || room.capacity || 2 }} beds free
+                </span>
+                <span class="occupancy-pct font-bold" [ngClass]="{
+                  'text-success': (room.available_beds || 0) > 0,
+                  'text-danger': (room.available_beds || 0) === 0
+                }">
+                  {{ getOccupancyText(room) }}
+                </span>
+              </div>
+
+              <!-- Visual 2-Tone Progress Bar -->
+              <div class="occupancy-progress-track">
+                <div 
+                  class="occupancy-progress-bar"
+                  [style.width.%]="getOccupiedPercentage(room)"
+                  [ngClass]="{
+                    'bg-available': getOccupiedPercentage(room) === 0,
+                    'bg-partial': getOccupiedPercentage(room) > 0 && getOccupiedPercentage(room) < 100,
+                    'bg-full': getOccupiedPercentage(room) === 100
+                  }"
+                ></div>
+              </div>
             </div>
-            
-            <!-- Quick Actions -->
-            <div class="room-actions mt-3 pt-3 border-top d-flex gap-2" (click)="$event.stopPropagation()">
-              <button class="btn btn-sm btn-outline-primary flex-grow-1" (click)="openBedManager(room)">
-                <i class="fa-solid fa-bed me-1"></i> Manage Beds
+
+            <!-- KEY SPECS GRID -->
+            <div class="room-specs-grid">
+              <div class="spec-cell">
+                <span class="spec-label"><i class="fa-solid fa-users me-1 text-muted"></i> Capacity</span>
+                <span class="spec-val">{{ room.total_beds || room.capacity || 2 }} Persons</span>
+              </div>
+              <div class="spec-cell">
+                <span class="spec-label"><i class="fa-solid fa-shield-halved me-1 text-muted"></i> Deposit</span>
+                <span class="spec-val">₹{{ (room.security_deposit || (room.monthly_rent * 2)) | number:'1.0-0' }}</span>
+              </div>
+            </div>
+
+            <!-- CARD ACTION FOOTER -->
+            <div class="room-card-footer">
+              <button class="btn btn-manage-beds" (click)="openBedManager(room)">
+                <i class="fa-solid fa-bed me-2"></i> Manage Beds ({{ room.beds?.length || room.total_beds || room.capacity || 2 }})
+              </button>
+              <button class="btn btn-preview-icon" (click)="openPreview(room)" title="View Room Details">
+                <i class="fa-solid fa-eye"></i>
               </button>
             </div>
           </div>
@@ -69,10 +262,12 @@
   }
 </div>
 
-<!-- Add Room Modal -->
+<!-- ========================================== -->
+<!-- ADD NEW ROOM MODAL                         -->
+<!-- ========================================== -->
 @if (showModal) {
   <div class="modal-backdrop">
-    <div class="modal-content large-modal">
+    <div class="modal-content large-modal glass-card">
       <div class="modal-header">
         <h2><i class="fa-solid fa-door-open me-2"></i> Add New Room</h2>
         <button class="close-btn" (click)="handleCloseModal()"><i class="fa-solid fa-xmark"></i></button>
@@ -80,16 +275,15 @@
 
       <div class="modal-body">
         <form (submit)="submitCreateRoom(); $event.preventDefault()">
-          
           <div class="form-grid">
             <div class="form-group">
               <label>Room Number / Name *</label>
-              <input type="text" class="form-control" name="room_number" [(ngModel)]="roomForm.room_number" placeholder="e.g. 101 or A1" required>
+              <input type="text" class="form-control" name="room_number" [(ngModel)]="roomForm.room_number" placeholder="e.g. 101 or A-102" required>
             </div>
 
             <div class="form-group">
               <label>Floor Number *</label>
-              <input type="number" class="form-control" name="floor_number" [(ngModel)]="roomForm.floor_number" required>
+              <input type="number" class="form-control" name="floor_number" [(ngModel)]="roomForm.floor_number" required min="0">
             </div>
 
             <div class="form-group">
@@ -102,31 +296,32 @@
             </div>
 
             <div class="form-group">
-              <label>Total Capacity (Beds)</label>
-              <input type="number" class="form-control" name="capacity" [(ngModel)]="roomForm.capacity" min="1">
+              <label>Total Capacity (Beds) *</label>
+              <input type="number" class="form-control" name="capacity" [(ngModel)]="roomForm.capacity" min="1" required>
             </div>
 
             <div class="form-group">
-              <label>Default Rent / Bed (₹)</label>
-              <input type="number" class="form-control" name="monthly_rent" [(ngModel)]="roomForm.monthly_rent">
+              <label>Monthly Rent / Bed (₹) *</label>
+              <input type="number" class="form-control" name="monthly_rent" [(ngModel)]="roomForm.monthly_rent" required min="0">
             </div>
 
             <div class="form-group">
-              <label>Default Deposit / Bed (₹)</label>
-              <input type="number" class="form-control" name="security_deposit" [(ngModel)]="roomForm.security_deposit">
+              <label>Security Deposit / Bed (₹)</label>
+              <input type="number" class="form-control" name="security_deposit" [(ngModel)]="roomForm.security_deposit" min="0">
             </div>
           </div>
 
           <!-- Photo Upload Section -->
-          <div class="form-group mt-4 border-top pt-4">
+          <div class="form-group mt-4 border-top pt-3">
             <label class="d-flex justify-content-between align-items-center mb-2">
-              <span><i class="fa-solid fa-camera me-1"></i> Room Photos</span>
+              <span class="font-bold"><i class="fa-solid fa-camera me-1"></i> Room Photos</span>
               <span class="text-muted small">Max 5 images</span>
             </label>
             
             <div class="upload-area" (click)="fileInput.click()">
-              <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2 text-primary"></i>
-              <p class="mb-0">Click to browse or drag images here</p>
+              <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2" style="color: #7a422f;"></i>
+              <p class="mb-0 font-bold">Click to browse or drag room images here</p>
+              <small class="text-muted">Supports JPG, PNG, WEBP (Max 10MB)</small>
               <input type="file" #fileInput multiple accept="image/*" class="d-none" (change)="onFileSelected($event)">
             </div>
 
@@ -145,7 +340,7 @@
           </div>
 
           <div class="modal-footer mt-4">
-            <button type="button" class="btn btn-outline" (click)="handleCloseModal()">Cancel</button>
+            <button type="button" class="btn btn-secondary" (click)="handleCloseModal()">Cancel</button>
             <button type="submit" class="btn btn-primary" [disabled]="isUploading">
               @if (isUploading) {
                 <i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...
@@ -160,12 +355,14 @@
   </div>
 }
 
-<!-- Manage Beds Modal -->
+<!-- ========================================== -->
+<!-- MANAGE BEDS MODAL                          -->
+<!-- ========================================== -->
 @if (showBedManager && selectedRoomForBeds) {
   <div class="modal-backdrop">
-    <div class="modal-content large-modal">
+    <div class="modal-content large-modal glass-card">
       <div class="modal-header">
-        <h2><i class="fa-solid fa-bed me-2"></i> Manage Beds: {{ selectedRoomForBeds.room_number }}</h2>
+        <h2><i class="fa-solid fa-bed me-2"></i> Manage Beds: Room {{ selectedRoomForBeds.room_number }}</h2>
         <button class="close-btn" (click)="closeBedManager()"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
@@ -173,54 +370,54 @@
         
         <!-- Add New Bed Form -->
         <div class="add-bed-box">
-          <h4>Add New Bed</h4>
+          <h4 class="mb-3 font-bold"><i class="fa-solid fa-plus-circle me-1" style="color: #7a422f;"></i> Add New Bed to Room</h4>
           <form class="d-flex gap-3 align-items-end flex-wrap" (submit)="addBedToRoom(); $event.preventDefault()">
             <div class="form-group mb-0 flex-grow-1">
-              <label>Bed Number/ID</label>
-              <input type="text" class="form-control form-control-sm" name="bed_number" [(ngModel)]="newBedForm.bed_number" required>
+              <label>Bed Identifier / Name</label>
+              <input type="text" class="form-control form-control-sm" name="bed_number" [(ngModel)]="newBedForm.bed_number" placeholder="e.g. Bed 1, Bed A" required>
             </div>
             <div class="form-group mb-0">
-              <label>Rent</label>
-              <input type="number" class="form-control form-control-sm" style="width: 100px;" name="monthly_rent" [(ngModel)]="newBedForm.monthly_rent">
+              <label>Rent (₹)</label>
+              <input type="number" class="form-control form-control-sm" style="width: 120px;" name="monthly_rent" [(ngModel)]="newBedForm.monthly_rent">
             </div>
             <div class="form-group mb-0">
-              <label>Deposit</label>
-              <input type="number" class="form-control form-control-sm" style="width: 100px;" name="security_deposit" [(ngModel)]="newBedForm.security_deposit">
+              <label>Deposit (₹)</label>
+              <input type="number" class="form-control form-control-sm" style="width: 120px;" name="security_deposit" [(ngModel)]="newBedForm.security_deposit">
             </div>
-            <button type="submit" class="btn btn-sm btn-primary" [disabled]="isAddingBed">
-              <i class="fa-solid fa-plus"></i> Add
+            <button type="submit" class="btn btn-sm btn-primary px-3" [disabled]="isAddingBed">
+              <i class="fa-solid fa-plus me-1"></i> Add Bed
             </button>
           </form>
         </div>
 
         <!-- Existing Beds List -->
         <div class="beds-list mt-4">
-          <h4 class="mb-3">Existing Beds ({{ roomBeds.length }})</h4>
+          <h4 class="mb-3 font-bold">Configured Beds ({{ roomBeds.length }})</h4>
           
           @if (roomBeds.length === 0) {
-            <p class="text-muted text-center py-4">No beds added yet.</p>
+            <p class="text-muted text-center py-4 bg-light rounded-3">No beds configured yet. Add a bed above.</p>
           }
 
           <div class="bed-items">
             @for (bed of roomBeds; track bed.id) {
               <div class="bed-item-row" [class.editing]="editingBedId === bed.id">
-                
                 <!-- View Mode -->
                 @if (editingBedId !== bed.id) {
-                  <div class="bed-info flex-grow-1">
+                  <div class="bed-info flex-grow-1 d-flex align-items-center">
                     <span class="bed-badge" [ngClass]="{
                       'bg-success': bed.status === 'AVAILABLE',
                       'bg-danger': bed.status === 'OCCUPIED'
                     }">{{ bed.status }}</span>
-                    <strong class="ms-2">{{ bed.bed_number }}</strong>
-                    <span class="ms-3 text-muted">₹{{ bed.monthly_rent }}/mo</span>
+                    <strong class="ms-3 fs-6">{{ bed.bed_number }}</strong>
+                    <span class="ms-3 text-muted">Rent: ₹{{ bed.monthly_rent }}/mo</span>
+                    <span class="ms-3 text-muted">Deposit: ₹{{ bed.security_deposit || 0 }}</span>
                   </div>
                   
                   <div class="bed-actions">
-                    <button class="btn btn-sm btn-outline-secondary me-2" (click)="editBed(bed)">
+                    <button class="btn btn-sm btn-outline-secondary me-2" (click)="editBed(bed)" title="Edit Bed">
                       <i class="fa-solid fa-pen"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" (click)="deleteBed(bed)" [disabled]="bed.status === 'OCCUPIED'">
+                    <button class="btn btn-sm btn-outline-danger" (click)="deleteBed(bed)" [disabled]="bed.status === 'OCCUPIED'" title="Delete Bed">
                       <i class="fa-solid fa-trash"></i>
                     </button>
                   </div>
@@ -229,7 +426,7 @@
                 <!-- Edit Mode -->
                 @if (editingBedId === bed.id) {
                   <form class="d-flex gap-2 w-100 align-items-center flex-wrap" (submit)="saveEditBed(); $event.preventDefault()">
-                    <input type="text" class="form-control form-control-sm flex-grow-1" name="e_bed_num" [(ngModel)]="editBedForm.bed_number">
+                    <input type="text" class="form-control form-control-sm flex-grow-1" name="e_bed_num" [(ngModel)]="editBedForm.bed_number" required>
                     <input type="number" class="form-control form-control-sm" style="width: 100px;" name="e_rent" [(ngModel)]="editBedForm.monthly_rent" placeholder="Rent">
                     <input type="number" class="form-control form-control-sm" style="width: 100px;" name="e_dep" [(ngModel)]="editBedForm.security_deposit" placeholder="Deposit">
                     <select class="form-select form-select-sm" style="width: 120px;" name="e_status" [(ngModel)]="editBedForm.status">
@@ -238,8 +435,8 @@
                       <option value="MAINTENANCE">Maintenance</option>
                     </select>
                     
-                    <button type="submit" class="btn btn-sm btn-success" [disabled]="isSavingBed"><i class="fa-solid fa-check"></i></button>
-                    <button type="button" class="btn btn-sm btn-secondary" (click)="cancelEditBed()"><i class="fa-solid fa-times"></i></button>
+                    <button type="submit" class="btn btn-sm btn-success" [disabled]="isSavingBed"><i class="fa-solid fa-check"></i> Save</button>
+                    <button type="button" class="btn btn-sm btn-secondary" (click)="cancelEditBed()"><i class="fa-solid fa-times"></i> Cancel</button>
                   </form>
                 }
               </div>
@@ -252,10 +449,12 @@
   </div>
 }
 
-<!-- Room Preview Modal -->
+<!-- ========================================== -->
+<!-- ROOM PREVIEW MODAL                         -->
+<!-- ========================================== -->
 @if (previewRoom) {
   <div class="modal-backdrop" (click)="closePreview()">
-    <div class="preview-modal" (click)="$event.stopPropagation()">
+    <div class="preview-modal glass-card" (click)="$event.stopPropagation()">
       <button class="close-preview-btn" (click)="closePreview()"><i class="fa-solid fa-xmark"></i></button>
       
       <div class="preview-layout">
@@ -264,37 +463,41 @@
             <img [src]="getImageUrl(previewRoom.images[0])" class="main-preview-img" alt="Main Photo">
           } @else {
             <div class="no-image-preview">
-              <i class="fa-solid fa-image fa-3x"></i>
-              <p>No photos available</p>
+              <i class="fa-solid fa-bed fa-3x mb-2" style="color: rgba(255,255,255,0.4);"></i>
+              <p>No photos uploaded</p>
             </div>
           }
         </div>
         
         <div class="preview-details">
           <h2>Room {{ previewRoom.room_number }}</h2>
-          <p class="type-badge">{{ previewRoom.room_type }}</p>
+          <span class="type-badge">{{ previewRoom.room_type }}</span>
           
           <div class="preview-specs mt-4">
             <div class="spec-row">
               <span class="spec-label">Floor</span>
-              <span class="spec-value">{{ previewRoom.floor_number }}</span>
+              <span class="spec-value">{{ previewRoom.floor_number || 1 }}</span>
             </div>
             <div class="spec-row">
-              <span class="spec-label">Rent</span>
+              <span class="spec-label">Monthly Rent</span>
               <span class="spec-value">₹{{ previewRoom.monthly_rent }}/mo</span>
             </div>
             <div class="spec-row">
               <span class="spec-label">Deposit</span>
-              <span class="spec-value">₹{{ previewRoom.security_deposit }}</span>
+              <span class="spec-value">₹{{ previewRoom.security_deposit || (previewRoom.monthly_rent * 2) }}</span>
             </div>
             <div class="spec-row">
-              <span class="spec-label">Capacity</span>
-              <span class="spec-value">{{ previewRoom.total_beds || previewRoom.capacity }} Beds</span>
+              <span class="spec-label">Bed Capacity</span>
+              <span class="spec-value">{{ previewRoom.total_beds || previewRoom.capacity || 2 }} Beds</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Available Beds</span>
+              <span class="spec-value font-bold text-success">{{ previewRoom.available_beds !== undefined ? previewRoom.available_beds : previewRoom.capacity }} Free</span>
             </div>
           </div>
           
-          <button class="btn btn-primary w-100 mt-4" (click)="closePreview(); openBedManager(previewRoom)">
-            Manage Beds
+          <button class="btn btn-primary w-100 mt-4 font-bold" (click)="closePreview(); openBedManager(previewRoom)">
+            <i class="fa-solid fa-bed me-2"></i> Manage Beds
           </button>
         </div>
       </div>

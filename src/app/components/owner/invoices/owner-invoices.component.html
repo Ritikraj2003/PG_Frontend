@@ -62,7 +62,7 @@
           @for (inv of invoices; track inv.id) {
             <tr>
               <td>
-                <span class="badge badge-info font-mono">{{ inv.invoice_number }}</span>
+                <span class="badge badge-info font-mono">{{ inv.invoice_number || ('INV-' + (inv.id || '').slice(0, 8).toUpperCase()) }}</span>
               </td>
               <td>
                 <div class="tenant-cell">
@@ -70,7 +70,7 @@
                   <span class="tenant-phone">{{ inv.mobile_number }}</span>
                 </div>
               </td>
-              <td><span class="badge badge-month">{{ inv.billing_month }}</span></td>
+              <td><span class="badge badge-month">{{ inv.billing_month || inv.invoice_month || "Monthly Rent" }}</span></td>
               <td>{{ inv.due_date | date:'mediumDate' }}</td>
               <td>
                 <div class="breakdown-tag">
@@ -78,7 +78,7 @@
                 </div>
               </td>
               <td class="font-bold text-dark">₹{{ inv.total_amount | number }}</td>
-              <td class="font-bold text-amber">₹{{ inv.balance_amount | number }}</td>
+              <td class="font-bold text-amber">₹{{ (inv.balance_amount !== undefined ? inv.balance_amount : (inv.status === 'PAID' ? 0 : inv.total_amount)) | number }}</td>
               <td>
                 <span class="badge" [ngClass]="{
                   'badge-success': inv.status === 'PAID',
@@ -123,11 +123,14 @@
         <div class="form-grid">
           <div class="form-group col-span-2">
             <label>Select Tenant *</label>
-            <select [(ngModel)]="newInvoice.tenant_id" class="form-control">
-              @for (t of tenants; track t.id) {
-                <option [value]="t.id">{{ t.full_name }} ({{ t.tenant_code }})</option>
-              }
-            </select>
+            <select [(ngModel)]="newInvoice.tenant_id" (change)="onTenantChange()" class="form-control">
+                @if (tenants.length === 0) {
+                  <option value="" disabled>No registered tenants found</option>
+                }
+                @for (t of tenants; track t.id) {
+                  <option [value]="t.id">{{ t.full_name || t.user_name || 'Resident' }} ({{ t.tenant_code || 'Tenant' }}){{ t.room_number ? ' - Room ' + t.room_number : '' }}</option>
+                }
+              </select>
           </div>
 
           <div class="form-group">

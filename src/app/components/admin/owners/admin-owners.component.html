@@ -1,0 +1,55 @@
+<div class="glass-card table-card">
+  <div class="table-header-row mb-3">
+    <h3 class="card-title"><i class="fa-solid fa-building-user me-2 color-blue"></i> Property Owners List</h3>
+    <button class="btn btn-primary btn-sm" (click)="registerOwner.emit()">
+      <i class="fa-solid fa-plus me-1"></i> Register Owner
+    </button>
+  </div>
+  <div class="table-container">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Business Name</th>
+          <th>Owner Name</th>
+          <th>Contact</th>
+          <th>City</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (o of owners; track o.id) {
+        <tr>
+          <td><span class="property-badge">{{ o.owner_code }}</span></td>
+          <td class="font-bold">{{ o.business_name }}</td>
+          <td>{{ o.full_name }}</td>
+          <td>{{ o.contact_number }}</td>
+          <td>{{ o.city }}</td>
+          <td>
+            <div class="table-actions">
+              <button class="action-btn btn-view" (click)="viewOwner.emit(o)" title="View Details">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+              <button class="action-btn btn-edit" (click)="editOwner.emit(o)" title="Edit Owner">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="action-btn btn-branch" (click)="addBranch.emit(o)" title="Add Branch">
+                <i class="fa-solid fa-code-branch"></i>
+              </button>
+              <button class="action-btn btn-delete" (click)="deleteOwner.emit(o)" title="Delete Owner">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="6" class="text-center text-muted p-4">
+            No registered property owners found.
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

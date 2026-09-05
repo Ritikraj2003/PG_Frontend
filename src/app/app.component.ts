@@ -28,17 +28,27 @@ export class AppComponent implements OnInit {
   user: User | null = null;
   isAuthOpen = false;
   isOwnerRoute = false;
+  isPortalRoute = false;
+
+  private checkPortalRoute(url?: string): boolean {
+    if (!url) return false;
+    return url.startsWith('/owner') || url.startsWith('/admin') || url.startsWith('/tenant');
+  }
 
   constructor() {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: any) => {
-        this.isOwnerRoute = e.urlAfterRedirects?.startsWith('/owner');
+        const url = e.urlAfterRedirects || e.url || '';
+        this.isOwnerRoute = url.startsWith('/owner');
+        this.isPortalRoute = this.checkPortalRoute(url);
       });
   }
 
   ngOnInit() {
-    this.isOwnerRoute = this.router.url?.startsWith('/owner');
+    const currentUrl = this.router.url || '';
+    this.isOwnerRoute = currentUrl.startsWith('/owner');
+    this.isPortalRoute = this.checkPortalRoute(currentUrl);
     this.authService.user$.subscribe(user => {
       this.user = user;
     });

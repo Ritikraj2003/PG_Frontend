@@ -1,0 +1,66 @@
+<div class="glass-card table-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="card-title m-0">
+      <i class="fa-solid fa-calendar-check me-2 text-primary"></i> My Bookings & Stays
+    </h3>
+    <span class="badge badge-info">{{ bookings.length }} Bookings</span>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Booking #</th>
+          <th>Property / Branch</th>
+          <th>Room & Bed</th>
+          <th>Rent / Deposit</th>
+          <th>Status</th>
+          <th>Payment</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (bk of bookings; track bk.id) {
+          <tr>
+            <td class="font-bold">{{ bk.booking_number }}</td>
+            <td>
+              <div class="font-bold">{{ bk.property_name || 'PG Stay' }}</div>
+              <small class="text-muted">{{ bk.branch_name || 'Branch' }}</small>
+            </td>
+            <td>
+              <div>Room {{ bk.room_number || '-' }}</div>
+              <small class="text-muted">Bed: {{ bk.bed_number || '-' }}</small>
+            </td>
+            <td>
+              <div>₹{{ bk.monthly_rent }} <small class="text-muted">/mo</small></div>
+              <small class="text-muted">Dep: ₹{{ bk.security_deposit }}</small>
+            </td>
+            <td>
+              <span class="badge" [class.badge-success]="bk.status === 'CONFIRMED' || bk.status === 'APPROVED'" [class.badge-warning]="bk.status === 'PENDING'">
+                {{ bk.status }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" [class.badge-success]="bk.payment_status === 'PAID'" [class.badge-danger]="bk.payment_status === 'UNPAID' || bk.payment_status === 'PENDING'">
+                {{ bk.payment_status || 'UNPAID' }}
+              </span>
+            </td>
+            <td>
+              @if (bk.payment_status !== 'PAID') {
+                <button class="btn btn-primary btn-sm pay-btn" (click)="onPayBooking(bk)">
+                  <i class="fa-solid fa-credit-card mr-1"></i> Pay Now
+                </button>
+              } @else {
+                <span class="text-success font-bold"><i class="fa-solid fa-check"></i> Paid</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="text-center py-4 text-muted">No bookings found</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

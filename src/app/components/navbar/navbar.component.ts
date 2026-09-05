@@ -14,4 +14,14 @@ export class NavbarComponent {
   @Input() user: User | null = null;
   @Output() openAuth = new EventEmitter<void>();
   @Output() logout = new EventEmitter<void>();
+
+  isMobileMenuOpen = false;
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+  }
 }

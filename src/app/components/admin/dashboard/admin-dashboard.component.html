@@ -1,0 +1,1424 @@
+<div class="admin-layout">
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  @if (isMobileSidebarOpen) {
+    <div class="sidebar-backdrop" (click)="closeMobileSidebar()"></div>
+  }
+
+  <!-- Left Sidebar Wrapper -->
+  <div class="admin-sidebar-wrap" [class.mobile-open]="isMobileSidebarOpen">
+    <app-admin-sidebar
+      [activeTab]="activeTab"
+      [ownersCount]="owners.length"
+      [propertiesCount]="reports?.totalProperties || properties.length || 0"
+      [branchesCount]="reports?.totalBranches || branches.length || 0"
+      [plansCount]="plans.length"
+      (selectTab)="setActiveTab($event)"
+      (logout)="onLogout()"
+      (closeMobile)="closeMobileSidebar()"
+    ></app-admin-sidebar>
+  </div>
+
+  <!-- Right Content Area -->
+  <div class="admin-content">
+    <!-- Top Bar -->
+    <header class="admin-topbar">
+      <div class="d-flex align-items-center flex-nowrap" style="min-width: 0;">
+        <button class="mobile-menu-btn" (click)="toggleMobileSidebar()" aria-label="Toggle Navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="topbar-title">
+          <i class="fa-solid fa-user-shield me-2 text-primary d-none d-sm-inline"></i>
+          <span class="topbar-main-title">Super Admin</span>
+          @if (activeTab === 'settings') {
+            <span class="topbar-crumb-sep">/</span>
+            <span class="topbar-crumb-active">General Settings</span>
+          } @else if (activeTab === 'owners') {
+            <span class="topbar-crumb-sep">/</span>
+            <span class="topbar-crumb-active">Property Owners</span>
+          } @else if (activeTab === 'properties') {
+            <span class="topbar-crumb-sep">/</span>
+            <span class="topbar-crumb-active">Properties</span>
+          } @else if (activeTab === 'branches') {
+            <span class="topbar-crumb-sep">/</span>
+            <span class="topbar-crumb-active">Branches</span>
+          } @else if (activeTab === 'plans') {
+            <span class="topbar-crumb-sep">/</span>
+            <span class="topbar-crumb-active">Plans</span>
+          } @else if (activeTab === 'reports') {
+            <span class="topbar-crumb-sep">/</span>
+            <span class="topbar-crumb-active">Reports</span>
+          }
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="admin-pill-badge d-none d-md-inline-flex">
+          <i class="fa-solid fa-shield-halved me-1"></i> System Admin
+        </span>
+        <button class="btn btn-primary btn-sm shadow-sm" (click)="openCreateOwnerModal()">
+          <i class="fa-solid fa-plus me-1"></i> <span class="d-none d-sm-inline">New</span> Owner
+        </button>
+      </div>
+    </header>
+
+    <!-- Scrollable Page Area -->
+    <div class="admin-page">
+
+      @if (activeTab === 'overview') {
+        <app-admin-overview
+          [reports]="reports"
+          [owners]="owners"
+          [properties]="properties"
+          [branches]="branches"
+          (viewAllOwners)="setActiveTab('owners')"
+          (viewOwner)="viewOwnerDetails($event)"
+          (editOwner)="openEditOwnerModal($event)"
+        ></app-admin-overview>
+      }
+
+      @if (activeTab === 'owners') {
+        <app-admin-owners
+          [owners]="owners"
+          (registerOwner)="openCreateOwnerModal()"
+          (viewOwner)="viewOwnerDetails($event)"
+          (editOwner)="openEditOwnerModal($event)"
+          (addBranch)="addBranchForOwner($event)"
+          (deleteOwner)="deleteOwner($event)"
+        ></app-admin-owners>
+      }
+
+      @if (activeTab === 'properties') {
+        <app-admin-properties
+          [owners]="owners"
+          [properties]="properties"
+        ></app-admin-properties>
+      }
+
+      @if (activeTab === 'branches') {
+        <app-admin-branches
+          [branches]="branches"
+          (editBranch)="openEditBranchModal($event)"
+          (deleteBranch)="deleteBranch($event)"
+        ></app-admin-branches>
+      }
+
+      @if (activeTab === 'plans') {
+        <app-admin-plans
+          [plans]="plans"
+          (createPlan)="openCreatePlanModal()"
+          (editPlan)="openEditPlanModal($event)"
+          (deletePlan)="deletePlan($event)"
+        ></app-admin-plans>
+      }
+
+      @if (activeTab === 'reports') {
+        <app-admin-reports
+          [reports]="reports"
+          [owners]="owners"
+          [properties]="properties"
+          [branches]="branches"
+        ></app-admin-reports>
+      }
+
+      @if (activeTab === 'settings') {
+        <app-admin-settings></app-admin-settings>
+      }
+    </div> <!-- end admin-page -->
+  </div> <!-- end admin-content -->
+</div> <!-- end admin-layout -->
+
+<!-- ========================================== -->
+<!-- 1. CREATE NEW OWNER & PROPERTY MODAL -->
+<!-- ========================================== -->
+@if (showCreateOwnerModal) {
+<div class="modal-overlay">
+  <div class="modal-content glass-card owner-wizard-modal">
+    <div class="modal-header">
+      <div>
+        <h3 class="m-0"><i class="fa-solid fa-user-plus me-2 text-primary"></i> Register Owner & Property Account</h3>
+        <small class="text-muted">Step {{ createOwnerStep }} of 5: 
+          @if (createOwnerStep === 1) { Owner & Account Credentials }
+          @else if (createOwnerStep === 2) { Brand & Property Information }
+          @else if (createOwnerStep === 3) { Address & Location Details }
+          @else if (createOwnerStep === 4) { Verification & KYC Documents }
+          @else if (createOwnerStep === 5) { Initial Primary Branch Subscription Plan }
+        </small>
+      </div>
+      <button type="button" class="close-icon-btn" (click)="showCreateOwnerModal = false">&times;</button>
+    </div>
+
+    <!-- STEP PROGRESS INDICATOR -->
+    <div class="stepper-header">
+      <div class="step-item" [class.active]="createOwnerStep === 1" [class.completed]="createOwnerStep > 1" (click)="goToOwnerStep(1)">
+        <div class="step-circle">
+          @if (createOwnerStep > 1) { <i class="fa-solid fa-check"></i> } @else { 1 }
+        </div>
+        <span class="step-label">Credentials</span>
+      </div>
+      <div class="step-divider" [class.active]="createOwnerStep > 1"></div>
+
+      <div class="step-item" [class.active]="createOwnerStep === 2" [class.completed]="createOwnerStep > 2" (click)="goToOwnerStep(2)">
+        <div class="step-circle">
+          @if (createOwnerStep > 2) { <i class="fa-solid fa-check"></i> } @else { 2 }
+        </div>
+        <span class="step-label">Brand & PG</span>
+      </div>
+      <div class="step-divider" [class.active]="createOwnerStep > 2"></div>
+
+      <div class="step-item" [class.active]="createOwnerStep === 3" [class.completed]="createOwnerStep > 3" (click)="goToOwnerStep(3)">
+        <div class="step-circle">
+          @if (createOwnerStep > 3) { <i class="fa-solid fa-check"></i> } @else { 3 }
+        </div>
+        <span class="step-label">Location</span>
+      </div>
+      <div class="step-divider" [class.active]="createOwnerStep > 3"></div>
+
+      <div class="step-item" [class.active]="createOwnerStep === 4" [class.completed]="createOwnerStep > 4" (click)="goToOwnerStep(4)">
+        <div class="step-circle">
+          @if (createOwnerStep > 4) { <i class="fa-solid fa-check"></i> } @else { 4 }
+        </div>
+        <span class="step-label">KYC Docs</span>
+      </div>
+      <div class="step-divider" [class.active]="createOwnerStep > 4"></div>
+
+      <div class="step-item" [class.active]="createOwnerStep === 5" (click)="goToOwnerStep(5)">
+        <div class="step-circle">5</div>
+        <span class="step-label">Plan</span>
+      </div>
+    </div>
+
+    <form (ngSubmit)="createOwner()" class="modal-form">
+      
+      <!-- STEP 1: OWNER & ACCOUNT CREDENTIALS -->
+      @if (createOwnerStep === 1) {
+        <div class="step-content animate-fade-in">
+          <h4 class="section-title text-primary border-bottom pb-2 mb-3" style="font-size: 1.05rem;">
+            <i class="fa-solid fa-id-card me-2"></i> 1. Owner & Account Credentials
+          </h4>
+          <p class="text-muted mb-3" style="font-size: 0.85rem;">Enter the administrative login details and identity of the company owner.</p>
+          <div class="detail-grid mb-4">
+            <div class="detail-item">
+              <label>Owner Full Name *</label>
+              <input type="text" class="input-field" placeholder="Full Name (e.g. Rajesh Sharma)" [(ngModel)]="ownerData.full_name" name="full_name" required />
+            </div>
+            <div class="detail-item">
+              <label>Owner Email *</label>
+              <input type="email" class="input-field" placeholder="Email Address (e.g. owner@example.com)" [(ngModel)]="ownerData.email" name="email" required />
+            </div>
+            <div class="detail-item">
+              <label>Mobile Number *</label>
+              <input type="tel" class="input-field" placeholder="10-digit mobile number" [(ngModel)]="ownerData.mobile_number" name="mobile_number" required />
+            </div>
+            <div class="detail-item">
+              <label>Owner Code *</label>
+              <input type="text" class="input-field" placeholder="e.g. OWN-005" [(ngModel)]="ownerData.owner_code" name="owner_code" required />
+            </div>
+            <div class="detail-item full-width">
+              <label>Initial Account Password *</label>
+              <input type="text" class="input-field" placeholder="Set login password (default: owner123)" [(ngModel)]="ownerData.password" name="password" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions mt-4 d-flex justify-content-between">
+          <button type="button" class="btn btn-secondary px-4" (click)="showCreateOwnerModal = false">Cancel</button>
+          <button type="button" class="btn btn-primary px-4 font-bold" (click)="nextOwnerStep()">
+            Next: Brand & Property <i class="fa-solid fa-arrow-right ms-2"></i>
+          </button>
+        </div>
+      }
+
+      <!-- STEP 2: BRAND & PROPERTY INFORMATION -->
+      @if (createOwnerStep === 2) {
+        <div class="step-content animate-fade-in">
+          <h4 class="section-title text-primary border-bottom pb-2 mb-3" style="font-size: 1.05rem;">
+            <i class="fa-solid fa-building me-2"></i> 2. Brand & Property Information
+          </h4>
+          <p class="text-muted mb-3" style="font-size: 0.85rem;">Define the business branding and category for this owner's accommodations.</p>
+          <div class="detail-grid mb-4">
+            <div class="detail-item">
+              <label>Business / PG Brand Name *</label>
+              <input type="text" class="input-field" placeholder="e.g. Royal Living Stays" [(ngModel)]="ownerData.business_name" name="business_name" required />
+            </div>
+            <div class="detail-item">
+              <label>Property Category *</label>
+              <select class="input-field" [(ngModel)]="ownerData.property_type" name="property_type" required>
+                <option value="PG">Paying Guest (PG)</option>
+                <option value="RENTAL_HOUSE">Rental House</option>
+              </select>
+            </div>
+            <div class="detail-item full-width">
+              <label>Property Logo Image</label>
+              <div class="d-flex align-items-center gap-3">
+                <input type="file" #logoFileInput hidden (change)="onLogoFileChange($event)" accept="image/*" />
+                <button type="button" class="btn btn-outline-primary" (click)="logoFileInput.click()">
+                  <i class="fa-solid fa-cloud-arrow-up me-2"></i> {{ logoFileName ? logoFileName : 'Upload Property Logo' }}
+                </button>
+                @if (ownerData.logo) {
+                  <img [src]="ownerData.logo" alt="Logo Preview" style="height: 42px; border-radius: 8px; border: 1px solid rgba(122, 66, 47, 0.2);" />
+                }
+              </div>
+            </div>
+            <div class="detail-item full-width">
+              <label>About Property / Overview</label>
+              <input type="text" class="input-field" placeholder="Brief overview of amenities, food, rules, etc." [(ngModel)]="ownerData.description" name="description" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions mt-4 d-flex justify-content-between">
+          <button type="button" class="btn btn-secondary px-4" (click)="prevOwnerStep()">
+            <i class="fa-solid fa-arrow-left me-2"></i> Back
+          </button>
+          <button type="button" class="btn btn-primary px-4 font-bold" (click)="nextOwnerStep()">
+            Next: Address & Location <i class="fa-solid fa-arrow-right ms-2"></i>
+          </button>
+        </div>
+      }
+
+      <!-- STEP 3: ADDRESS & LOCATION DETAILS -->
+      @if (createOwnerStep === 3) {
+        <div class="step-content animate-fade-in">
+          <h4 class="section-title text-primary border-bottom pb-2 mb-3" style="font-size: 1.05rem;">
+            <i class="fa-solid fa-location-dot me-2"></i> 3. Address & Location Details
+          </h4>
+          <p class="text-muted mb-3" style="font-size: 0.85rem;">Location for the primary establishment and registration records.</p>
+          <div class="detail-grid mb-4">
+            <div class="detail-item">
+              <label>City *</label>
+              <input type="text" class="input-field" placeholder="City (e.g. Bengaluru)" [(ngModel)]="ownerData.city" name="city" required />
+            </div>
+            <div class="detail-item">
+              <label>State *</label>
+              <input type="text" class="input-field" placeholder="State (e.g. Karnataka)" [(ngModel)]="ownerData.state" name="state" required />
+            </div>
+            <div class="detail-item">
+              <label>Pincode / Postal Code *</label>
+              <input type="text" class="input-field" placeholder="e.g. 560001" [(ngModel)]="ownerData.pincode" name="pincode" required />
+            </div>
+            <div class="detail-item full-width">
+              <label>Full Address *</label>
+              <input type="text" class="input-field" placeholder="Street Address, Area, Landmark" [(ngModel)]="ownerData.address" name="address" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions mt-4 d-flex justify-content-between">
+          <button type="button" class="btn btn-secondary px-4" (click)="prevOwnerStep()">
+            <i class="fa-solid fa-arrow-left me-2"></i> Back
+          </button>
+          <button type="button" class="btn btn-primary px-4 font-bold" (click)="nextOwnerStep()">
+            Next: Verification & KYC <i class="fa-solid fa-arrow-right ms-2"></i>
+          </button>
+        </div>
+      }
+
+      <!-- STEP 4: VERIFICATION & KYC DOCUMENTS -->
+      @if (createOwnerStep === 4) {
+        <div class="step-content animate-fade-in">
+          <h4 class="section-title text-primary border-bottom pb-2 mb-3" style="font-size: 1.05rem;">
+            <i class="fa-solid fa-file-contract me-2"></i> 4. Verification & KYC Documents
+          </h4>
+          <p class="text-muted mb-3" style="font-size: 0.85rem;">Upload identity documents or government registration for verification.</p>
+          <div class="detail-grid mb-4">
+            <div class="detail-item">
+              <label>KYC Document Type</label>
+              <select class="input-field" [(ngModel)]="ownerData.kyc_doc_type" name="kyc_doc_type">
+                <option value="Aadhaar Card">Aadhaar Card</option>
+                <option value="PAN Card">PAN Card</option>
+                <option value="GST License">GST License</option>
+                <option value="Trade License">Trade License / Govt Reg</option>
+              </select>
+            </div>
+            <div class="detail-item">
+              <label>Document / License Number</label>
+              <input type="text" class="input-field" placeholder="e.g. 1234-5678-9012 or GSTIN..." [(ngModel)]="ownerData.kyc_doc_number" name="kyc_doc_number" />
+            </div>
+            <div class="detail-item full-width">
+              <label>Upload Document / Scan File</label>
+              <div class="d-flex align-items-center gap-3">
+                <input type="file" #kycFileInput hidden (change)="onKycFileChange($event)" accept="image/*,.pdf" />
+                <button type="button" class="btn btn-outline-primary" (click)="kycFileInput.click()">
+                  <i class="fa-solid fa-file-arrow-up me-2"></i> {{ kycFileName ? kycFileName : 'Upload Document Scan' }}
+                </button>
+                @if (kycFileName) {
+                  <span class="text-success font-bold" style="font-size: 0.85rem;">
+                    <i class="fa-solid fa-circle-check me-1"></i> Attached: {{ kycFileName }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions mt-4 d-flex justify-content-between">
+          <button type="button" class="btn btn-secondary px-4" (click)="prevOwnerStep()">
+            <i class="fa-solid fa-arrow-left me-2"></i> Back
+          </button>
+          <button type="button" class="btn btn-primary px-4 font-bold" (click)="nextOwnerStep()">
+            Next: Subscription Plan <i class="fa-solid fa-arrow-right ms-2"></i>
+          </button>
+        </div>
+      }
+
+      <!-- STEP 5: INITIAL PRIMARY BRANCH SUBSCRIPTION PLAN -->
+      @if (createOwnerStep === 5) {
+        <div class="step-content animate-fade-in">
+          <!-- Step 5 Header Banner -->
+          <div class="step-header-banner mb-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="step-header-icon">
+                <i class="fa-solid fa-crown text-warning"></i>
+              </div>
+              <div>
+                <h4 class="m-0 font-bold" style="font-size: 1.05rem; color: #0f172a;">Primary Branch Subscription & Settlement</h4>
+                <small class="text-muted" style="font-size: 0.8rem;">Select an activation package and settlement option to launch this owner's primary branch.</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1. SUBSCRIPTION PLAN DROPDOWN -->
+          <div class="step-card mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label font-bold m-0" style="font-size: 0.88rem; color: #1e293b;">
+                <i class="fa-solid fa-layer-group text-primary me-1"></i> 1. Choose Subscription Package *
+              </label>
+              @if (getSelectedPlan()) {
+                <span class="badge-plan-tier">
+                  <i class="fa-solid fa-circle-check text-success me-1"></i> {{ getSelectedPlan()?.name }} Selected
+                </span>
+              }
+            </div>
+
+            <div class="input-group">
+              <span class="input-group-text bg-light text-primary"><i class="fa-solid fa-tags"></i></span>
+              <select class="form-control form-select plan-dropdown-select" [(ngModel)]="ownerData.plan_id" (ngModelChange)="onPlanSelectChange($event)" name="owner_plan_id" required>
+                @for (p of plans; track p.id) {
+                  <option [value]="p.id">
+                    {{ p.name }} — ₹{{ p.price | number }} ({{ p.duration_months }} Month{{ p.duration_months > 1 ? 's' : '' }}, Max {{ p.max_branches }} Branch{{ p.max_branches > 1 ? 'es' : '' }})
+                  </option>
+                }
+              </select>
+            </div>
+
+            <!-- Live Plan Details Showcase Card -->
+            @if (getSelectedPlan(); as plan) {
+              <div class="plan-showcase-card mt-3">
+                <div class="plan-showcase-main">
+                  <div class="plan-showcase-details">
+                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                      <span class="badge bg-primary text-white" style="font-size: 0.7rem; letter-spacing: 0.5px;">ACTIVE TIER</span>
+                      <strong class="plan-showcase-title">{{ plan.name }}</strong>
+                    </div>
+                    <div class="plan-showcase-pills d-flex flex-wrap gap-2 mt-2">
+                      <span class="plan-pill-item">
+                        <i class="fa-regular fa-calendar-check text-primary me-1"></i> {{ plan.duration_months }} Month{{ plan.duration_months > 1 ? 's' : '' }} Validity
+                      </span>
+                      <span class="plan-pill-item">
+                        <i class="fa-solid fa-building text-primary me-1"></i> Max {{ plan.max_branches }} Branch{{ plan.max_branches > 1 ? 'es' : '' }}
+                      </span>
+                      <span class="plan-pill-item">
+                        <i class="fa-solid fa-bolt text-warning me-1"></i> Instant Activation
+                      </span>
+                    </div>
+                  </div>
+                  <div class="plan-showcase-price-box">
+                    <div class="plan-price-label">Payable Amount</div>
+                    <div class="plan-price-val">₹{{ plan.price | number }}</div>
+                    <div class="plan-price-period">for {{ plan.duration_months }} month{{ plan.duration_months > 1 ? 's' : '' }}</div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- 2. PAYMENT METHOD SELECTOR -->
+          <div class="step-card mb-3">
+            <label class="form-label font-bold mb-2" style="font-size: 0.88rem; color: #1e293b;">
+              <i class="fa-solid fa-credit-card text-primary me-1"></i> 2. Choose Payment Method & Settlement *
+            </label>
+            <div class="payment-options-grid">
+              <!-- Razorpay Option -->
+              <div class="payment-option-card" [class.selected]="ownerData.payment_mode === 'RAZORPAY'" (click)="ownerData.payment_mode = 'RAZORPAY'">
+                <span class="payment-badge-instant"><i class="fa-solid fa-bolt me-1"></i> INSTANT SDK</span>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <div class="payment-option-icon bg-primary-soft">
+                    <i class="fa-solid fa-bolt text-primary"></i>
+                  </div>
+                  <span class="font-bold text-dark" style="font-size: 0.92rem;">Razorpay Online</span>
+                </div>
+                <small class="text-muted payment-option-sub">Cards, UPI QR, NetBanking & Wallets</small>
+                <div class="mt-2 font-bold payment-option-status text-primary" style="font-size: 0.78rem;">
+                  <i class="fa-solid fa-circle-check me-1" *ngIf="ownerData.payment_mode === 'RAZORPAY'"></i>
+                  <i class="fa-regular fa-circle me-1" *ngIf="ownerData.payment_mode !== 'RAZORPAY'"></i>
+                  Instant Popup Checkout
+                </div>
+              </div>
+
+              <!-- UPI Option -->
+              <div class="payment-option-card" [class.selected]="ownerData.payment_mode === 'UPI'" (click)="ownerData.payment_mode = 'UPI'">
+                <span class="payment-badge-pill bg-success-soft text-success"><i class="fa-solid fa-qrcode me-1"></i> VPA / QR</span>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <div class="payment-option-icon bg-success-soft">
+                    <i class="fa-solid fa-qrcode text-success"></i>
+                  </div>
+                  <span class="font-bold text-dark" style="font-size: 0.92rem;">UPI Transfer / QR</span>
+                </div>
+                <small class="text-muted payment-option-sub">Direct transfer to SuperAdmin UPI ID</small>
+                <div class="mt-2 font-bold payment-option-status text-success" style="font-size: 0.78rem;">
+                  <i class="fa-solid fa-circle-check me-1" *ngIf="ownerData.payment_mode === 'UPI'"></i>
+                  <i class="fa-regular fa-circle me-1" *ngIf="ownerData.payment_mode !== 'UPI'"></i>
+                  Enter 12-digit UTR Proof
+                </div>
+              </div>
+
+              <!-- Cash Option -->
+              <div class="payment-option-card" [class.selected]="ownerData.payment_mode === 'CASH'" (click)="ownerData.payment_mode = 'CASH'">
+                <span class="payment-badge-pill bg-amber-soft text-amber"><i class="fa-solid fa-money-bill me-1"></i> OFFLINE</span>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <div class="payment-option-icon bg-amber-soft">
+                    <i class="fa-solid fa-money-bill-wave text-warning"></i>
+                  </div>
+                  <span class="font-bold text-dark" style="font-size: 0.92rem;">Cash in Hand</span>
+                </div>
+                <small class="text-muted payment-option-sub">Offline cash settlement at office</small>
+                <div class="mt-2 font-bold payment-option-status text-amber" style="font-size: 0.78rem;">
+                  <i class="fa-solid fa-circle-check me-1" *ngIf="ownerData.payment_mode === 'CASH'"></i>
+                  <i class="fa-regular fa-circle me-1" *ngIf="ownerData.payment_mode !== 'CASH'"></i>
+                  Direct Cash Receipt
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. CONTEXTUAL SETTLEMENT DETAILS -->
+          <!-- A. RAZORPAY SUMMARY -->
+          @if (ownerData.payment_mode === 'RAZORPAY') {
+            <div class="payment-details-panel rzp-panel mb-3 animate-fade-in">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom border-primary-subtle">
+                <div>
+                  <span class="badge bg-primary text-white px-2 py-1 mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                    <i class="fa-solid fa-shield-halved me-1"></i> RAZORPAY 256-BIT SSL SECURE POPUP
+                  </span>
+                  <div class="font-bold" style="font-size: 1.05rem; color: #1e3a8a;">
+                    {{ getSelectedPlan()?.name || ownerData.plan_name || 'Selected Plan' }}
+                  </div>
+                  <small class="text-muted">
+                    Duration: {{ getSelectedPlan()?.duration_months || ownerData.subscription_months || 2 }} Month{{ (getSelectedPlan()?.duration_months || 2) > 1 ? 's' : '' }} • Max Branches: {{ getSelectedPlan()?.max_branches || 1 }}
+                  </small>
+                </div>
+                <div class="text-end">
+                  <div class="text-muted" style="font-size: 0.78rem;">Total Payable Now:</div>
+                  <div class="font-bold text-primary" style="font-size: 1.55rem; line-height: 1.1;">
+                    ₹{{ (getSelectedPlan()?.price || 1999) | number }}
+                  </div>
+                </div>
+              </div>
+              <div class="rzp-instruction-box d-flex align-items-center gap-2">
+                <i class="fa-solid fa-lock text-primary" style="font-size: 1.15rem;"></i>
+                <span style="font-size: 0.82rem; color: #1e40af;">
+                  Clicking <strong>Pay via Razorpay & Register</strong> opens the official Razorpay Checkout popup. Once payment is confirmed, the owner and property account will be automatically saved and activated in the database.
+                </span>
+              </div>
+            </div>
+          }
+
+          <!-- B. UPI DETAILS -->
+          @if (ownerData.payment_mode === 'UPI') {
+            <div class="payment-details-panel upi-panel mb-3 animate-fade-in">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom border-success-subtle">
+                <h5 class="font-bold m-0 text-success" style="font-size: 0.95rem;">
+                  <i class="fa-solid fa-qrcode me-2"></i> Platform UPI Direct Transfer
+                </h5>
+                <div class="text-end">
+                  <small class="text-muted d-block" style="font-size: 0.75rem;">Amount Due:</small>
+                  <strong class="text-success font-bold" style="font-size: 1.25rem;">₹{{ (getSelectedPlan()?.price || 1999) | number }}</strong>
+                </div>
+              </div>
+
+              <div class="upi-info-card p-2 bg-white rounded border mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                  <small class="text-muted d-block" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">SuperAdmin UPI ID (VPA):</small>
+                  <strong class="font-bold text-dark font-monospace" style="font-size: 0.95rem;">{{ generalSettings?.upi_id || 'platform@staypulse' }}</strong>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="copyUpiId(generalSettings?.upi_id || 'platform@staypulse')">
+                  <i class="fa-solid" [class.fa-copy]="!copiedUpi" [class.fa-check]="copiedUpi"></i>
+                  {{ copiedUpi ? 'Copied!' : 'Copy VPA' }}
+                </button>
+              </div>
+
+              @if (generalSettings?.upi_qr_url) {
+                <div class="text-center mb-3">
+                  <img [src]="apiUrl + generalSettings.upi_qr_url" class="qr-preview-img" style="width: 120px; height: 120px; border-radius: 8px;" alt="UPI QR">
+                  <small class="d-block text-muted mt-1" style="font-size: 0.75rem;">Scan using GPay, PhonePe, Paytm, or BHIM</small>
+                </div>
+              }
+
+              <div class="row g-2">
+                <div class="col-md-6 form-group">
+                  <label class="form-label font-bold" style="font-size: 0.8rem;">12-digit UTR / Transaction Ref *</label>
+                  <input type="text" class="form-control" [(ngModel)]="ownerData.payment_ref" name="owner_payment_ref_upi" placeholder="e.g. 324567891234">
+                </div>
+                <div class="col-md-6 form-group">
+                  <label class="form-label font-bold" style="font-size: 0.8rem;">Payment Status</label>
+                  <select class="form-control form-select" [(ngModel)]="ownerData.payment_status" name="owner_payment_status_upi">
+                    <option value="PAID">Paid / Verified</option>
+                    <option value="PENDING">Pending Verification</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- C. CASH DETAILS -->
+          @if (ownerData.payment_mode === 'CASH') {
+            <div class="payment-details-panel cash-panel mb-3 animate-fade-in">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom border-warning-subtle">
+                <h5 class="font-bold m-0 text-amber" style="font-size: 0.95rem;">
+                  <i class="fa-solid fa-money-bill-wave me-2"></i> Cash Settlement
+                </h5>
+                <div class="text-end">
+                  <small class="text-muted d-block" style="font-size: 0.75rem;">Amount Due:</small>
+                  <strong class="text-amber font-bold" style="font-size: 1.25rem;">₹{{ (getSelectedPlan()?.price || 1999) | number }}</strong>
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-md-6 form-group">
+                  <label class="form-label font-bold" style="font-size: 0.8rem;">Cash Memo / Receipt Note</label>
+                  <input type="text" class="form-control" [(ngModel)]="ownerData.payment_ref" name="owner_payment_ref_cash" placeholder="e.g. Cash Receipt #102">
+                </div>
+                <div class="col-md-6 form-group">
+                  <label class="form-label font-bold" style="font-size: 0.8rem;">Payment Status</label>
+                  <select class="form-control form-select" [(ngModel)]="ownerData.payment_status" name="owner_payment_status_cash">
+                    <option value="PAID">Cash Received</option>
+                    <option value="PENDING">Payment Pending</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="form-actions mt-3 d-flex justify-content-between align-items-center">
+          <button type="button" class="btn btn-outline-secondary px-4 font-bold" (click)="prevOwnerStep()">
+            <i class="fa-solid fa-arrow-left me-2"></i> Back
+          </button>
+
+          @if (ownerData.payment_mode === 'RAZORPAY') {
+            <button type="submit" class="btn btn-primary px-4 font-bold shadow-sm" [disabled]="isProcessingPayment || isSubmittingOwner">
+              @if (isProcessingPayment) {
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Launching Razorpay SDK...
+              } @else if (isSubmittingOwner) {
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Saving Account...
+              } @else {
+                <i class="fa-solid fa-bolt me-2"></i> Pay ₹{{ (getSelectedPlan()?.price || 1999) | number }} via Razorpay & Register
+              }
+            </button>
+          } @else if (ownerData.payment_mode === 'UPI') {
+            <button type="submit" class="btn btn-success px-4 font-bold shadow-sm" [disabled]="isSubmittingOwner">
+              @if (isSubmittingOwner) {
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...
+              } @else {
+                <i class="fa-solid fa-qrcode me-2"></i> Confirm UPI & Register Owner
+              }
+            </button>
+          } @else {
+            <button type="submit" class="btn btn-primary px-4 font-bold shadow-sm" [disabled]="isSubmittingOwner">
+              @if (isSubmittingOwner) {
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...
+              } @else {
+                <i class="fa-solid fa-check-circle me-2"></i> Register with Cash Settlement
+              }
+            </button>
+          }
+        </div>
+      }
+
+    </form>
+  </div>
+</div>
+}
+
+<!-- ========================================== -->
+<!-- 2. VIEW OWNER DETAILS MODAL -->
+<!-- ========================================== -->
+@if (showViewModal) {
+<div class="modal-overlay">
+  <div class="modal-content glass-card view-modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-circle-info me-2"></i> Owner & Property Details</h3>
+      <button type="button" class="close-icon-btn" (click)="showViewModal = false">&times;</button>
+    </div>
+
+    @if (selectedOwner) {
+    <div class="detail-box mb-4">
+      <h4 class="box-title"><i class="fa-solid fa-location-dot me-2"></i> Address & Profile Details</h4>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Owner Code</label>
+          <span>{{ selectedOwner.owner_code }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Business Name</label>
+          <span>{{ selectedOwner.business_name }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Owner Name</label>
+          <span>{{ selectedOwner.full_name }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Contact</label>
+          <span>{{ selectedOwner.contact_number }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Email</label>
+          <span>{{ selectedOwner.email }}</span>
+        </div>
+        <div class="detail-item">
+          <label>City</label>
+          <span>{{ selectedOwner.city }}</span>
+        </div>
+        <div class="detail-item full-width">
+          <label>Address</label>
+          <span>{{ selectedOwner.address }}</span>
+        </div>
+        <div class="detail-item full-width">
+          <label>Assigned Property</label>
+          <span>{{ selectedOwner.property_name || 'No Property Created' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outlets / Branches Section -->
+    <div class="outlets-section">
+      <div class="outlets-header">
+        <h4 class="section-heading"><i class="fa-solid fa-code-branch me-2"></i> Outlets / Branches</h4>
+        <button class="btn btn-sm btn-primary" (click)="addBranchForOwner(selectedOwner)">
+          <i class="fa-solid fa-plus me-1"></i> Add Branch
+        </button>
+      </div>
+
+      @if (selectedOwnerBranches.length > 0) {
+      <div class="outlets-list">
+        @for (b of selectedOwnerBranches; track b.id; let idx = $index) {
+        <div class="outlet-card">
+          <div class="outlet-card-header">
+            <span class="outlet-title">Branch {{ idx + 1 }}: {{ b.branch_name }}</span>
+            <div class="outlet-actions">
+              <button class="outlet-action-btn edit" (click)="openEditBranchModal(b)" title="Edit Branch">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="outlet-action-btn delete" (click)="deleteBranch(b)" title="Delete Branch">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+          <div class="outlet-card-body">
+            <div class="outlet-info-col">
+              <label>Branch Name</label>
+              <span>{{ b.branch_name }}</span>
+            </div>
+            <div class="outlet-info-col">
+              <label>Branch Address</label>
+              <span>{{ b.address }}</span>
+            </div>
+            <div class="outlet-info-col">
+              <label>City & Contact</label>
+              <span>{{ b.city }} ({{ b.contact_number || 'N/A' }})</span>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="no-outlets-box">
+        <p class="mb-0">No branches/outlets added yet for this owner.</p>
+      </div>
+      }
+    </div>
+    }
+
+    <div class="form-actions mt-4">
+      <button type="button" class="btn btn-secondary" (click)="showViewModal = false">Close</button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- ========================================== -->
+<!-- 3. EDIT OWNER MODAL -->
+<!-- ========================================== -->
+@if (showEditOwnerModal) {
+<div class="modal-overlay">
+  <div class="modal-content glass-card view-modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-pen-to-square me-2"></i> Edit Property Owner</h3>
+      <button type="button" class="close-icon-btn" (click)="showEditOwnerModal = false">&times;</button>
+    </div>
+    <form (ngSubmit)="updateOwner()" class="modal-form">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Full Name</label>
+          <input type="text" class="input-field" placeholder="Owner Full Name" [(ngModel)]="editOwnerData.full_name"
+            name="edit_full_name" required />
+        </div>
+        <div class="detail-item">
+          <label>Business Name</label>
+          <input type="text" class="input-field" placeholder="Business Name" [(ngModel)]="editOwnerData.business_name"
+            name="edit_business_name" required />
+        </div>
+        <div class="detail-item">
+          <label>Email</label>
+          <input type="email" class="input-field" placeholder="Email" [(ngModel)]="editOwnerData.email"
+            name="edit_email" required />
+        </div>
+        <div class="detail-item">
+          <label>Contact Number</label>
+          <input type="tel" class="input-field" placeholder="Contact Number" [(ngModel)]="editOwnerData.contact_number"
+            name="edit_contact" required />
+        </div>
+        <div class="detail-item">
+          <label>City</label>
+          <input type="text" class="input-field" placeholder="City" [(ngModel)]="editOwnerData.city" name="edit_city"
+            required />
+        </div>
+        <div class="detail-item">
+          <label>Property / PG Name</label>
+          <input type="text" class="input-field" placeholder="Property Name" [(ngModel)]="editOwnerData.property_name"
+            name="edit_property_name" />
+        </div>
+        <div class="detail-item full-width">
+          <label>Address</label>
+          <input type="text" class="input-field" placeholder="Address" [(ngModel)]="editOwnerData.address"
+            name="edit_address" required />
+        </div>
+      </div>
+
+      <div class="form-actions mt-4">
+        <button type="submit" class="btn btn-primary flex-1">Save Changes</button>
+        <button type="button" class="btn btn-secondary" (click)="showEditOwnerModal = false">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+}
+
+<!-- ========================================== -->
+<!-- 4. EDIT BRANCH MODAL -->
+<!-- ========================================== -->
+@if (showEditBranchModal) {
+<div class="modal-overlay">
+  <div class="modal-content glass-card">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-pen-to-square me-2"></i> Edit Branch Details</h3>
+      <button type="button" class="close-icon-btn" (click)="showEditBranchModal = false">&times;</button>
+    </div>
+    <form (ngSubmit)="updateBranch()" class="modal-form">
+      <input type="text" class="input-field" placeholder="Branch Name" [(ngModel)]="editBranchData.branch_name"
+        name="edit_branch_name" required />
+      <input type="tel" class="input-field" placeholder="Contact Number" [(ngModel)]="editBranchData.contact_number"
+        name="edit_branch_contact" required />
+      <input type="text" class="input-field" placeholder="City" [(ngModel)]="editBranchData.city"
+        name="edit_branch_city" required />
+      <input type="text" class="input-field" placeholder="Address" [(ngModel)]="editBranchData.address"
+        name="edit_branch_address" required />
+
+      <div class="form-actions mt-3">
+        <button type="submit" class="btn btn-primary flex-1">Save Branch</button>
+        <button type="button" class="btn btn-secondary" (click)="showEditBranchModal = false">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+}
+
+<!-- ========================================== -->
+<!-- ========================================== -->
+<!-- 5. ADD BRANCH MODAL (2-STEP WIZARD) -->
+<!-- ========================================== -->
+@if (showAddBranchModal) {
+<div class="modal-overlay">
+  <div class="modal-content glass-card owner-wizard-modal">
+    <div class="modal-header">
+      <div>
+        <h3 class="m-0"><i class="fa-solid fa-code-branch me-2 text-primary"></i> Create New Branch / Outlet</h3>
+        <small class="text-muted">
+          Step {{ createBranchStep }} of 2:
+          @if (createBranchStep === 1) { Branch Details & Location }
+          @else { Subscription & Plan Activation }
+        </small>
+      </div>
+      <button type="button" class="close-icon-btn" (click)="showAddBranchModal = false">&times;</button>
+    </div>
+
+    <!-- 2-STEP PROGRESS INDICATOR -->
+    <div class="stepper-header">
+      <div class="step-item" [class.active]="createBranchStep === 1" [class.completed]="createBranchStep > 1" (click)="goToBranchStep(1)">
+        <div class="step-circle">
+          @if (createBranchStep > 1) { <i class="fa-solid fa-check"></i> } @else { 1 }
+        </div>
+        <span class="step-label">1. Branch Details</span>
+      </div>
+
+      <div class="step-divider" [class.active]="createBranchStep > 1"></div>
+
+      <div class="step-item" [class.active]="createBranchStep === 2" (click)="goToBranchStep(2)">
+        <div class="step-circle">2</div>
+        <span class="step-label">2. Subscription Plan</span>
+      </div>
+    </div>
+
+    <form (ngSubmit)="createBranch()" class="modal-form">
+      <!-- ================= STEP 1: BRANCH DETAILS ================= -->
+      @if (createBranchStep === 1) {
+        <div class="step-content animate-fade-in">
+          <div class="detail-grid">
+            <div class="detail-item full-width">
+              <label>Branch / Outlet Name *</label>
+              <input type="text" class="input-field" placeholder="e.g. BTM Layout Branch, Koramangala 5th Block" [(ngModel)]="branchData.branch_name" name="branch_name" required />
+            </div>
+            <div class="detail-item">
+              <label>Contact Number</label>
+              <input type="tel" class="input-field" placeholder="Branch Phone / Mobile" [(ngModel)]="branchData.contact_number" name="branch_contact" />
+            </div>
+            <div class="detail-item">
+              <label>City *</label>
+              <input type="text" class="input-field" placeholder="e.g. Bengaluru" [(ngModel)]="branchData.city" name="city" required />
+            </div>
+            <div class="detail-item full-width">
+              <label>Full Address *</label>
+              <input type="text" class="input-field" placeholder="Building, Street, Landmark, Area" [(ngModel)]="branchData.address" name="address" required />
+            </div>
+            <div class="detail-item">
+              <label>State *</label>
+              <input type="text" class="input-field" placeholder="e.g. Karnataka" [(ngModel)]="branchData.state" name="state" required />
+            </div>
+            <div class="detail-item">
+              <label>Parent Property / Brand</label>
+              <input type="text" class="input-field" [value]="selectedOwnerForBranch?.business_name || selectedOwnerForBranch?.property_name || 'Assigned Property'" disabled style="opacity: 0.75; background: #f3f4f6;" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions mt-3 d-flex justify-content-between align-items-center">
+          <button type="button" class="btn btn-outline-secondary px-4 font-bold" (click)="showAddBranchModal = false">Cancel</button>
+          <button type="button" class="btn btn-primary px-4 font-bold" (click)="nextBranchStep()">
+            Next: Subscription Plan <i class="fa-solid fa-arrow-right ms-2"></i>
+          </button>
+        </div>
+      }
+
+      <!-- ================= STEP 2: SUBSCRIPTION PLAN ================= -->
+      @if (createBranchStep === 2) {
+        <div class="step-content animate-fade-in">
+          @if (isBranchCoveredByPlan) {
+            <!-- CASE A: COVERED UNDER EXISTING PLAN -->
+            <div class="step-header-banner mb-3" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac;">
+              <div class="d-flex align-items-center gap-3">
+                <div class="step-header-icon" style="background: #22c55e; color: white;">
+                  <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                  <h4 class="m-0 font-bold" style="font-size: 1.05rem; color: #14532d;">Included Under Active Subscription!</h4>
+                  <small style="color: #166534; font-size: 0.82rem;">
+                    This branch is <strong>Branch {{ (selectedOwnerForBranch?.total_branches || 0) + 1 }} of {{ selectedOwnerForBranch?.max_branches }}</strong> allowed under <strong>{{ selectedOwnerForBranch?.plan_name }}</strong>.
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <div class="plan-showcase-card mb-3" style="background: #f0fdf4; border-color: #bbf7d0;">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <small class="text-muted d-block" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">Owner Active Plan</small>
+                  <strong style="color: #14532d; font-size: 1.05rem;">{{ selectedOwnerForBranch?.plan_name }}</strong>
+                  <div class="text-muted mt-1" style="font-size: 0.8rem;">
+                    Expires on: {{ selectedOwnerForBranch?.end_date | date:'mediumDate' }}
+                  </div>
+                </div>
+                <div class="text-end">
+                  <span class="badge bg-success px-2 py-1 mb-1" style="font-size: 0.72rem;">QUOTA AVAILABLE</span>
+                  <div class="font-bold text-success" style="font-size: 1.4rem;">₹0 Free</div>
+                  <small class="text-muted">Pre-paid under subscription</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert-info-box d-flex align-items-center gap-2 p-3 mb-3">
+              <i class="fa-solid fa-circle-info text-primary" style="font-size: 1.15rem;"></i>
+              <span>This branch will share the parent property's active subscription and will be ready immediately upon creation.</span>
+            </div>
+          } @else {
+            <!-- CASE B: PLAN QUOTA EXCEEDED (e.g. Branch 2+) -->
+            <div class="step-header-banner mb-3" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-color: #fde68a;">
+              <div class="d-flex align-items-center gap-3">
+                <div class="step-header-icon" style="background: #f59e0b; color: white;">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                  <h4 class="m-0 font-bold" style="font-size: 1.05rem; color: #92400e;">
+                    Plan Quota Limit Reached (All {{ selectedOwnerForBranch?.max_branches }} Branches Used)
+                  </h4>
+                  <small style="color: #b45309; font-size: 0.8rem;">
+                    Active plan (<strong>{{ selectedOwnerForBranch?.plan_name }}</strong>) allows {{ selectedOwnerForBranch?.max_branches }} branch(es). Please choose a subscription package for this additional branch (Branch {{ (selectedOwnerForBranch?.total_branches || 0) + 1 }}).
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- 1. SUBSCRIPTION PACKAGE DROPDOWN -->
+            <div class="step-card mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label font-bold m-0" style="font-size: 0.88rem; color: #1e293b;">
+                  <i class="fa-solid fa-layer-group text-primary me-1"></i> 1. Choose Branch Subscription Package *
+                </label>
+                @if (getBranchSelectedPlan()) {
+                  <span class="badge-plan-tier">
+                    <i class="fa-solid fa-circle-check text-success me-1"></i> {{ getBranchSelectedPlan()?.name }} Selected
+                  </span>
+                }
+              </div>
+
+              <div class="input-group">
+                <span class="input-group-text bg-light text-primary"><i class="fa-solid fa-tags"></i></span>
+                <select class="form-control form-select plan-dropdown-select" [(ngModel)]="branchData.plan_id" (ngModelChange)="onBranchPlanSelectChange($event)" name="branch_plan_id" required>
+                  @for (p of plans; track p.id) {
+                    <option [value]="p.id">
+                      {{ p.name }} — ₹{{ p.price | number }} ({{ p.duration_months }} Month{{ p.duration_months > 1 ? 's' : '' }}, Max {{ p.max_branches }} Branch{{ p.max_branches > 1 ? 'es' : '' }})
+                    </option>
+                  }
+                </select>
+              </div>
+
+              <!-- Live Plan Details Showcase Card -->
+              @if (getBranchSelectedPlan(); as plan) {
+                <div class="plan-showcase-card mt-3">
+                  <div class="plan-showcase-main">
+                    <div class="plan-showcase-details">
+                      <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <span class="badge bg-primary text-white" style="font-size: 0.7rem; letter-spacing: 0.5px;">BRANCH TIER</span>
+                        <strong class="plan-showcase-title">{{ plan.name }}</strong>
+                      </div>
+                      <div class="plan-showcase-pills d-flex flex-wrap gap-2 mt-2">
+                        <span class="plan-pill-item">
+                          <i class="fa-regular fa-calendar-check text-primary me-1"></i> {{ plan.duration_months }} Month{{ plan.duration_months > 1 ? 's' : '' }} Validity
+                        </span>
+                        <span class="plan-pill-item">
+                          <i class="fa-solid fa-building text-primary me-1"></i> Max {{ plan.max_branches }} Branch{{ plan.max_branches > 1 ? 'es' : '' }}
+                        </span>
+                        <span class="plan-pill-item">
+                          <i class="fa-solid fa-bolt text-warning me-1"></i> Instant Activation
+                        </span>
+                      </div>
+                    </div>
+                    <div class="plan-showcase-price-box">
+                      <div class="plan-price-label">Payable Amount</div>
+                      <div class="plan-price-val">₹{{ plan.price | number }}</div>
+                      <div class="plan-price-period">for {{ plan.duration_months }} month{{ plan.duration_months > 1 ? 's' : '' }}</div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- 2. PAYMENT METHOD SELECTOR -->
+            <div class="step-card mb-3">
+              <label class="form-label font-bold mb-2" style="font-size: 0.88rem; color: #1e293b;">
+                <i class="fa-solid fa-credit-card text-primary me-1"></i> 2. Choose Payment Method & Settlement *
+              </label>
+              <div class="payment-options-grid">
+                <!-- Razorpay Option -->
+                <div class="payment-option-card" [class.selected]="branchData.payment_mode === 'RAZORPAY'" (click)="branchData.payment_mode = 'RAZORPAY'">
+                  <span class="payment-badge-instant"><i class="fa-solid fa-bolt me-1"></i> INSTANT SDK</span>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="payment-option-icon bg-primary-soft">
+                      <i class="fa-solid fa-bolt text-primary"></i>
+                    </div>
+                    <span class="font-bold text-dark" style="font-size: 0.92rem;">Razorpay Online</span>
+                  </div>
+                  <small class="text-muted payment-option-sub">Cards, UPI QR, NetBanking & Wallets</small>
+                  <div class="mt-2 font-bold payment-option-status text-primary" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-circle-check me-1" *ngIf="branchData.payment_mode === 'RAZORPAY'"></i>
+                    <i class="fa-regular fa-circle me-1" *ngIf="branchData.payment_mode !== 'RAZORPAY'"></i>
+                    Instant Popup Checkout
+                  </div>
+                </div>
+
+                <!-- UPI Option -->
+                <div class="payment-option-card" [class.selected]="branchData.payment_mode === 'UPI'" (click)="branchData.payment_mode = 'UPI'">
+                  <span class="payment-badge-pill bg-success-soft text-success"><i class="fa-solid fa-qrcode me-1"></i> VPA / QR</span>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="payment-option-icon bg-success-soft">
+                      <i class="fa-solid fa-qrcode text-success"></i>
+                    </div>
+                    <span class="font-bold text-dark" style="font-size: 0.92rem;">UPI Transfer / QR</span>
+                  </div>
+                  <small class="text-muted payment-option-sub">Direct transfer to SuperAdmin UPI ID</small>
+                  <div class="mt-2 font-bold payment-option-status text-success" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-circle-check me-1" *ngIf="branchData.payment_mode === 'UPI'"></i>
+                    <i class="fa-regular fa-circle me-1" *ngIf="branchData.payment_mode !== 'UPI'"></i>
+                    Enter 12-digit UTR Proof
+                  </div>
+                </div>
+
+                <!-- Cash Option -->
+                <div class="payment-option-card" [class.selected]="branchData.payment_mode === 'CASH'" (click)="branchData.payment_mode = 'CASH'">
+                  <span class="payment-badge-pill bg-amber-soft text-amber"><i class="fa-solid fa-money-bill me-1"></i> OFFLINE</span>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="payment-option-icon bg-amber-soft">
+                      <i class="fa-solid fa-money-bill-wave text-warning"></i>
+                    </div>
+                    <span class="font-bold text-dark" style="font-size: 0.92rem;">Cash in Hand</span>
+                  </div>
+                  <small class="text-muted payment-option-sub">Offline cash settlement at office</small>
+                  <div class="mt-2 font-bold payment-option-status text-amber" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-circle-check me-1" *ngIf="branchData.payment_mode === 'CASH'"></i>
+                    <i class="fa-regular fa-circle me-1" *ngIf="branchData.payment_mode !== 'CASH'"></i>
+                    Direct Cash Receipt
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. CONTEXTUAL SETTLEMENT DETAILS -->
+            @if (branchData.payment_mode === 'RAZORPAY') {
+              <div class="payment-details-panel rzp-panel mb-3 animate-fade-in">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom border-primary-subtle">
+                  <div>
+                    <span class="badge bg-primary text-white px-2 py-1 mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                      <i class="fa-solid fa-shield-halved me-1"></i> RAZORPAY 256-BIT SSL SECURE POPUP
+                    </span>
+                    <div class="font-bold" style="font-size: 1.05rem; color: #1e3a8a;">
+                      {{ getBranchSelectedPlan()?.name || 'Branch Subscription' }}
+                    </div>
+                    <small class="text-muted">
+                      Duration: {{ getBranchSelectedPlan()?.duration_months || 2 }} Month{{ (getBranchSelectedPlan()?.duration_months || 2) > 1 ? 's' : '' }} • Max Branches: {{ getBranchSelectedPlan()?.max_branches || 1 }}
+                    </small>
+                  </div>
+                  <div class="text-end">
+                    <div class="text-muted" style="font-size: 0.78rem;">Total Payable Now:</div>
+                    <div class="font-bold text-primary" style="font-size: 1.55rem; line-height: 1.1;">
+                      ₹{{ (getBranchSelectedPlan()?.price || 1999) | number }}
+                    </div>
+                  </div>
+                </div>
+                <div class="rzp-instruction-box d-flex align-items-center gap-2">
+                  <i class="fa-solid fa-lock text-primary" style="font-size: 1.15rem;"></i>
+                  <span style="font-size: 0.82rem; color: #1e40af;">
+                    Clicking <strong>Pay via Razorpay & Create Branch</strong> opens the official Razorpay Checkout popup. Once payment is confirmed, this new branch will be automatically created and activated in the database.
+                  </span>
+                </div>
+              </div>
+            }
+
+            @if (branchData.payment_mode === 'UPI') {
+              <div class="payment-details-panel upi-panel mb-3 animate-fade-in">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom border-success-subtle">
+                  <h5 class="font-bold m-0 text-success" style="font-size: 0.95rem;">
+                    <i class="fa-solid fa-qrcode me-2"></i> Platform UPI Direct Transfer
+                  </h5>
+                  <div class="text-end">
+                    <small class="text-muted d-block" style="font-size: 0.75rem;">Amount Due:</small>
+                    <strong class="text-success font-bold" style="font-size: 1.25rem;">₹{{ (getBranchSelectedPlan()?.price || 1999) | number }}</strong>
+                  </div>
+                </div>
+
+                <div class="upi-info-card p-2 bg-white rounded border mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                  <div>
+                    <small class="text-muted d-block" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">SuperAdmin UPI ID (VPA):</small>
+                    <strong class="font-bold text-dark font-monospace" style="font-size: 0.95rem;">{{ generalSettings?.upi_id || 'platform@staypulse' }}</strong>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="copyUpiId(generalSettings?.upi_id || 'platform@staypulse')">
+                    <i class="fa-solid" [class.fa-copy]="!copiedUpi" [class.fa-check]="copiedUpi"></i>
+                    {{ copiedUpi ? 'Copied!' : 'Copy VPA' }}
+                  </button>
+                </div>
+
+                @if (generalSettings?.upi_qr_url) {
+                  <div class="text-center mb-3">
+                    <img [src]="apiUrl + generalSettings.upi_qr_url" class="qr-preview-img" style="width: 120px; height: 120px; border-radius: 8px;" alt="UPI QR">
+                    <small class="d-block text-muted mt-1" style="font-size: 0.75rem;">Scan using GPay, PhonePe, Paytm, or BHIM</small>
+                  </div>
+                }
+
+                <div class="row g-2">
+                  <div class="col-md-6 form-group">
+                    <label class="form-label font-bold" style="font-size: 0.8rem;">12-digit UTR / Transaction Ref *</label>
+                    <input type="text" class="form-control" [(ngModel)]="branchData.payment_ref" name="branch_payment_ref_upi" placeholder="e.g. 324567891234">
+                  </div>
+                  <div class="col-md-6 form-group">
+                    <label class="form-label font-bold" style="font-size: 0.8rem;">Payment Status</label>
+                    <select class="form-control form-select" [(ngModel)]="branchData.payment_status" name="branch_payment_status_upi">
+                      <option value="PAID">Paid / Verified</option>
+                      <option value="PENDING">Pending Verification</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (branchData.payment_mode === 'CASH') {
+              <div class="payment-details-panel cash-panel mb-3 animate-fade-in">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom border-warning-subtle">
+                  <h5 class="font-bold m-0 text-amber" style="font-size: 0.95rem;">
+                    <i class="fa-solid fa-money-bill-wave me-2"></i> Cash Settlement
+                  </h5>
+                  <div class="text-end">
+                    <small class="text-muted d-block" style="font-size: 0.75rem;">Amount Due:</small>
+                    <strong class="text-amber font-bold" style="font-size: 1.25rem;">₹{{ (getBranchSelectedPlan()?.price || 1999) | number }}</strong>
+                  </div>
+                </div>
+                <div class="row g-2">
+                  <div class="col-md-6 form-group">
+                    <label class="form-label font-bold" style="font-size: 0.8rem;">Cash Memo / Receipt Note</label>
+                    <input type="text" class="form-control" [(ngModel)]="branchData.payment_ref" name="branch_payment_ref_cash" placeholder="e.g. Cash Receipt #102">
+                  </div>
+                  <div class="col-md-6 form-group">
+                    <label class="form-label font-bold" style="font-size: 0.8rem;">Payment Status</label>
+                    <select class="form-control form-select" [(ngModel)]="branchData.payment_status" name="branch_payment_status_cash">
+                      <option value="PAID">Cash Received</option>
+                      <option value="PENDING">Payment Pending</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+        <div class="form-actions mt-3 d-flex justify-content-between align-items-center">
+          <button type="button" class="btn btn-outline-secondary px-4 font-bold" (click)="prevBranchStep()">
+            <i class="fa-solid fa-arrow-left me-2"></i> Back
+          </button>
+
+          @if (isBranchCoveredByPlan) {
+            <button type="submit" class="btn btn-success px-4 font-bold shadow-sm">
+              <i class="fa-solid fa-check me-2"></i> Create Branch (Included Free)
+            </button>
+          } @else if (branchData.payment_mode === 'RAZORPAY') {
+            <button type="submit" class="btn btn-primary px-4 font-bold shadow-sm" [disabled]="isProcessingBranchPayment">
+              @if (isProcessingBranchPayment) {
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Launching Razorpay SDK...
+              } @else {
+                <i class="fa-solid fa-bolt me-2"></i> Pay ₹{{ (getBranchSelectedPlan()?.price || 1999) | number }} via Razorpay & Create Branch
+              }
+            </button>
+          } @else if (branchData.payment_mode === 'UPI') {
+            <button type="submit" class="btn btn-success px-4 font-bold shadow-sm">
+              <i class="fa-solid fa-qrcode me-2"></i> Confirm UPI & Create Branch
+            </button>
+          } @else {
+            <button type="submit" class="btn btn-primary px-4 font-bold shadow-sm">
+              <i class="fa-solid fa-check-circle me-2"></i> Confirm & Create Branch
+            </button>
+          }
+        </div>
+      }
+    </form>
+  </div>
+</div>
+}
+  
+<!-- ========================================== -->
+<!-- RENEW SUBSCRIPTION MODAL (SUPER ADMIN) -->
+  @if (showRenewModal) {
+  <div class="modal-overlay">
+    <div class="modal-content glass-card view-modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-repeat me-2"></i> Renew Subscription Plan</h3>
+        <button type="button" class="close-icon-btn" (click)="showRenewModal = false">&times;</button>
+      </div>
+      <div class="p-3">
+        <div class="mb-3">
+          <p class="mb-1"><strong>Owner:</strong> {{ renewOwnerData?.full_name }}</p>
+          <p class="mb-1"><strong>Property / Business:</strong> {{ renewOwnerData?.business_name || renewOwnerData?.property_name }}</p>
+          <p class="mb-2">
+            <strong>Current Plan Status:</strong>
+            @if (renewOwnerData?.is_expired) {
+              <span class="badge bg-danger ms-1">Expired</span>
+            } @else {
+              <span class="badge bg-success ms-1">Active ({{ renewOwnerData?.days_remaining }} days remaining)</span>
+            }
+          </p>
+        </div>
+
+        <label class="form-label font-bold mb-2">Choose Renewal Duration:</label>
+        <div class="d-grid gap-2 mb-4">
+          <button type="button" class="btn text-start p-3 border rounded d-flex justify-content-between align-items-center"
+            [style.background]="renewMonths === 2 ? '#7a422f' : '#f8f9fa'"
+            [style.color]="renewMonths === 2 ? '#ffffff' : '#333333'"
+            (click)="renewMonths = 2">
+            <div><strong>2 Months</strong> - Starter Plan</div>
+            @if (renewMonths === 2) { <i class="fa-solid fa-check"></i> }
+          </button>
+          <button type="button" class="btn text-start p-3 border rounded d-flex justify-content-between align-items-center"
+            [style.background]="renewMonths === 3 ? '#7a422f' : '#f8f9fa'"
+            [style.color]="renewMonths === 3 ? '#ffffff' : '#333333'"
+            (click)="renewMonths = 3">
+            <div><strong>3 Months</strong> - Quarterly Plan</div>
+            @if (renewMonths === 3) { <i class="fa-solid fa-check"></i> }
+          </button>
+          <button type="button" class="btn text-start p-3 border rounded d-flex justify-content-between align-items-center"
+            [style.background]="renewMonths === 6 ? '#7a422f' : '#f8f9fa'"
+            [style.color]="renewMonths === 6 ? '#ffffff' : '#333333'"
+            (click)="renewMonths = 6">
+            <div><strong>6 Months</strong> - Half-Yearly Plan</div>
+            @if (renewMonths === 6) { <i class="fa-solid fa-check"></i> }
+          </button>
+          <button type="button" class="btn text-start p-3 border rounded d-flex justify-content-between align-items-center"
+            [style.background]="renewMonths === 12 ? '#7a422f' : '#f8f9fa'"
+            [style.color]="renewMonths === 12 ? '#ffffff' : '#333333'"
+            (click)="renewMonths = 12">
+            <div><strong>12 Months</strong> - Annual Plan</div>
+            @if (renewMonths === 12) { <i class="fa-solid fa-check"></i> }
+          </button>
+        </div>
+
+        <div class="form-actions d-flex gap-2">
+          <button type="button" class="btn btn-primary flex-1" (click)="submitRenewSubscription()">
+            <i class="fa-solid fa-check me-1"></i> Confirm & Renew Plan
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="showRenewModal = false">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+
+  <!-- ========================================== -->
+  <!-- 6. CREATE / EDIT PLAN MODAL -->
+  <!-- ========================================== -->
+  @if (showPlanModal) {
+  <div class="modal-overlay">
+    <div class="modal-content glass-card" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3>
+          <i class="fa-solid" [class.fa-plus]="!isEditingPlan" [class.fa-pen-to-square]="isEditingPlan"></i>
+          {{ isEditingPlan ? 'Edit Subscription Plan' : 'Create New Subscription Plan' }}
+        </h3>
+        <button type="button" class="close-icon-btn" (click)="showPlanModal = false">&times;</button>
+      </div>
+      <form (ngSubmit)="savePlan()" class="modal-form">
+        <div class="detail-grid">
+          <div class="detail-item full-width">
+            <label>Plan Name *</label>
+            <input type="text" class="input-field" placeholder="e.g. Pro Growth Plan (3 Months)" [(ngModel)]="planFormData.name" name="plan_name" required />
+          </div>
+          <div class="detail-item">
+            <label>Price in INR (₹) *</label>
+            <input type="number" class="input-field" placeholder="e.g. 2999" [(ngModel)]="planFormData.price" name="plan_price" min="0" required />
+          </div>
+          <div class="detail-item">
+            <label>Duration (Months) *</label>
+            <input type="number" class="input-field" placeholder="e.g. 3" [(ngModel)]="planFormData.duration_months" name="plan_duration" min="1" max="60" required />
+          </div>
+          <div class="detail-item">
+            <label>Max Branches Allowed *</label>
+            <input type="number" class="input-field" placeholder="e.g. 2" [(ngModel)]="planFormData.max_branches" name="plan_max_branches" min="1" required />
+          </div>
+          <div class="detail-item">
+            <label>Status</label>
+            <select class="input-field" [(ngModel)]="planFormData.is_active" name="plan_active">
+              <option [ngValue]="true">Active</option>
+              <option [ngValue]="false">Inactive</option>
+            </select>
+          </div>
+          <div class="detail-item full-width">
+            <label>Features (comma-separated)</label>
+            <textarea class="input-field" rows="2" placeholder="e.g. PMS Access, Rent Invoicing, Tenant Mobile App" [(ngModel)]="planFormData.featuresText" name="plan_features"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions mt-4 d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-1">
+            <i class="fa-solid fa-check me-1"></i> {{ isEditingPlan ? 'Update Plan' : 'Create Plan' }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="showPlanModal = false">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- 7. RENEW BRANCH SUBSCRIPTION MODAL -->
+  <!-- ========================================== -->
+  @if (showRenewBranchModal) {
+  <div class="modal-overlay">
+    <div class="modal-content glass-card view-modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-repeat me-2 text-warning"></i> Renew Branch Subscription</h3>
+        <button type="button" class="close-icon-btn" (click)="showRenewBranchModal = false">&times;</button>
+      </div>
+      <div class="p-3">
+        <div class="mb-3 p-3 rounded" style="background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08);">
+          <p class="mb-1"><strong>Branch:</strong> <span class="text-primary font-bold">{{ renewBranchData?.branch_name }}</span></p>
+          <p class="mb-1"><strong>Address:</strong> {{ renewBranchData?.address }}, {{ renewBranchData?.city }}</p>
+          <p class="mb-1"><strong>Current Plan:</strong> {{ renewBranchData?.plan_name || 'Standard' }}</p>
+          <p class="m-0">
+            <strong>Status:</strong>
+            @if (renewBranchData?.is_expired || renewBranchData?.subscription_status === 'EXPIRED') {
+              <span class="badge bg-danger ms-1">Expired</span>
+            } @else {
+              <span class="badge bg-success ms-1">Active ({{ renewBranchData?.days_remaining }} days remaining)</span>
+            }
+          </p>
+        </div>
+
+        <label class="form-label font-bold mb-2">Select Subscription Plan to Apply:</label>
+        <div class="d-grid gap-2 mb-3">
+          @for (p of plans; track p.id) {
+            <button type="button" class="btn text-start p-3 border rounded d-flex justify-content-between align-items-center"
+              [style.background]="renewBranchPlanId === p.id ? '#7a422f' : '#f8f9fa'"
+              [style.color]="renewBranchPlanId === p.id ? '#ffffff' : '#333333'"
+              (click)="renewBranchPlanId = p.id">
+              <div>
+                <div class="font-bold">{{ p.name }}</div>
+                <div style="font-size: 0.85rem; opacity: 0.85;">₹{{ p.price }} • {{ p.duration_months }} Months • Max {{ p.max_branches }} Branch{{ p.max_branches > 1 ? 'es' : '' }}</div>
+              </div>
+              @if (renewBranchPlanId === p.id) { <i class="fa-solid fa-check"></i> }
+            </button>
+          }
+        </div>
+
+        <!-- PAYMENT MODE FOR RENEWAL -->
+        <div class="p-3 rounded mb-3" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.08);">
+          <h5 class="font-bold mb-2" style="font-size: 0.92rem; color: #1a2744;">
+            <i class="fa-solid fa-money-bill-transfer me-2 text-primary"></i> Payment Details
+          </h5>
+          <div class="grid-3 gap-2">
+            <div class="form-group">
+              <label class="form-label font-bold" style="font-size: 0.78rem;">Payment Mode</label>
+              <select class="form-control form-select" [(ngModel)]="renewBranchPaymentMode">
+                <option value="CASH">Cash in Hand</option>
+                <option value="UPI">UPI Direct Transfer</option>
+                <option value="RAZORPAY">Online (Razorpay)</option>
+                <option value="BANK_TRANSFER">Bank Transfer (NEFT/IMPS)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label font-bold" style="font-size: 0.78rem;">Payment Status</label>
+              <select class="form-control form-select" [(ngModel)]="renewBranchPaymentStatus">
+                <option value="PAID">Paid / Received</option>
+                <option value="PENDING">Pending / Due</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label font-bold" style="font-size: 0.78rem;">Ref / UTR / Note</label>
+              <input type="text" class="form-control" [(ngModel)]="renewBranchPaymentRef" placeholder="e.g. UTR / Memo">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions d-flex gap-2">
+          <button type="button" class="btn btn-primary flex-1" (click)="submitRenewBranchSubscription()">
+            <i class="fa-solid fa-check me-1"></i> Confirm & Renew Branch
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="showRenewBranchModal = false">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }

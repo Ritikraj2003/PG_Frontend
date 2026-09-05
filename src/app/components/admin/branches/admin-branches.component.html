@@ -1,0 +1,44 @@
+<div class="glass-card table-card">
+  <div class="table-header-row mb-3">
+    <h3 class="card-title"><i class="fa-solid fa-code-branch me-2 color-indigo"></i> All Branches & Outlets</h3>
+  </div>
+  <div class="table-container">
+    @if (branches && branches.length > 0) {
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Branch Name</th>
+            <th>Address</th>
+            <th>City</th>
+            <th>Contact</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (b of branches; track b.id) {
+          <tr>
+            <td class="font-bold"><i class="fa-solid fa-code-branch me-2 text-primary"></i>{{ b.branch_name }}</td>
+            <td>{{ b.address }}</td>
+            <td>{{ b.city }}</td>
+            <td>{{ b.contact_number || 'N/A' }}</td>
+            <td>
+              <div class="table-actions">
+                <button class="action-btn btn-edit" (click)="editBranch.emit(b)" title="Edit Branch">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="action-btn btn-delete" (click)="deleteBranch.emit(b)" title="Delete Branch">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <div class="p-4 text-center text-muted">
+        <p>No active branches found across registered properties.</p>
+      </div>
+    }
+  </div>
+</div>

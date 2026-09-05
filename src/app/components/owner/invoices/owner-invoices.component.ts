@@ -46,11 +46,30 @@ export class OwnerInvoicesComponent {
     return this.invoices.reduce((acc, inv) => acc + Number(inv.balance_amount || 0), 0);
   }
 
-  openCreateModal() {
+  async openCreateModal() {
     this.showModal = true;
     this.errorMessage = '';
-    if (this.tenants.length > 0) {
+    if (!this.tenants || this.tenants.length === 0) {
+      if (this.branchId) {
+        try {
+          this.tenants = await this.apiService.owner.getTenants(this.branchId);
+        } catch (e) {
+          console.error('Failed to load tenants in modal:', e);
+        }
+      }
+    }
+    if (this.tenants && this.tenants.length > 0) {
       this.newInvoice.tenant_id = this.tenants[0].id;
+      if (this.tenants[0].monthly_rent) {
+        this.newInvoice.rent_amount = Number(this.tenants[0].monthly_rent);
+      }
+    }
+  }
+
+  onTenantChange() {
+    const selected = this.tenants.find((t: any) => t.id === this.newInvoice.tenant_id);
+    if (selected && selected.monthly_rent) {
+      this.newInvoice.rent_amount = Number(selected.monthly_rent);
     }
   }
 

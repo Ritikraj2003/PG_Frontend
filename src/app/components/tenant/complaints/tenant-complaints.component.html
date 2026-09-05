@@ -1,0 +1,49 @@
+<div class="glass-card table-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="card-title m-0">
+      <i class="fa-solid fa-headset me-2 text-primary"></i> Complaints & Maintenance Requests
+    </h3>
+    <button class="btn btn-primary btn-sm" (click)="onOpenModal()">
+      <i class="fa-solid fa-plus me-1"></i> Raise Complaint
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticket #</th>
+          <th>Category</th>
+          <th>Title</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Raised On</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (comp of complaints; track comp.id) {
+          <tr>
+            <td class="font-bold">#{{ comp.complaint_number }}</td>
+            <td>{{ comp.category }}</td>
+            <td>{{ comp.title }}</td>
+            <td>
+              <span class="badge" [class.badge-danger]="comp.priority === 'HIGH'" [class.badge-warning]="comp.priority === 'MEDIUM'" [class.badge-info]="comp.priority === 'LOW'">
+                {{ comp.priority }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" [class.badge-success]="comp.status === 'RESOLVED'" [class.badge-warning]="comp.status === 'IN_PROGRESS'" [class.badge-info]="comp.status === 'OPEN'">
+                {{ comp.status }}
+              </span>
+            </td>
+            <td>{{ comp.created_at | date:'mediumDate' }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">No complaints filed</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

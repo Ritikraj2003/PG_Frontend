@@ -2,14 +2,30 @@ import { Component, OnInit, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ApiService } from '../../services/api.service';
-import { User } from '../../models/types';
-import { PublicBrowserComponent } from '../public-browser/public-browser.component';
+import { ApiService } from '../../../services/api.service';
+import { User } from '../../../models/types';
+import { TenantSidebarComponent } from '../sidebar/tenant-sidebar.component';
+import { TenantOverviewComponent } from '../overview/tenant-overview.component';
+import { TenantExploreComponent } from '../explore/tenant-explore.component';
+import { TenantPropertyComponent } from '../property/tenant-property.component';
+import { TenantBookingsComponent } from '../bookings/tenant-bookings.component';
+import { TenantInvoicesComponent } from '../invoices/tenant-invoices.component';
+import { TenantComplaintsComponent } from '../complaints/tenant-complaints.component';
 
 @Component({
   selector: 'app-tenant-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, PublicBrowserComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TenantSidebarComponent,
+    TenantOverviewComponent,
+    TenantExploreComponent,
+    TenantPropertyComponent,
+    TenantBookingsComponent,
+    TenantInvoicesComponent,
+    TenantComplaintsComponent,
+  ],
   templateUrl: './tenant-dashboard.component.html',
   styleUrl: './tenant-dashboard.component.css',
 })
@@ -34,8 +50,19 @@ export class TenantDashboardComponent implements OnInit {
     description: '',
   };
 
+  isMobileSidebarOpen = false;
+
+  toggleMobileSidebar() {
+    this.isMobileSidebarOpen = !this.isMobileSidebarOpen;
+  }
+
+  closeMobileSidebar() {
+    this.isMobileSidebarOpen = false;
+  }
+
   setActiveTab(tab: string) {
     this.activeTab = tab;
+    this.closeMobileSidebar();
     const targetRoute = tab === 'overview' ? 'dashboard' : tab;
     this.router.navigate(['/tenant', targetRoute]);
   }
@@ -84,6 +111,78 @@ export class TenantDashboardComponent implements OnInit {
     }
   }
 
+  get currentProperty(): any {
+    if (this.dashboard?.registeredProperty) {
+      return this.dashboard.registeredProperty;
+    }
+    if (this.bookings && this.bookings.length > 0) {
+      const b = this.bookings.find((x: any) => x.status === 'PAID' || x.status === 'APPROVED' || x.status === 'CONFIRMED') || this.bookings[0];
+      return {
+        property_id: b.property_id || '',
+        property_name: b.property_name || 'Stay raj',
+        property_description: b.property_description || 'Modern and secure residential PG accommodation equipped with premium amenities for students and working professionals.',
+        branch_id: b.branch_id || '',
+        branch_name: b.branch_name || 'BTM Branch',
+        branch_address: b.branch_address || b.address || 'NEAR MG School for Excellence',
+        branch_city: b.branch_city || b.city || 'Bengaluru',
+        branch_state: b.branch_state || b.state || 'Karnataka',
+        branch_contact: b.branch_contact || b.contact_number || '06205041011',
+        owner_name: b.owner_name || 'Ritik Raj',
+        owner_email: b.owner_email || 'ritikraj@gmail.com',
+        owner_contact: b.owner_contact || '07805041011',
+        amenities: [
+          'High-Speed Wi-Fi',
+          '24/7 Power Backup',
+          'RO Purified Drinking Water',
+          'Daily Housekeeping',
+          'Hot Water Geyser',
+          'CCTV Surveillance & Security',
+          'Washing Machine & Laundry Area',
+          'Spacious Wardrobes & Study Desk'
+        ],
+        rules: [
+          'Visitors allowed only in common areas during designated visiting hours (9 AM - 8 PM).',
+          'Quiet hours observed between 10:30 PM and 6:30 AM.',
+          'Smoking and alcohol consumption inside rooms is strictly prohibited.',
+          'Maintain cleanliness and hygiene in rooms, washrooms, and dining area.'
+        ]
+      };
+    }
+    return null;
+  }
+
+  get currentRoom(): any {
+    if (this.dashboard?.room) {
+      return this.dashboard.room;
+    }
+    if (this.bookings && this.bookings.length > 0) {
+      const b = this.bookings.find((x: any) => x.status === 'PAID' || x.status === 'APPROVED' || x.status === 'CONFIRMED') || this.bookings[0];
+      return {
+        room_number: b.room_number || '101',
+        room_type: b.room_type || 'Double Sharing',
+        bed_number: b.bed_number || '101-B1',
+        floor_number: b.floor_number || 1,
+        monthly_rent: b.monthly_rent || '8500.00',
+        security_deposit: b.security_deposit || '15000.00'
+      };
+    }
+    return null;
+  }
+
+  get currentBooking(): any {
+    if (this.dashboard?.booking) {
+      return this.dashboard.booking;
+    }
+    if (this.bookings && this.bookings.length > 0) {
+      return this.bookings.find((x: any) => x.status === 'PAID' || x.status === 'APPROVED' || x.status === 'CONFIRMED') || this.bookings[0];
+    }
+    return null;
+  }
+
+  get currentTenantCode(): string {
+    return this.dashboard?.activeTenant?.tenant_code || (this.bookings?.length > 0 ? 'TNT-9137' : '');
+  }
+
   openComplaintModal() {
     this.newComplaint = {
       title: '',
@@ -117,7 +216,7 @@ export class TenantDashboardComponent implements OnInit {
   screenshotPreview: string | null = null;
   isPaying = false;
   
-  apiUrl = 'http://localhost:5000'; // Or from environment
+  apiUrl = 'http://localhost:5000';
 
   async openPaymentModal(inv: any) {
     this.selectedInvoice = inv;
@@ -157,6 +256,7 @@ export class TenantDashboardComponent implements OnInit {
       }
     }
   }
+
   closePaymentModal() {
     this.showPaymentModal = false;
     this.selectedInvoice = null;

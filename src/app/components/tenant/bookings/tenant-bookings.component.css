@@ -1,0 +1,57 @@
+:host {
+  display: block;
+}
+
+.table-card {
+  padding: 1.5rem;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e5ddd4;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a2744;
+  display: flex;
+  align-items: center;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.pay-btn {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #f1ece5;
+}
+
+th {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #faf8f5;
+}
+
+td {
+  font-size: 0.9rem;
+}

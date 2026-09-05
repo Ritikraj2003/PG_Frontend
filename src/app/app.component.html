@@ -1,4 +1,4 @@
-@if (!isOwnerRoute) {
+@if (!isPortalRoute) {
   <app-navbar
     [user]="user"
     (openAuth)="openAuth()"
@@ -6,7 +6,7 @@
   ></app-navbar>
 }
 
-<main [class.no-navbar]="isOwnerRoute">
+<main [class.no-navbar]="isPortalRoute">
   <router-outlet></router-outlet>
 </main>
 

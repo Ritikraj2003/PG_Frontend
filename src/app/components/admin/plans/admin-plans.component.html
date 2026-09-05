@@ -1,0 +1,104 @@
+<div class="glass-card table-card">
+  <div class="table-header-row mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h3 class="card-title mb-1"><i class="fa-solid fa-tags me-2 text-primary"></i> SaaS Subscription Packages</h3>
+      <p class="text-muted m-0" style="font-size: 0.88rem;">Define and manage branch-level subscription plans, pricing, duration, and branch limits.</p>
+    </div>
+    <button class="btn btn-primary btn-sm shadow-sm" (click)="createPlan.emit()">
+      <i class="fa-solid fa-plus me-1"></i> Create New Plan
+    </button>
+  </div>
+
+  <!-- Plans Grid -->
+  <div class="plans-admin-grid mb-4">
+    @for (p of plans; track p.id) {
+      <div class="plan-admin-card" [class.inactive-card]="!p.is_active">
+        <div class="plan-card-top d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="plan-type-pill">{{ p.duration_months }} Months</span>
+            <h4 class="plan-card-name mt-2 mb-0">{{ p.name }}</h4>
+          </div>
+          <span class="badge" [class.bg-success]="p.is_active" [class.bg-danger]="!p.is_active">
+            {{ p.is_active ? 'ACTIVE' : 'INACTIVE' }}
+          </span>
+        </div>
+
+        <div class="plan-price-wrap my-3">
+          <span class="currency">₹</span>
+          <span class="amount font-bold" style="font-size: 1.8rem; color: #7a422f;">{{ p.price | number }}</span>
+          <span class="period text-muted"> / {{ p.duration_months }} mos</span>
+        </div>
+
+        <div class="plan-meta mb-3" style="font-size: 0.9rem;">
+          <div class="mb-1"><i class="fa-solid fa-code-branch text-primary me-2"></i>Max Branches: <strong>{{ p.max_branches }}</strong></div>
+          <div><i class="fa-solid fa-calendar-days text-info me-2"></i>Duration: <strong>{{ p.duration_months }} Months</strong></div>
+        </div>
+
+        @if (p.features && p.features.length > 0) {
+          <ul class="plan-feature-list mb-3 p-0" style="list-style: none; font-size: 0.85rem;">
+            @for (feat of p.features; track feat) {
+              <li class="mb-1"><i class="fa-solid fa-check text-success me-2"></i>{{ feat }}</li>
+            }
+          </ul>
+        }
+
+        <div class="plan-actions d-flex gap-2 pt-3 border-top mt-auto">
+          <button class="btn btn-outline-primary btn-sm flex-1" (click)="editPlan.emit(p)">
+            <i class="fa-solid fa-pen me-1"></i> Edit Plan
+          </button>
+          @if (p.is_active) {
+            <button class="btn btn-outline-danger btn-sm" (click)="deletePlan.emit(p)" title="Deactivate Plan">
+              <i class="fa-solid fa-ban"></i>
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Table View -->
+  <div class="table-container mt-4">
+    <h5 class="mb-3 font-bold" style="font-size: 1rem;"><i class="fa-solid fa-list me-2"></i> All Configured Plans</h5>
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Plan Name</th>
+          <th>Price (INR)</th>
+          <th>Duration</th>
+          <th>Max Branches Allowed</th>
+          <th>Status</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of plans; track p.id) {
+          <tr>
+            <td class="font-bold"><i class="fa-solid fa-gem text-warning me-2"></i>{{ p.name }}</td>
+            <td class="font-bold text-success">₹{{ p.price | number }}</td>
+            <td>{{ p.duration_months }} Months</td>
+            <td><span class="badge bg-secondary">{{ p.max_branches }} Branch{{ p.max_branches > 1 ? 'es' : '' }}</span></td>
+            <td>
+              @if (p.is_active) {
+                <span class="badge bg-success">Active</span>
+              } @else {
+                <span class="badge bg-danger">Inactive</span>
+              }
+            </td>
+            <td>
+              <div class="table-actions">
+                <button class="action-btn btn-edit" (click)="editPlan.emit(p)" title="Edit Plan">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                @if (p.is_active) {
+                  <button class="action-btn btn-delete" (click)="deletePlan.emit(p)" title="Deactivate Plan">
+                    <i class="fa-solid fa-ban"></i>
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

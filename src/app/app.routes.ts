@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { PublicBrowserComponent } from './components/public-browser/public-browser.component';
-import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
+import { AdminDashboardComponent } from './components/admin/dashboard/admin-dashboard.component';
 import { OwnerDashboardComponent } from './components/owner/dashboard/owner-dashboard.component';
-import { TenantDashboardComponent } from './components/tenant-dashboard/tenant-dashboard.component';
+import { TenantDashboardComponent } from './components/tenant/dashboard/tenant-dashboard.component';
 import { adminGuard, ownerGuard, tenantGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -20,7 +20,10 @@ export const routes: Routes = [
       { path: 'owners', component: AdminDashboardComponent },
       { path: 'properties', component: AdminDashboardComponent },
       { path: 'branches', component: AdminDashboardComponent },
+      { path: 'plans', component: AdminDashboardComponent },
       { path: 'users', component: AdminDashboardComponent },
+      { path: 'settings', component: AdminDashboardComponent },
+      { path: 'generalsetting', component: AdminDashboardComponent },
     ],
   },
 

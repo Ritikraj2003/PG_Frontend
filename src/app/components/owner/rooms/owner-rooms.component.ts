@@ -33,6 +33,95 @@ export class OwnerRoomsComponent {
     this.closeModal.emit();
   }
 
+  searchQuery: string = '';
+  statusFilter: string = 'ALL';
+  typeFilter: string = 'ALL';
+  floorFilter: string = 'ALL';
+
+  get filteredRooms(): any[] {
+    return (this.rooms || []).filter(room => {
+      // Search by room number or room type
+      if (this.searchQuery && this.searchQuery.trim()) {
+        const q = this.searchQuery.toLowerCase().trim();
+        const num = (room.room_number || '').toString().toLowerCase();
+        const type = (room.room_type || '').toLowerCase();
+        if (!num.includes(q) && !type.includes(q)) {
+          return false;
+        }
+      }
+      // Status Filter
+      if (this.statusFilter !== 'ALL') {
+        const s = room.status || 'AVAILABLE';
+        if (this.statusFilter === 'AVAILABLE' && s !== 'AVAILABLE') return false;
+        if (this.statusFilter === 'PARTIALLY_OCCUPIED' && s !== 'PARTIALLY_OCCUPIED') return false;
+        if (this.statusFilter === 'FULLY_OCCUPIED' && s !== 'FULLY_OCCUPIED') return false;
+      }
+      // Sharing Type Filter
+      if (this.typeFilter !== 'ALL' && room.room_type !== this.typeFilter) {
+        return false;
+      }
+      // Floor Filter
+      if (this.floorFilter !== 'ALL' && (room.floor_number ?? 1).toString() !== this.floorFilter) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  get totalBedsCount(): number {
+    return (this.rooms || []).reduce((acc, r) => acc + Number(r.total_beds || r.capacity || 2), 0);
+  }
+
+  get availableBedsCount(): number {
+    return (this.rooms || []).reduce((acc, r) => {
+      const avail = r.available_beds !== undefined ? Number(r.available_beds) : Number(r.total_beds || r.capacity || 2);
+      return acc + Math.max(0, avail);
+    }, 0);
+  }
+
+  get occupiedBedsCount(): number {
+    return Math.max(0, this.totalBedsCount - this.availableBedsCount);
+  }
+
+  get occupancyRate(): number {
+    if (this.totalBedsCount === 0) return 0;
+    return Math.min(100, Math.round((this.occupiedBedsCount / this.totalBedsCount) * 100));
+  }
+
+  get availableFloors(): number[] {
+    const floors = new Set<number>();
+    (this.rooms || []).forEach(r => {
+      if (r.floor_number !== undefined && r.floor_number !== null) {
+        floors.add(Number(r.floor_number));
+      }
+    });
+    return Array.from(floors).sort((a, b) => a - b);
+  }
+
+  getOccupancyText(room: any): string {
+    const total = Number(room.total_beds || room.capacity || 2);
+    const avail = Number(room.available_beds !== undefined ? room.available_beds : total);
+    if (avail >= total) return '100% Vacant';
+    if (avail <= 0) return '100% Full';
+    const occ = total - avail;
+    return `${Math.round((occ / total) * 100)}% Occupied`;
+  }
+
+  getOccupiedPercentage(room: any): number {
+    const total = Number(room.total_beds || room.capacity || 2);
+    if (total === 0) return 0;
+    const avail = Number(room.available_beds !== undefined ? room.available_beds : total);
+    const occ = Math.max(0, total - avail);
+    return Math.min(100, Math.round((occ / total) * 100));
+  }
+
+  resetFilters() {
+    this.searchQuery = '';
+    this.statusFilter = 'ALL';
+    this.typeFilter = 'ALL';
+    this.floorFilter = 'ALL';
+  }
+
   roomTypes = ['Single', 'Double Sharing', 'Triple Sharing', 'Dormitory', 'Studio'];
 
   roomForm = {

@@ -1,4 +1,33 @@
-export type RoleType = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'STAFF' | 'USER';
+﻿export type RoleType = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'STAFF' | 'USER';
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  duration_months: number;
+  price: number;
+  max_branches: number;
+  features?: string[];
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Subscription {
+  id?: string;
+  owner_id?: string;
+  property_id?: string;
+  branch_id?: string;
+  plan_id?: string;
+  plan_name: string;
+  duration_months: number;
+  max_branches?: number;
+  start_date: string;
+  end_date: string;
+  status: 'ACTIVE' | 'EXPIRED' | 'NO_SUBSCRIPTION';
+  is_expired: boolean;
+  days_remaining: number;
+  price?: number;
+}
 
 export interface User {
   id: string;
@@ -6,6 +35,7 @@ export interface User {
   email: string;
   mobile_number: string;
   roles: RoleType[];
+  subscription?: Subscription | null;
 }
 
 export interface Property {
@@ -20,6 +50,7 @@ export interface Branch {
   id: string;
   property_id: string;
   name: string;
+  branch_name?: string;
   address: string;
   city: string;
   state: string;
@@ -27,6 +58,18 @@ export interface Branch {
   contact_number: string;
   amenities?: string[];
   property_name?: string;
+  owner_name?: string;
+  owner_email?: string;
+  subscription_id?: string;
+  plan_id?: string;
+  plan_name?: string;
+  duration_months?: number;
+  subscription_price?: number;
+  start_date?: string;
+  end_date?: string;
+  subscription_status?: string;
+  is_expired?: boolean;
+  days_remaining?: number;
 }
 
 export interface BranchSettings {
@@ -63,7 +106,6 @@ export interface Booking {
   bed_id?: string;
   status: 'PENDING' | 'APPROVED' | 'PAID' | 'CHECKED_OUT' | 'CANCELLED';
   created_at: string;
-  // Joins
   full_name?: string;
   email?: string;
   mobile_number?: string;
@@ -94,7 +136,6 @@ export interface RentInvoice {
   rent_amount: number;
   total_amount: number;
   status: 'PENDING' | 'PAID' | 'OVERDUE';
-  // Joins
   tenant_name?: string;
   mobile_number?: string;
   tenant_code?: string;

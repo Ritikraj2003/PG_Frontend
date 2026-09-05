@@ -32,22 +32,54 @@
       </div>
 
       <div class="topbar-right">
+        @if (subscription) {
+          <div class="subscription-chip" [class.expired]="isSubscriptionExpired" (click)="openRenewalModal()" title="Click to view or renew branch subscription">
+            @if (isSubscriptionExpired) {
+              <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i>
+              <span class="chip-text">Plan Expired • <strong>Renew Now</strong></span>
+            } @else {
+              <i class="fa-solid fa-crown text-warning me-1"></i>
+              <span class="chip-text">{{ subscription.plan_name }} • <strong>{{ subscription.days_remaining }}d left</strong></span>
+            }
+          </div>
+        }
+
         <div class="topbar-branch">
           <i class="fa-solid fa-code-branch"></i>
           <select class="branch-select" [(ngModel)]="selectedBranchId" (change)="onBranchChange()">
             @for (b of branches; track b.id) {
-              <option [value]="b.id">{{ b.branch_name }}</option>
+              <option [value]="b.id">
+                {{ b.branch_name || b.name }}
+                @if (b.subscription_status === 'EXPIRED' || b.is_expired) {
+                  (Expired)
+                } @else {
+                  ({{ b.days_remaining }}d left)
+                }
+              </option>
             }
           </select>
         </div>
-
         @if (activeTab === 'rooms') {
-          <button class="btn btn-primary" (click)="showRoomModal = true">
+          <button class="btn btn-primary btn-sm" (click)="showRoomModal = true">
             <i class="fa-solid fa-plus me-1"></i> Add Room
           </button>
         }
       </div>
     </header>
+
+    @if (isSubscriptionExpired) {
+      <div class="subscription-alert-banner">
+        <div class="banner-info">
+          <i class="fa-solid fa-triangle-exclamation banner-icon"></i>
+          <div>
+            <strong>Subscription Plan Expired!</strong> Your {{ subscription?.plan_name || 'Property' }} plan expired on {{ subscription?.end_date | date:'mediumDate' }}. Please renew your plan to ensure uninterrupted operations.
+          </div>
+        </div>
+        <button class="btn btn-warning btn-sm font-bold" (click)="openRenewalModal()">
+          <i class="fa-solid fa-repeat me-1"></i> Renew Plan Now
+        </button>
+      </div>
+    }
 
     <!-- Scrollable Page -->
     <div class="owner-page">
@@ -56,7 +88,7 @@
       @if (activeTab === 'dashboard') {
         <div class="dashboard-welcome">
           <h2 class="welcome-title">Welcome back! 👋</h2>
-          <p class="welcome-sub">{{ dashboard?.branch?.branch_name || dashboard?.property?.property_name || 'Selected Branch' }} — here's your overview.</p>
+          <p class="welcome-sub">{{ dashboard?.branch?.branch_name || dashboard?.branch?.name || dashboard?.property?.property_name || 'Selected Branch' }} — here's your overview.</p>
         </div>
 
         <div class="metrics-row">
@@ -140,3 +172,202 @@
   </div>
 </div>
 
+
+  <!-- RENEWAL POPUP MODAL -->
+  @if (showRenewalModal) {
+  <div class="modal-overlay">
+    <div class="modal-content glass-card renewal-modal" style="max-width: 650px;">
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-2">
+          <i class="fa-solid fa-crown text-warning" style="font-size: 1.4rem;"></i>
+          <h3 class="m-0 font-bold" style="font-size: 1.25rem;">
+            @if (isSubscriptionExpired) {
+              Branch Plan Expired — Renew Subscription
+            } @else {
+              Renew / Extend Branch Subscription Plan
+            }
+          </h3>
+        </div>
+        <button type="button" class="close-icon-btn" (click)="closeRenewalModal()">&times;</button>
+      </div>
+
+      <div class="modal-body p-4">
+        <!-- Branch Indicator -->
+        <div class="mb-3 p-2 px-3 rounded" style="background: rgba(122, 66, 47, 0.08); border-left: 4px solid #7a422f;">
+          <small class="text-muted d-block text-uppercase font-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Active Branch</small>
+          <div class="font-bold" style="color: #7a422f; font-size: 1.05rem;">
+            <i class="fa-solid fa-code-branch me-2"></i>{{ dashboard?.branch?.branch_name || dashboard?.branch?.name || 'Selected Branch' }}
+          </div>
+        </div>
+
+        @if (isSubscriptionExpired) {
+          <div class="alert alert-danger d-flex align-items-center gap-3 mb-4" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 1rem;">
+            <i class="fa-solid fa-triangle-exclamation text-danger" style="font-size: 1.5rem;"></i>
+            <div>
+              <div class="font-bold text-danger">Branch Subscription has Ended</div>
+              <div style="font-size: 0.85rem; color: #666;">
+                Expired on {{ subscription?.end_date | date:'mediumDate' }}. Renew this branch now to ensure uninterrupted operations and tenant bookings.
+              </div>
+            </div>
+          </div>
+        } @else {
+          <div class="alert alert-info d-flex align-items-center gap-3 mb-4" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 1rem;">
+            <i class="fa-solid fa-circle-info text-primary" style="font-size: 1.5rem;"></i>
+            <div>
+              <div class="font-bold text-primary">Current Plan: {{ subscription?.plan_name || 'Standard' }}</div>
+              <div style="font-size: 0.85rem; color: #666;">
+                {{ subscription?.days_remaining }} days remaining (Valid until {{ subscription?.end_date | date:'mediumDate' }}). Renewing will extend the validity.
+              </div>
+            </div>
+          </div>
+        }
+
+        <label class="form-label font-bold mb-3 d-block" style="font-size: 0.95rem;">
+          Select Subscription Package to Apply:
+        </label>
+
+        <div class="renewal-plans-grid mb-4">
+          @for (p of availablePlans; track p.id) {
+            <div class="renewal-plan-card" [class.selected]="selectedPlanId === p.id" (click)="selectRenewalPlan(p)">
+              <div class="badge-tag" [class.gold]="p.duration_months >= 12" [class.popular]="p.duration_months === 3">
+                {{ p.duration_months >= 12 ? 'Best Value' : (p.duration_months === 3 ? 'Popular' : 'Standard') }}
+              </div>
+              <div class="duration-num">{{ p.duration_months }}</div>
+              <div class="duration-unit">Months</div>
+              <div class="plan-sub font-bold" style="color: #7a422f; font-size: 1rem;">₹{{ p.price | number }}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">Max {{ p.max_branches }} Branch{{ p.max_branches > 1 ? 'es' : '' }}</div>
+              <div class="plan-radio">
+                <i class="fa-solid" [class.fa-circle-check]="selectedPlanId === p.id" [class.fa-circle]="selectedPlanId !== p.id"></i>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- PAYMENT MODE SELECTOR -->
+        <div class="payment-mode-section mb-4">
+          <label class="form-label font-bold mb-2 d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-wallet me-2 text-primary"></i> Select Payment Method (To SuperAdmin)</span>
+            <span class="text-success font-bold" style="font-size: 1rem;">Total: ₹{{ getSelectedPlanPrice() | number }}</span>
+          </label>
+
+          <div class="payment-tabs-grid">
+            <div class="payment-tab-btn" [class.active]="selectedPaymentMode === 'RAZORPAY'" (click)="selectedPaymentMode = 'RAZORPAY'">
+              <i class="fa-solid fa-bolt text-warning me-2" style="font-size: 1.1rem;"></i>
+              <div>
+                <strong>Razorpay Gateway</strong>
+                <small class="d-block text-muted">UPI, Cards, NetBanking (Instant)</small>
+              </div>
+            </div>
+
+            <div class="payment-tab-btn" [class.active]="selectedPaymentMode === 'UPI'" (click)="selectedPaymentMode = 'UPI'">
+              <i class="fa-solid fa-qrcode text-success me-2" style="font-size: 1.1rem;"></i>
+              <div>
+                <strong>SuperAdmin UPI / QR</strong>
+                <small class="d-block text-muted">Scan & Pay to Admin directly</small>
+              </div>
+            </div>
+
+            <div class="payment-tab-btn" [class.active]="selectedPaymentMode === 'OFFLINE'" (click)="selectedPaymentMode = 'OFFLINE'">
+              <i class="fa-solid fa-money-bill-wave text-secondary me-2" style="font-size: 1.1rem;"></i>
+              <div>
+                <strong>Cash / Offline</strong>
+                <small class="d-block text-muted">Pay Admin via cash/NEFT</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- OPTION 1: RAZORPAY ONLINE -->
+          @if (selectedPaymentMode === 'RAZORPAY') {
+            <div class="payment-details-box animate-fade-in mt-3 p-3 rounded" style="background: rgba(122, 66, 47, 0.04); border: 1px solid rgba(122, 66, 47, 0.15);">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fa-solid fa-shield-halved text-success" style="font-size: 1.25rem;"></i>
+                <div>
+                  <strong style="color: #1a2744; font-size: 0.95rem;">Instant Checkout via Razorpay</strong>
+                  <div style="font-size: 0.8rem; color: #6b7280;">Payment will be securely routed directly into SuperAdmin's Razorpay account.</div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-primary w-100 py-3 font-bold mt-2 shadow-sm" [disabled]="isRenewing" (click)="payWithRazorpay()">
+                @if (isRenewing) {
+                  <i class="fa-solid fa-spinner fa-spin me-2"></i> Initializing Secure Checkout...
+                } @else {
+                  <i class="fa-solid fa-lock me-2"></i> Pay ₹{{ getSelectedPlanPrice() | number }} via Razorpay & Renew Branch
+                }
+              </button>
+            </div>
+          }
+
+          <!-- OPTION 2: SUPERADMIN UPI & QR CODE -->
+          @if (selectedPaymentMode === 'UPI') {
+            <div class="payment-details-box animate-fade-in mt-3 p-3 rounded" style="background: #ffffff; border: 1px solid #e5e7eb;">
+              <div class="d-flex align-items-start gap-3 flex-wrap">
+                <!-- QR Image -->
+                <div class="text-center p-2 border rounded" style="background: #fafafa; min-width: 135px;">
+                  @if (platformPaymentInfo?.upi_qr_url) {
+                    <img [src]="apiUrl + platformPaymentInfo.upi_qr_url" alt="Admin UPI QR" style="width: 120px; height: 120px; object-fit: contain; border-radius: 6px;">
+                  } @else {
+                    <div style="width: 120px; height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border: 1px dashed #ccc; border-radius: 6px;">
+                      <i class="fa-solid fa-qrcode fa-2x text-muted opacity-50 mb-1"></i>
+                      <small class="text-muted" style="font-size: 0.72rem;">Scan with any UPI</small>
+                    </div>
+                  }
+                  <small class="d-block font-bold text-muted mt-1" style="font-size: 0.75rem;">SuperAdmin QR</small>
+                </div>
+
+                <!-- UPI Details & UTR Input -->
+                <div style="flex: 1; min-width: 220px;">
+                  <div class="mb-2 p-2 rounded bg-light border d-flex justify-content-between align-items-center">
+                    <div>
+                      <small class="text-muted d-block" style="font-size: 0.72rem;">SuperAdmin UPI ID (VPA)</small>
+                      <strong class="text-primary" style="font-size: 0.95rem;">{{ platformPaymentInfo?.upi_id || 'superadmin@upi' }}</strong>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-1 px-2" (click)="copyUpiId()" title="Copy UPI ID">
+                      <i class="fa-solid fa-copy me-1"></i> Copy
+                    </button>
+                  </div>
+
+                  <div class="mb-2">
+                    <label class="form-label font-bold mb-1" style="font-size: 0.82rem;">
+                      12-Digit UTR / Transaction Reference ID <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="upiUtrNumber" placeholder="e.g. 329182736451" style="font-size: 0.9rem; font-weight: 600;">
+                    <small class="text-muted mt-1 d-block" style="font-size: 0.73rem;">Copy the UTR number from GPay / PhonePe / Paytm.</small>
+                  </div>
+
+                  <button type="button" class="btn btn-success w-100 py-2 font-bold shadow-sm" [disabled]="isRenewing" (click)="submitUpiRenewal()">
+                    @if (isRenewing) {
+                      <i class="fa-solid fa-spinner fa-spin me-2"></i> Recording Payment...
+                    } @else {
+                      <i class="fa-solid fa-circle-check me-2"></i> Submit UPI Payment & Renew (₹{{ getSelectedPlanPrice() | number }})
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- OPTION 3: OFFLINE / CASH -->
+          @if (selectedPaymentMode === 'OFFLINE') {
+            <div class="payment-details-box animate-fade-in mt-3 p-3 rounded" style="background: rgba(107, 114, 128, 0.06); border: 1px dashed rgba(107, 114, 128, 0.3);">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fa-solid fa-handshake text-secondary" style="font-size: 1.2rem;"></i>
+                <span class="font-bold" style="font-size: 0.9rem;">Offline Cash / Bank Settlement</span>
+              </div>
+              <p class="text-muted m-0 mb-3" style="font-size: 0.82rem;">
+                Select this if you have handed over cash directly or completed a manual NEFT bank transfer to the SuperAdmin.
+              </p>
+              <button type="button" class="btn btn-outline-dark w-100 py-2 font-bold" [disabled]="isRenewing" (click)="submitOfflineRenewal()">
+                <i class="fa-solid fa-check me-2"></i> Submit Cash / Offline Request
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-secondary py-2 px-4" (click)="closeRenewalModal()">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }

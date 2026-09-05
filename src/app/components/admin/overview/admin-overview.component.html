@@ -1,0 +1,61 @@
+<!-- Metrics Grid -->
+<div class="grid-4 metrics-grid mb-4">
+  <div class="glass-card metric-card">
+    <div class="metric-label">TOTAL OWNERS</div>
+    <div class="metric-value color-purple">{{ reports?.totalOwners || owners.length || 0 }}</div>
+  </div>
+  <div class="glass-card metric-card">
+    <div class="metric-label">PROPERTIES</div>
+    <div class="metric-value color-pink">{{ reports?.totalProperties || properties.length || 0 }}</div>
+  </div>
+  <div class="glass-card metric-card">
+    <div class="metric-label">BRANCHES</div>
+    <div class="metric-value color-blue">{{ reports?.totalBranches || branches.length || 0 }}</div>
+  </div>
+  <div class="glass-card metric-card">
+    <div class="metric-label">ACTIVE TENANTS</div>
+    <div class="metric-value color-green">{{ reports?.totalTenants || 0 }}</div>
+  </div>
+</div>
+
+<div class="glass-card table-card mb-4">
+  <div class="table-header-row mb-3">
+    <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left me-2"></i> Recent Property Owners Summary</h3>
+    <button class="btn btn-secondary btn-sm" (click)="viewAllOwners.emit()">View All Owners</button>
+  </div>
+  <div class="table-container">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Business Name</th>
+          <th>Owner Name</th>
+          <th>Contact</th>
+          <th>City</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (o of owners.slice(0, 5); track o.id) {
+        <tr>
+          <td><span class="property-badge">{{ o.owner_code || ('OWN-' + o.id.slice(0, 5).toUpperCase()) }}</span></td>
+          <td class="font-bold">{{ o.business_name || o.property_name || 'N/A' }}</td>
+          <td>{{ o.full_name }}</td>
+          <td>{{ o.contact_number || o.mobile_number || 'N/A' }}</td>
+          <td>{{ o.city || 'Bengaluru' }}</td>
+          <td>
+            <div class="table-actions">
+              <button class="action-btn btn-view" (click)="viewOwner.emit(o)" title="View Details">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+              <button class="action-btn btn-edit" (click)="editOwner.emit(o)" title="Edit Owner">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

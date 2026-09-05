@@ -369,6 +369,81 @@ export class PublicBrowserComponent implements OnInit {
     this.selectedRoomForBooking = null;
   }
 
+  // --- BRANCH & OCCUPANCY HELPERS ---
+  getBranchTotalRooms(branch: BranchGroup): number {
+    return (branch.rooms || []).length;
+  }
+
+  getBranchOccupiedRooms(branch: BranchGroup): number {
+    return (branch.rooms || []).filter(r => {
+      const avail = Number(r.available_beds !== undefined ? r.available_beds : (r.total_beds || 2));
+      return avail === 0 || r.status === 'FULLY_OCCUPIED' || r.status === 'OCCUPIED';
+    }).length;
+  }
+
+  getBranchAvailableRooms(branch: BranchGroup): number {
+    return (branch.rooms || []).filter(r => {
+      const avail = Number(r.available_beds !== undefined ? r.available_beds : (r.total_beds || 2));
+      return avail > 0 && r.status !== 'FULLY_OCCUPIED';
+    }).length;
+  }
+
+  getBranchPartialRooms(branch: BranchGroup): number {
+    return (branch.rooms || []).filter(r => {
+      const total = Number(r.total_beds || r.capacity || 2);
+      const avail = Number(r.available_beds !== undefined ? r.available_beds : total);
+      return avail > 0 && avail < total;
+    }).length;
+  }
+
+  getBranchTotalBeds(branch: BranchGroup): number {
+    return (branch.rooms || []).reduce((acc, r) => acc + Number(r.total_beds || r.capacity || 2), 0);
+  }
+
+  getBranchAvailableBeds(branch: BranchGroup): number {
+    return (branch.rooms || []).reduce((acc, r) => {
+      const avail = r.available_beds !== undefined ? Number(r.available_beds) : Number(r.total_beds || r.capacity || 2);
+      return acc + Math.max(0, avail);
+    }, 0);
+  }
+
+  getBranchOccupiedBeds(branch: BranchGroup): number {
+    return Math.max(0, this.getBranchTotalBeds(branch) - this.getBranchAvailableBeds(branch));
+  }
+
+  getBranchOccupancyPercent(branch: BranchGroup): number {
+    const total = this.getBranchTotalBeds(branch);
+    if (total === 0) return 0;
+    return Math.round((this.getBranchOccupiedBeds(branch) / total) * 100);
+  }
+
+  // --- ROOM LEVEL HELPERS ---
+  getRoomTotalBeds(room: any): number {
+    return Number(room.total_beds || room.capacity || 2);
+  }
+
+  getRoomAvailableBeds(room: any): number {
+    return Number(room.available_beds !== undefined ? room.available_beds : (room.total_beds || room.capacity || 2));
+  }
+
+  getRoomOccupiedBeds(room: any): number {
+    return Math.max(0, this.getRoomTotalBeds(room) - this.getRoomAvailableBeds(room));
+  }
+
+  getRoomOccupiedPercent(room: any): number {
+    const total = this.getRoomTotalBeds(room);
+    if (total === 0) return 0;
+    return Math.round((this.getRoomOccupiedBeds(room) / total) * 100);
+  }
+
+  getRoomStatusLabel(room: any): string {
+    const avail = this.getRoomAvailableBeds(room);
+    const total = this.getRoomTotalBeds(room);
+    if (avail === 0) return 'Fully Occupied';
+    if (avail < total) return `${avail} of ${total} Beds Free`;
+    return 'Available (100% Free)';
+  }
+
   // Financial Calculations
   getMonthlyRent(): number {
     return parseFloat(this.selectedRoomForBooking?.monthly_rent || 0);

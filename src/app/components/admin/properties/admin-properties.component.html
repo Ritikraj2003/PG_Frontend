@@ -1,0 +1,38 @@
+<div class="glass-card table-card">
+  <div class="table-header-row mb-3">
+    <h3 class="card-title"><i class="fa-solid fa-city me-2 color-purple"></i> Registered Properties & Brands</h3>
+  </div>
+  <div class="table-container">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>Property Name</th>
+          <th>Category</th>
+          <th>Owner Name</th>
+          <th>City</th>
+          <th>Contact</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (o of owners; track o.id) {
+        <tr>
+          <td class="font-bold text-primary">
+            <i class="fa-solid fa-building me-2 color-purple"></i>
+            {{ o.business_name || o.property_name || 'PG Property' }}
+          </td>
+          <td><span class="badge badge-info">{{ o.property_type || 'PG' }}</span></td>
+          <td>{{ o.full_name }}</td>
+          <td>{{ o.city }}</td>
+          <td>{{ o.contact_number }}</td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="5" class="text-center text-muted p-4">
+            No registered properties found.
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,232 @@
+<div class="settings-wrapper">
+  <!-- Top Banner / Header -->
+  <div class="glass-card settings-header-card mb-4 p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge badge-admin-chip">SUPERADMIN</span>
+        <span class="badge badge-code-chip">branch_id: NULL</span>
+      </div>
+      <h2 class="settings-title mb-1">
+        <i class="fa-solid fa-sliders me-2 text-primary"></i>Platform General Settings
+      </h2>
+      <p class="text-muted m-0" style="font-size: 0.88rem;">
+        Manage platform-wide payment gateway credentials, SuperAdmin UPI QR collection, and SMTP mail configuration.
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="loadGeneralSettings()" [disabled]="generalSettingsLoading">
+        <i class="fa-solid fa-rotate me-1" [class.fa-spin]="generalSettingsLoading"></i> Reload
+      </button>
+      <button type="button" class="btn btn-primary btn-sm px-4 shadow-sm" (click)="saveGeneralSettings()" [disabled]="generalSettingsSaving">
+        @if (generalSettingsSaving) {
+          <i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...
+        } @else {
+          <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- Success & Error Alerts -->
+  @if (generalSettingsSuccess) {
+    <div class="alert-box alert-success-box mb-4">
+      <div class="d-flex align-items-center gap-2">
+        <i class="fa-solid fa-circle-check" style="font-size: 1.15rem;"></i>
+        <span class="font-bold">{{ generalSettingsSuccess }}</span>
+      </div>
+      <button type="button" class="alert-close-btn" (click)="generalSettingsSuccess = ''">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  }
+
+  @if (generalSettingsError) {
+    <div class="alert-box alert-danger-box mb-4">
+      <div class="d-flex align-items-center gap-2">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.15rem;"></i>
+        <span class="font-bold">{{ generalSettingsError }}</span>
+      </div>
+      <button type="button" class="alert-close-btn" (click)="generalSettingsError = ''">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  }
+
+  @if (generalSettingsLoading) {
+    <div class="glass-card p-5 text-center text-muted">
+      <i class="fa-solid fa-spinner fa-spin fa-2x mb-3 text-primary"></i>
+      <div>Loading platform settings...</div>
+    </div>
+  } @else {
+    <div class="settings-grid">
+      <!-- 1. Razorpay Gateway Card -->
+      <div class="glass-card settings-section-card">
+        <div class="section-card-header mb-3 pb-3 border-bottom d-flex align-items-center gap-3">
+          <div class="icon-circle bg-primary-subtle text-primary">
+            <i class="fa-solid fa-credit-card"></i>
+          </div>
+          <div>
+            <h4 class="m-0 font-bold" style="font-size: 1.1rem; color: #1a2744;">Payment Gateway (Razorpay)</h4>
+            <small class="text-muted">Platform credentials used for owner subscription renewals and billing.</small>
+          </div>
+        </div>
+
+        <div class="settings-form-body">
+          <div class="mb-3">
+            <label class="form-label font-bold text-secondary" style="font-size: 0.85rem;">
+              Razorpay Key ID <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="fa-solid fa-key text-muted"></i></span>
+              <input type="text" class="form-control" name="admin_razorpay_key" [(ngModel)]="generalSettings.razorpay_key" placeholder="rzp_live_... or rzp_test_...">
+            </div>
+            <small class="text-muted mt-1 d-block" style="font-size: 0.78rem;">Public key used by checkout widgets.</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-bold text-secondary" style="font-size: 0.85rem;">
+              Razorpay Secret Key <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-muted"></i></span>
+              <input [type]="showRazorpaySecret ? 'text' : 'password'" class="form-control" name="admin_razorpay_secret" [(ngModel)]="generalSettings.razorpay_secret" placeholder="Enter Razorpay Secret Key">
+              <button type="button" class="btn btn-outline-secondary" (click)="showRazorpaySecret = !showRazorpaySecret" title="Toggle Secret Visibility">
+                <i class="fa-solid" [class.fa-eye]="!showRazorpaySecret" [class.fa-eye-slash]="showRazorpaySecret"></i>
+              </button>
+            </div>
+            <small class="text-muted mt-1 d-block" style="font-size: 0.78rem;">Private API secret for server-to-server signature validation.</small>
+          </div>
+
+          <div class="alert-info-box d-flex align-items-center gap-2 p-2 mt-3 mb-0">
+            <i class="fa-solid fa-circle-info text-primary"></i>
+            <span>When branches do not configure custom Razorpay keys, the platform falls back to this global configuration.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Manual UPI & QR Code Card -->
+      <div class="glass-card settings-section-card">
+        <div class="section-card-header mb-3 pb-3 border-bottom d-flex align-items-center gap-3">
+          <div class="icon-circle bg-success-subtle text-success">
+            <i class="fa-solid fa-qrcode"></i>
+          </div>
+          <div>
+            <h4 class="m-0 font-bold" style="font-size: 1.1rem; color: #1a2744;">Manual UPI & QR Code</h4>
+            <small class="text-muted">Receive direct bank & UPI payments with custom scanner QR code.</small>
+          </div>
+        </div>
+
+        <div class="settings-form-body">
+          <div class="mb-3">
+            <label class="form-label font-bold text-secondary" style="font-size: 0.85rem;">
+              Platform UPI ID (VPA)
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="fa-solid fa-at text-muted"></i></span>
+              <input type="text" class="form-control" name="admin_upi_id" [(ngModel)]="generalSettings.upi_id" placeholder="e.g. staypulse@oksbi or admin@upi">
+            </div>
+            <small class="text-muted mt-1 d-block" style="font-size: 0.78rem;">Displayed on platform subscription payment prompts.</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-bold text-secondary" style="font-size: 0.85rem;">
+              Platform UPI QR Code Image
+            </label>
+            <div class="custom-qr-upload">
+              <input type="file" id="adminQrUpload" class="file-input-hidden" (change)="onQrFileSelected($event)" accept="image/*">
+              <label for="adminQrUpload" class="file-upload-btn">
+                <i class="fa-solid fa-cloud-arrow-up me-2"></i> Choose QR Image
+              </label>
+              <span class="file-upload-name text-muted ms-2">{{ qrFile ? qrFile.name : 'No file chosen' }}</span>
+            </div>
+            <small class="text-muted mt-1 d-block" style="font-size: 0.78rem;">Upload JPEG, PNG or WebP QR scanner code.</small>
+
+            <div class="qr-preview-container mt-3">
+              @if (qrPreview) {
+                <div class="text-center p-2 border rounded bg-white" style="display: inline-block;">
+                  <img [src]="qrPreview" class="qr-preview-img" alt="QR Preview">
+                  <small class="d-block text-success font-bold mt-1">New Image Selected</small>
+                </div>
+              } @else if (generalSettings.upi_qr_url) {
+                <div class="text-center p-2 border rounded bg-white" style="display: inline-block;">
+                  <img [src]="apiUrl + generalSettings.upi_qr_url" class="qr-preview-img" alt="Current QR Code">
+                  <small class="d-block text-muted mt-1">Current Active QR</small>
+                </div>
+              } @else {
+                <div class="no-qr-placeholder p-3 border rounded text-center text-muted" style="background: #fafafa;">
+                  <i class="fa-solid fa-qrcode fa-2x mb-1 opacity-50"></i>
+                  <div style="font-size: 0.8rem;">No QR code uploaded yet.</div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. SMTP Mail Configuration Card -->
+      <div class="glass-card settings-section-card">
+        <div class="section-card-header mb-3 pb-3 border-bottom d-flex align-items-center gap-3">
+          <div class="icon-circle bg-warning-subtle text-warning">
+            <i class="fa-solid fa-envelope"></i>
+          </div>
+          <div>
+            <h4 class="m-0 font-bold" style="font-size: 1.1rem; color: #1a2744;">System SMTP Notifications</h4>
+            <small class="text-muted">Sender email and app credentials for transactional notifications.</small>
+          </div>
+        </div>
+
+        <div class="settings-form-body">
+          <div class="mb-3">
+            <label class="form-label font-bold text-secondary" style="font-size: 0.85rem;">
+              SMTP Sender Email
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="fa-solid fa-paper-plane text-muted"></i></span>
+              <input type="email" class="form-control" name="admin_smtp_email" [(ngModel)]="generalSettings.smtp_email" placeholder="e.g. notifications@staypulse.com">
+            </div>
+            <small class="text-muted mt-1 d-block" style="font-size: 0.78rem;">Email address appearing in the "From" header.</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label font-bold text-secondary" style="font-size: 0.85rem;">
+              SMTP App Password / Token
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="fa-solid fa-key text-muted"></i></span>
+              <input [type]="showSmtpPassword ? 'text' : 'password'" class="form-control" name="admin_smtp_password" [(ngModel)]="generalSettings.smtp_password" placeholder="Enter SMTP App Password or Token">
+              <button type="button" class="btn btn-outline-secondary" (click)="showSmtpPassword = !showSmtpPassword" title="Toggle Password Visibility">
+                <i class="fa-solid" [class.fa-eye]="!showSmtpPassword" [class.fa-eye-slash]="showSmtpPassword"></i>
+              </button>
+            </div>
+            <small class="text-muted mt-1 d-block" style="font-size: 0.78rem;">Use 16-character Google App Password or SMTP provider token.</small>
+          </div>
+
+          <div class="alert-info-box neutral d-flex align-items-center gap-2 p-2 mt-3 mb-0">
+            <i class="fa-solid fa-shield-halved text-secondary"></i>
+            <span>Passwords and secret keys are securely stored and encrypted in the database.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Action Bar -->
+    <div class="glass-card settings-footer-card mt-4 p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span class="text-muted d-flex align-items-center gap-2" style="font-size: 0.85rem;">
+        <i class="fa-solid fa-database text-primary"></i>
+        <span>Stored in <code>branch_settings</code> table where <code>branch_id IS NULL</code>.</span>
+      </span>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-secondary" (click)="loadGeneralSettings()" [disabled]="generalSettingsLoading">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary px-4 shadow-sm" (click)="saveGeneralSettings()" [disabled]="generalSettingsSaving">
+          @if (generalSettingsSaving) {
+            <i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...
+          } @else {
+            <i class="fa-solid fa-check me-1"></i> Save General Settings
+          }
+        </button>
+      </div>
+    </div>
+  }
+</div>

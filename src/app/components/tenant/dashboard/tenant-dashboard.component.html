@@ -1,0 +1,214 @@
+<div class="tenant-layout">
+  <!-- Mobile Sidebar Backdrop -->
+  @if (isMobileSidebarOpen) {
+    <div class="sidebar-backdrop" (click)="closeMobileSidebar()"></div>
+  }
+
+  <!-- Left Sidebar Wrapper -->
+  <div class="tenant-sidebar-wrap" [class.mobile-open]="isMobileSidebarOpen">
+    <app-tenant-sidebar
+      [activeTab]="activeTab"
+      [bookingsCount]="bookings.length"
+      [invoicesCount]="invoices.length"
+      [complaintsCount]="complaints.length"
+      (selectTab)="setActiveTab($event)"
+      (logout)="onLogout()"
+      (closeMobile)="closeMobileSidebar()"
+    ></app-tenant-sidebar>
+  </div>
+
+  <!-- Right Content Area -->
+  <div class="tenant-content">
+    <!-- Top Bar -->
+    <header class="tenant-topbar">
+      <div class="topbar-left-group">
+        <button class="mobile-menu-btn" (click)="toggleMobileSidebar()" aria-label="Toggle navigation menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="topbar-title">
+          <i class="fa-solid fa-user-gear me-2 text-primary"></i> Resident & Tenant Portal
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="badge badge-info">Welcome, {{ user?.full_name || 'Resident' }}</span>
+      </div>
+    </header>
+
+    <!-- Scrollable Page Area -->
+    <div class="tenant-page">
+
+      @if (activeTab === 'overview') {
+        <app-tenant-overview
+          [currentProperty]="currentProperty"
+          [currentRoom]="currentRoom"
+          [invoices]="invoices"
+          (navigateTab)="setActiveTab($event)"
+        ></app-tenant-overview>
+      }
+
+      @if (activeTab === 'explore') {
+        <app-tenant-explore></app-tenant-explore>
+      }
+
+      @if (activeTab === 'property') {
+        <app-tenant-property
+          [currentProperty]="currentProperty"
+          [currentRoom]="currentRoom"
+          [currentBooking]="currentBooking"
+          [currentTenantCode]="currentTenantCode"
+          (navigateTab)="setActiveTab($event)"
+          (openComplaint)="openComplaintModal()"
+        ></app-tenant-property>
+      }
+
+      @if (activeTab === 'bookings') {
+        <app-tenant-bookings
+          [bookings]="bookings"
+          (payBooking)="openPaymentModalForBooking($event)"
+        ></app-tenant-bookings>
+      }
+
+      @if (activeTab === 'invoices') {
+        <app-tenant-invoices
+          [invoices]="invoices"
+          (payInvoice)="openPaymentModal($event)"
+        ></app-tenant-invoices>
+      }
+
+      @if (activeTab === 'complaints') {
+        <app-tenant-complaints
+          [complaints]="complaints"
+          (openModal)="openComplaintModal()"
+        ></app-tenant-complaints>
+      }
+
+    </div> <!-- end tenant-page -->
+  </div> <!-- end tenant-content -->
+</div> <!-- end tenant-layout -->
+
+<!-- ========================================== -->
+<!-- 1. COMPLAINT MODAL -->
+<!-- ========================================== -->
+@if (showComplaintModal) {
+  <div class="modal-overlay">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-headset me-2 text-primary"></i> Raise Support Ticket</h3>
+        <button type="button" class="close-icon-btn" (click)="showComplaintModal = false">&times;</button>
+      </div>
+      <form (ngSubmit)="submitComplaint()" class="modal-form">
+        <div>
+          <label class="form-label">Subject / Title *</label>
+          <input type="text" class="input-field" placeholder="e.g. Wi-Fi not working / AC Issue" [(ngModel)]="newComplaint.title" name="title" required>
+        </div>
+
+        <div>
+          <label class="form-label">Category</label>
+          <select class="input-field" [(ngModel)]="newComplaint.category" name="category">
+            <option value="MAINTENANCE">Maintenance</option>
+            <option value="CLEANING">Cleaning & Hygiene</option>
+            <option value="WIFI">Wi-Fi & Internet</option>
+            <option value="FOOD">Mess & Food</option>
+            <option value="SECURITY">Security & Access</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label">Priority</label>
+          <select class="input-field" [(ngModel)]="newComplaint.priority" name="priority">
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High / Urgent</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label">Description *</label>
+          <textarea class="input-field" rows="3" placeholder="Describe the issue in detail..." [(ngModel)]="newComplaint.description" name="description" required></textarea>
+        </div>
+
+        <div class="form-actions mt-3">
+          <button type="submit" class="btn btn-primary flex-1">Submit Ticket</button>
+          <button type="button" class="btn btn-secondary" (click)="showComplaintModal = false">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================== -->
+<!-- 2. PAYMENT MODAL -->
+<!-- ========================================== -->
+@if (showPaymentModal && selectedInvoice) {
+  <div class="modal-overlay">
+    <div class="modal-content glass-card large-modal">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-indian-rupee-sign me-2"></i> Make Payment</h3>
+        <button type="button" class="close-icon-btn" (click)="closePaymentModal()">&times;</button>
+      </div>
+      
+      <div class="payment-info mb-4">
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Invoice Amount:</span>
+          <span class="font-bold">₹{{ selectedInvoice.balance_amount }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Billing Month:</span>
+          <span class="font-bold">{{ selectedInvoice.billing_month }}</span>
+        </div>
+      </div>
+
+      <div class="payment-methods mb-4">
+        <label class="form-label">Select Payment Method</label>
+        <div class="d-flex gap-3 mt-2">
+          <label class="method-card" [class.selected]="paymentMethod === 'RAZORPAY'">
+            <input type="radio" name="payment_method" value="RAZORPAY" [(ngModel)]="paymentMethod" class="d-none">
+            <i class="fa-solid fa-credit-card fa-2x mb-2 text-primary"></i>
+            <span>Pay Online</span>
+            <small class="text-muted">(Razorpay)</small>
+          </label>
+
+          <label class="method-card" [class.selected]="paymentMethod === 'MANUAL_QR'">
+            <input type="radio" name="payment_method" value="MANUAL_QR" [(ngModel)]="paymentMethod" class="d-none">
+            <i class="fa-solid fa-qrcode fa-2x mb-2 text-success"></i>
+            <span>Scan QR</span>
+            <small class="text-muted">(Manual)</small>
+          </label>
+        </div>
+      </div>
+
+      @if (paymentMethod === 'MANUAL_QR') {
+        <div class="qr-section p-3 border rounded mb-4 text-center">
+          @if (branchSettings?.upi_qr_url) {
+            <p class="mb-2 font-bold">Scan QR Code to Pay</p>
+            <img [src]="apiUrl + branchSettings.upi_qr_url" alt="UPI QR" class="qr-image mb-3 mx-auto" style="max-width: 200px;">
+            <p class="text-muted mb-3">UPI ID: {{ branchSettings.upi_id || 'Not provided' }}</p>
+          } @else {
+            <div class="alert alert-warning">
+              <i class="fa-solid fa-triangle-exclamation"></i> The branch has not setup a QR code. Please pay via Razorpay.
+            </div>
+          }
+
+          <div class="upload-section text-left">
+            <label class="form-label">Upload Payment Screenshot *</label>
+            <input type="file" class="form-control" (change)="onScreenshotSelected($event)" accept="image/*">
+            @if (screenshotPreview) {
+              <img [src]="screenshotPreview" class="img-thumbnail mt-2" style="max-height: 150px;">
+            }
+          </div>
+        </div>
+      }
+
+      <div class="form-actions">
+        <button class="btn btn-primary flex-1" (click)="processPayment()" [disabled]="isPaying || (paymentMethod === 'MANUAL_QR' && (!screenshotFile || !branchSettings?.upi_qr_url))">
+          @if (isPaying) {
+            <i class="fa-solid fa-spinner fa-spin me-2"></i> Processing...
+          } @else {
+            <i class="fa-solid fa-check me-2"></i> Confirm Payment
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

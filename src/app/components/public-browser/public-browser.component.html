@@ -74,67 +74,122 @@
               @for (branch of property.branches; track branch.branch_id) {
                 <div class="branch-card-container">
                   
-                  <!-- Branch Sub-Header -->
+                  <!-- Branch Sub-Header with Name & Location -->
                   <div class="branch-card-header">
-                    <h3 class="branch-name">{{ branch.branch_name }}</h3>
-                    @if (branch.city) {
-                      <div class="branch-location">
-                        <i class="fa-solid fa-location-dot location-icon"></i>
-                        <span>{{ branch.city }}</span>
+                    <div class="branch-title-col">
+                      <div class="branch-name-row">
+                        <i class="fa-solid fa-hotel branch-icon me-2"></i>
+                        <h3 class="branch-name">{{ branch.branch_name }}</h3>
+                        <span class="branch-type-pill">Co-Living / PG Branch</span>
                       </div>
-                    }
+                      @if (branch.city || branch.address) {
+                        <div class="branch-location">
+                          <i class="fa-solid fa-location-dot location-icon me-1 text-danger"></i>
+                          <span>{{ branch.address ? (branch.address + ', ') : '' }}{{ branch.city || 'Bengaluru' }}</span>
+                        </div>
+                      }
+                    </div>
                   </div>
 
-                  <!-- Rooms Cards Grid -->
-                  <div class="rooms-grid">
+                  <!-- Rooms Cards Grid (Rich & Comprehensive) -->
+                  <div class="rooms-grid mt-4">
                     @for (room of branch.rooms; track room.id) {
                       <div 
-                        class="room-compact-card" 
+                        class="room-rich-card" 
                         (click)="openBookingModal(room)"
-                        title="Click to view details and reserve"
+                        title="Click to view details and reserve bed"
                       >
-                        <!-- Room Left Thumbnail -->
-                        <div class="room-thumb-box">
+                        <!-- Top Image / Ambient Illustration -->
+                        <div class="room-card-media">
                           @if (room.images && room.images.length > 0) {
-                            <img [src]="getImageUrl(room.images[0])" [alt]="room.room_name || room.room_number" class="room-thumb-img" />
+                            <img [src]="getImageUrl(room.images[0])" [alt]="room.room_name || room.room_number" class="room-cover-img" />
                           } @else {
-                            <div class="thumb-fallback">
-                              <i class="fa-solid fa-bed"></i>
+                            <div class="room-cover-ambient">
+                              <div class="ambient-glow"></div>
+                              <i class="fa-solid fa-bed ambient-icon"></i>
+                              <span class="ambient-badge">{{ room.room_type || 'Comfort Room' }}</span>
                             </div>
                           }
-                        </div>
 
-                        <!-- Room Right Content -->
-                        <div class="room-details-box">
-                          <div class="room-top-meta">
-                            <span class="room-title-text">{{ room.room_name || ('Room ' + room.room_number) }}</span>
-                            <span 
-                              class="status-pill"
-                              [class.status-available]="room.status === 'AVAILABLE' || (+room.available_beds > 0)"
-                              [class.status-occupied]="room.status !== 'AVAILABLE' && (+room.available_beds === 0)"
-                            >
-                              {{ (room.status === 'AVAILABLE' || (+room.available_beds > 0)) ? 'Available' : 'Occupied' }}
-                            </span>
+                          <!-- Floating Status Pill -->
+                          <div 
+                            class="room-float-status"
+                            [class.status-available]="getRoomAvailableBeds(room) === getRoomTotalBeds(room)"
+                            [class.status-partial]="getRoomAvailableBeds(room) > 0 && getRoomAvailableBeds(room) < getRoomTotalBeds(room)"
+                            [class.status-occupied]="getRoomAvailableBeds(room) === 0"
+                          >
+                            <span class="status-dot"></span>
+                            {{ getRoomStatusLabel(room) }}
                           </div>
 
-                          <!-- Amenity Icons -->
-                          <div class="room-amenities-row">
-                            <i class="fa-solid fa-wifi amenity-icon" title="Wi-Fi"></i>
-                            @if (room.amenities?.includes('ac') || room.room_name?.includes('Studio') || room.room_name?.includes('Suite')) {
-                              <i class="fa-solid fa-wind amenity-icon" title="Air Conditioner"></i>
-                            }
-                            @if (room.amenities?.includes('tv') || room.room_name?.includes('Twin') || room.room_name?.includes('Suite')) {
-                              <i class="fa-solid fa-tv amenity-icon" title="Smart TV"></i>
-                            }
-                          </div>
-
-                          <!-- Price Tag -->
-                          <div class="room-price-row">
-                            <span class="currency-symbol">₹</span>
-                            <span class="price-val">{{ room.monthly_rent | number }}</span>
-                            <span class="per-month">/mo</span>
+                          <!-- Floor Pill -->
+                          <div class="room-float-floor">
+                            Floor {{ room.floor_number || 1 }}
                           </div>
                         </div>
+
+                        <!-- Card Body Details -->
+                        <div class="room-rich-body">
+                          <div class="room-title-section">
+                            <h4 class="room-heading">Room {{ room.room_number }}</h4>
+                            <span class="room-sharing-pill">{{ room.room_type || 'Sharing Room' }}</span>
+                          </div>
+
+                          <!-- Bed Occupancy Progress Bar -->
+                          <div class="room-bed-progress-box">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                              <small class="bed-count-text">
+                                <i class="fa-solid fa-bed me-1 text-primary"></i>
+                                <strong>{{ getRoomAvailableBeds(room) }}</strong> of {{ getRoomTotalBeds(room) }} beds free
+                              </small>
+                              <small class="bed-percent-text" [ngClass]="{
+                                'text-success': getRoomAvailableBeds(room) > 0,
+                                'text-danger': getRoomAvailableBeds(room) === 0
+                              }">
+                                {{ getRoomOccupiedPercent(room) }}% Occupied
+                              </small>
+                            </div>
+                            <div class="bed-progress-track">
+                              <div 
+                                class="bed-progress-fill"
+                                [style.width.%]="getRoomOccupiedPercent(room)"
+                                [ngClass]="{
+                                  'bg-fill-free': getRoomOccupiedPercent(room) === 0,
+                                  'bg-fill-partial': getRoomOccupiedPercent(room) > 0 && getRoomOccupiedPercent(room) < 100,
+                                  'bg-fill-full': getRoomOccupiedPercent(room) === 100
+                                }"
+                              ></div>
+                            </div>
+                          </div>
+
+                          <!-- Amenities Tags -->
+                          <div class="room-amenities-tags">
+                            <span class="amenity-tag"><i class="fa-solid fa-wifi text-primary"></i> WiFi</span>
+                            <span class="amenity-tag"><i class="fa-solid fa-shower text-info"></i> Geyser</span>
+                            <span class="amenity-tag"><i class="fa-solid fa-broom text-success"></i> Daily Cleaning</span>
+                          </div>
+
+                          <!-- Pricing & Booking Button Footer -->
+                          <div class="room-rich-footer">
+                            <div class="price-col">
+                              <div class="price-line">
+                                <span class="price-main">₹{{ room.monthly_rent | number }}</span>
+                                <span class="price-term">/mo</span>
+                              </div>
+                              @if (room.security_deposit) {
+                                <span class="deposit-text">Deposit: ₹{{ room.security_deposit | number }}</span>
+                              }
+                            </div>
+                            <button class="btn-book-now" [disabled]="getRoomAvailableBeds(room) === 0">
+                              @if (getRoomAvailableBeds(room) > 0) {
+                                <span>Reserve Bed</span> <i class="fa-solid fa-arrow-right ms-1"></i>
+                              } @else {
+                                <span>Fully Booked</span>
+                              }
+                            </button>
+                          </div>
+                        </div>
+
                       </div>
                     }
                   </div>
@@ -142,7 +197,6 @@
                 </div>
               }
             </div>
-
           </section>
         }
       </div>

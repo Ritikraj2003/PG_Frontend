@@ -1,0 +1,317 @@
+@if (currentProperty) {
+  <div class="my-property-container">
+    <!-- 1. Hero Showcase Banner -->
+    <div class="property-hero-card mb-4">
+      <div class="hero-content">
+        <div class="hero-header-row">
+          <div class="hero-title-wrap">
+            <div class="hero-badge">
+              <i class="fa-solid fa-hotel"></i> CURRENT STAY & ASSIGNED PG
+            </div>
+            <h1 class="hero-property-name">{{ currentProperty.property_name }}</h1>
+            <p class="hero-branch-name">
+              <i class="fa-solid fa-location-dot me-1 text-danger"></i>
+              {{ currentProperty.branch_name }} Campus • {{ currentProperty.branch_city }}, {{ currentProperty.branch_state }}
+            </p>
+          </div>
+          <div class="hero-status-wrap">
+            <div class="resident-code-badge">
+              <span class="code-label">RESIDENT CODE</span>
+              <span class="code-value">{{ currentTenantCode || 'TNT-9137' }}</span>
+            </div>
+            <span class="status-pill active-glow">
+              <i class="fa-solid fa-circle-check"></i> Active Resident
+            </span>
+          </div>
+        </div>
+
+        <!-- Quick Metrics Row inside Hero -->
+        <div class="hero-stats-row">
+          <div class="hero-stat-box">
+            <div class="stat-icon"><i class="fa-solid fa-door-open"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">Assigned Room</div>
+              <div class="stat-value">Room {{ currentRoom?.room_number || '101' }}</div>
+            </div>
+          </div>
+
+          <div class="hero-stat-box">
+            <div class="stat-icon"><i class="fa-solid fa-bed"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">Allocated Bed</div>
+              <div class="stat-value">{{ currentRoom?.bed_number || '101-B1' }}</div>
+            </div>
+          </div>
+
+          <div class="hero-stat-box">
+            <div class="stat-icon"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">Floor & Type</div>
+              <div class="stat-value">Floor {{ currentRoom?.floor_number || 1 }} • {{ currentRoom?.room_type || 'Double Sharing' }}</div>
+            </div>
+          </div>
+
+          <div class="hero-stat-box">
+            <div class="stat-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+            <div class="stat-info">
+              <div class="stat-label">Monthly Rent</div>
+              <div class="stat-value">₹{{ currentRoom?.monthly_rent || '8,500' }} <span class="stat-sub">/ mo</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Dual Column Layout: Room & Accommodation + Property & Management -->
+    <div class="property-grid-2col mb-4">
+      <!-- Left Column: Living Space & Financials -->
+      <div class="glass-card detail-section-card">
+        <div class="section-card-header">
+          <div class="section-card-title">
+            <i class="fa-solid fa-bed-pulse icon-primary"></i>
+            <span>Room & Accommodation Details</span>
+          </div>
+          <span class="badge badge-success">Assigned & Verified</span>
+        </div>
+
+        <div class="details-specs-list">
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-door-closed me-2 text-muted"></i> Room Number</span>
+            <span class="spec-value font-bold text-primary">Room {{ currentRoom?.room_number || '101' }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-bed me-2 text-muted"></i> Bed Allocation</span>
+            <span class="spec-value font-semibold">{{ currentRoom?.bed_number || '101-B1' }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-users me-2 text-muted"></i> Room / Sharing Type</span>
+            <span class="spec-value">{{ currentRoom?.room_type || 'Double Sharing' }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-stairs me-2 text-muted"></i> Floor Number</span>
+            <span class="spec-value">Floor {{ currentRoom?.floor_number || 1 }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-receipt me-2 text-muted"></i> Monthly Rent Amount</span>
+            <span class="spec-value font-bold text-success">₹{{ currentRoom?.monthly_rent || '8,500' }} / month</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-shield-halved me-2 text-muted"></i> Security Deposit</span>
+            <span class="spec-value font-semibold">₹{{ currentRoom?.security_deposit || '15,000' }} (Refundable)</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-calendar-check me-2 text-muted"></i> Booking Reference</span>
+            <span class="spec-value">{{ currentBooking?.booking_number || 'Active Registration' }}</span>
+          </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="card-action-buttons mt-4">
+          <button class="btn btn-primary btn-sm flex-1" (click)="onNavigate('invoices')">
+            <i class="fa-solid fa-file-invoice-dollar me-1"></i> View Invoices & Pay
+          </button>
+          <button class="btn btn-secondary btn-sm flex-1" (click)="onOpenComplaint()">
+            <i class="fa-solid fa-headset me-1"></i> Raise Complaint
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column: Location & Management Contacts -->
+      <div class="glass-card detail-section-card">
+        <div class="section-card-header">
+          <div class="section-card-title">
+            <i class="fa-solid fa-building-circle-check icon-primary"></i>
+            <span>Property & Management Information</span>
+          </div>
+          <span class="badge badge-info">{{ currentProperty.branch_name }}</span>
+        </div>
+
+        <div class="details-specs-list">
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-hotel me-2 text-muted"></i> Property Name</span>
+            <span class="spec-value font-bold text-primary">{{ currentProperty.property_name }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-code-branch me-2 text-muted"></i> Branch / Campus</span>
+            <span class="spec-value">{{ currentProperty.branch_name }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-location-dot me-2 text-danger"></i> Complete Address</span>
+            <span class="spec-value address-val">{{ currentProperty.branch_address }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-city me-2 text-muted"></i> City & State</span>
+            <span class="spec-value">{{ currentProperty.branch_city }}, {{ currentProperty.branch_state }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-user-tie me-2 text-muted"></i> Owner / Manager</span>
+            <span class="spec-value font-semibold">{{ currentProperty.owner_name || 'Ritik Raj' }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-phone me-2 text-success"></i> Contact Phone</span>
+            <span class="spec-value font-semibold">
+              <a [href]="'tel:' + (currentProperty.owner_contact || currentProperty.branch_contact || '07805041011')" class="contact-link">
+                <i class="fa-solid fa-phone-volume me-1"></i> {{ currentProperty.owner_contact || currentProperty.branch_contact || '07805041011' }}
+              </a>
+            </span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label"><i class="fa-solid fa-envelope me-2 text-primary"></i> Email Support</span>
+            <span class="spec-value">
+              <a [href]="'mailto:' + (currentProperty.owner_email || 'ritikraj@gmail.com')" class="contact-link">
+                <i class="fa-solid fa-envelope me-1"></i> {{ currentProperty.owner_email || 'ritikraj@gmail.com' }}
+              </a>
+            </span>
+          </div>
+        </div>
+
+        <!-- Caretaker assistance note -->
+        <div class="support-notice-banner mt-4">
+          <i class="fa-solid fa-shield-cat support-notice-icon"></i>
+          <div class="support-notice-text">
+            <strong>24/7 PG Help Desk & Caretaker:</strong> Need help with room maintenance, housekeeping, or amenities? Contact management directly via phone or visit the front office desk.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Amenities & Facilities Provided Card -->
+    <div class="glass-card detail-section-card mb-4">
+      <div class="section-card-header">
+        <div class="section-card-title">
+          <i class="fa-solid fa-wand-magic-sparkles icon-primary"></i>
+          <span>Included Amenities & Facilities</span>
+        </div>
+        <span class="badge badge-success">All Inclusive</span>
+      </div>
+
+      <div class="amenities-features-grid">
+        <div class="amenity-item">
+          <div class="amenity-icon-box"><i class="fa-solid fa-wifi"></i></div>
+          <div class="amenity-text-box">
+            <div class="amenity-name">High-Speed Wi-Fi</div>
+            <div class="amenity-desc">Unlimited high-speed optical fiber connectivity across all rooms</div>
+          </div>
+        </div>
+
+        <div class="amenity-item">
+          <div class="amenity-icon-box"><i class="fa-solid fa-bolt"></i></div>
+          <div class="amenity-text-box">
+            <div class="amenity-name">24/7 Power Backup</div>
+            <div class="amenity-desc">Continuous automatic inverter & generator backup for lights and sockets</div>
+          </div>
+        </div>
+
+        <div class="amenity-item">
+          <div class="amenity-icon-box"><i class="fa-solid fa-bottle-water"></i></div>
+          <div class="amenity-text-box">
+            <div class="amenity-name">RO Purified Water</div>
+            <div class="amenity-desc">Clean, certified multi-stage RO drinking water dispensers on all floors</div>
+          </div>
+        </div>
+
+        <div class="amenity-item">
+          <div class="amenity-icon-box"><i class="fa-solid fa-broom"></i></div>
+          <div class="amenity-text-box">
+            <div class="amenity-name">Daily Housekeeping</div>
+            <div class="amenity-desc">Daily room cleaning, sanitization, and trash clearance service</div>
+          </div>
+        </div>
+
+        <div class="amenity-item">
+          <div class="amenity-icon-box"><i class="fa-solid fa-shower"></i></div>
+          <div class="amenity-text-box">
+            <div class="amenity-name">Hot Water Geyser</div>
+            <div class="amenity-desc">24-hour instant geyser water heating in attached bathrooms</div>
+          </div>
+        </div>
+
+        <div class="amenity-item">
+          <div class="amenity-icon-box"><i class="fa-solid fa-video"></i></div>
+          <div class="amenity-text-box">
+            <div class="amenity-name">CCTV Surveillance</div>
+            <div class="amenity-desc">Round-the-clock security monitoring in common hallways and entry gates</div>
+          </div>
+        </div>
+
+        <div class="amenity-item">
+          <div class="amenity-icon-box"><i class="fa-solid fa-shirt"></i></div>
+          <div class="amenity-text-box">
+            <div class="amenity-name">Washing Machine & Laundry</div>
+            <div class="amenity-desc">Fully automatic washing machines with dedicated cloth drying areas</div>
+          </div>
+        </div>
+
+        <div class="amenity-item">
+          <div class="amenity-icon-box"><i class="fa-solid fa-couch"></i></div>
+          <div class="amenity-text-box">
+            <div class="amenity-name">Furnished Space & Storage</div>
+            <div class="amenity-desc">Individual lockable wardrobe, study desk, ergonomic chair & spring mattress</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. PG Rules & Community Guidelines Card -->
+    <div class="glass-card detail-section-card mb-4">
+      <div class="section-card-header">
+        <div class="section-card-title">
+          <i class="fa-solid fa-clipboard-list icon-primary"></i>
+          <span>PG Code of Conduct & House Guidelines</span>
+        </div>
+        <span class="badge badge-info">Resident Code</span>
+      </div>
+
+      <div class="rules-grid">
+        <div class="rule-box">
+          <div class="rule-icon"><i class="fa-solid fa-clock"></i></div>
+          <div class="rule-text">
+            <strong>Visiting Hours:</strong>
+            Visitors are welcome in the ground floor common lounge & reception area between <strong>9:00 AM and 8:00 PM</strong>.
+          </div>
+        </div>
+
+        <div class="rule-box">
+          <div class="rule-icon"><i class="fa-solid fa-moon"></i></div>
+          <div class="rule-text">
+            <strong>Quiet Hours & Night Gates:</strong>
+            Quiet hours are observed between <strong>10:30 PM and 6:30 AM</strong> to respect sleep, study, and rest of all residents.
+          </div>
+        </div>
+
+        <div class="rule-box">
+          <div class="rule-icon"><i class="fa-solid fa-ban-smoking"></i></div>
+          <div class="rule-text">
+            <strong>Zero Substance Tolerance:</strong>
+            Smoking, alcohol consumption, vaping, or possession of contraband is strictly prohibited inside rooms and premises.
+          </div>
+        </div>
+
+        <div class="rule-box">
+          <div class="rule-icon"><i class="fa-solid fa-hand-sparkles"></i></div>
+          <div class="rule-text">
+            <strong>Cleanliness & Conservation:</strong>
+            Residents are expected to keep personal spaces orderly and switch off lights, fans, and geysers when leaving rooms.
+          </div>
+        </div>
+
+        <div class="rule-box">
+          <div class="rule-icon"><i class="fa-solid fa-calendar-xmark"></i></div>
+          <div class="rule-text">
+            <strong>Notice Period Prior to Checkout:</strong>
+            A mandatory written notice of at least <strong>30 days</strong> is required before checkout to process deposit refunds seamlessly.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="glass-card table-card text-center p-5">
+    <i class="fa-solid fa-hotel text-muted" style="font-size: 3.5rem; margin-bottom: 1rem;"></i>
+    <h3 class="card-title justify-content-center">No Active Registered PG</h3>
+    <p class="text-muted mb-4">You have not been assigned to a PG property yet or your booking is pending confirmation.</p>
+    <button class="btn btn-primary" (click)="onNavigate('explore')">
+      <i class="fa-solid fa-bed me-2"></i> Explore PGs & Reserve Room
+    </button>
+  </div>
+}

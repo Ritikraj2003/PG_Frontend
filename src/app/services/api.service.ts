@@ -98,6 +98,8 @@ export class ApiService {
 
     getRooms: (branchId?: string) =>
       this.request(`/public/rooms${branchId ? `?branch_id=${branchId}` : ''}`),
+    getPlans: () => this.request('/public/plans'),
+    getPlatformPaymentInfo: () => this.request('/public/platform-payment-info'),
   };
 
   // Admin
@@ -117,6 +119,20 @@ export class ApiService {
     createBranch: (data: any) => this.request('/admin/branches', { method: 'POST', body: JSON.stringify(data) }),
     updateBranch: (id: string, data: any) => this.request(`/admin/branches/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteBranch: (id: string) => this.request(`/admin/branches/${id}`, { method: 'DELETE' }),
+    renewOwnerSubscription: (ownerId: string, data: any) =>
+      this.request(`/admin/owners/${ownerId}/renew-subscription`, { method: 'POST', body: JSON.stringify(data) }),
+    getPlans: (activeOnly: boolean = false) => this.request(`/admin/plans${activeOnly ? '?active_only=true' : ''}`),
+    createPlan: (data: any) => this.request('/admin/plans', { method: 'POST', body: JSON.stringify(data) }),
+    updatePlan: (id: string, data: any) => this.request(`/admin/plans/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deletePlan: (id: string) => this.request(`/admin/plans/${id}`, { method: 'DELETE' }),
+    renewBranchSubscription: (branchId: string, data: any) =>
+      this.request(`/admin/branches/${branchId}/renew-subscription`, { method: 'POST', body: JSON.stringify(data) }),
+    getGeneralSettings: () => this.request('/admin/general-settings'),
+    updateGeneralSettings: (data: any) =>
+      this.request('/admin/general-settings', {
+        method: 'PUT',
+        body: data instanceof FormData ? data : JSON.stringify(data),
+      }),
   };
 
   // Owner
@@ -147,7 +163,17 @@ export class ApiService {
     createExpense: (data: any) => this.request('/owner/expenses', { method: 'POST', body: JSON.stringify(data) }),
     getTenants: (branchId: string) => this.request(`/owner/tenants?branch_id=${branchId}`),
     getPayments: (branchId: string) => this.request(`/owner/payments?branch_id=${branchId}`),
-    verifyManualPayment: (id: string, status: string, remarks?: string) => this.request(`/owner/payments/${id}/verify`, { method: 'POST', body: JSON.stringify({ status, remarks }) }),
+    verifyManualPayment: (id: string, status: string, remarks?: string) =>
+      this.request(`/owner/payments/${id}/verify`, { method: 'POST', body: JSON.stringify({ status, remarks }) }),
+    renewSubscription: (data: any) =>
+      this.request('/owner/subscription/renew', { method: 'POST', body: JSON.stringify(data) }),
+    renewBranch: (branchId: string, data: any) =>
+      this.request(`/owner/branches/${branchId}/renew-subscription`, { method: 'POST', body: JSON.stringify(data) }),
+    getPlatformPaymentInfo: () => this.request('/owner/platform-payment-info'),
+    createSubscriptionOrder: (data: any) =>
+      this.request('/owner/subscription/create-order', { method: 'POST', body: JSON.stringify(data) }),
+    verifySubscriptionPayment: (data: any) =>
+      this.request('/owner/subscription/verify-and-renew', { method: 'POST', body: JSON.stringify(data) }),
   };
 
   // Tenant
