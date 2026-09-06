@@ -26,11 +26,11 @@
           <i class="fa-solid fa-bars"></i>
         </button>
         <div class="topbar-title">
-          <i class="fa-solid fa-user-gear me-2 text-primary"></i> Resident & Tenant Portal
+          <i class="fa-solid fa-user-gear me-2 text-primary"></i> <span class="d-none d-sm-inline">Resident & </span>Tenant Portal
         </div>
       </div>
       <div class="topbar-right">
-        <span class="badge badge-info">Welcome, {{ user?.full_name || 'Resident' }}</span>
+        <span class="badge badge-info"><span class="d-none d-sm-inline">Welcome, </span>{{ userFirstName }}</span>
       </div>
     </header>
 

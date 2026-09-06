@@ -136,6 +136,8 @@
   align-items: center;
   gap: 1rem;
   transition: transform 0.2s ease, background 0.2s ease;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .hero-stat-box:hover {
@@ -159,6 +161,9 @@
 .hero-stat-box .stat-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .hero-stat-box .stat-label {
@@ -486,49 +491,61 @@
     white-space: nowrap;
   }
 
-  /* 2-box per row layout for Hero metrics (Requested by User) */
+  /* 2-box per row layout for Hero metrics (Strict 50-50 equal width, zero cutoff) */
   .hero-stats-row {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.6rem !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .hero-stat-box {
-    padding: 0.75rem 0.7rem !important;
-    gap: 0.6rem !important;
+    padding: 0.65rem 0.55rem !important;
+    gap: 0.45rem !important;
     border-radius: 10px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   .hero-stat-box .stat-icon {
-    width: 36px !important;
-    height: 36px !important;
-    font-size: 1rem !important;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.95rem !important;
     border-radius: 8px !important;
     flex-shrink: 0 !important;
   }
 
   .stat-info {
-    min-width: 0;
-    flex: 1;
-    overflow: hidden;
+    min-width: 0 !important;
+    width: 100% !important;
+    flex: 1 1 0% !important;
+    overflow: hidden !important;
   }
 
   .stat-label {
-    font-size: 0.64rem !important;
-    letter-spacing: 0.3px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.62rem !important;
+    letter-spacing: 0.2px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
+    display: block !important;
   }
 
   .stat-value {
-    font-size: 0.92rem !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.88rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
+    display: block !important;
   }
 
   .stat-sub {
-    font-size: 0.68rem !important;
+    font-size: 0.65rem !important;
   }
 
   /* Detail Section Cards */

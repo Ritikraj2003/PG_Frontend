@@ -47,7 +47,9 @@
             <div class="stat-icon"><i class="fa-solid fa-layer-group"></i></div>
             <div class="stat-info">
               <div class="stat-label">Floor & Type</div>
-              <div class="stat-value">Floor {{ currentRoom?.floor_number || 1 }} • {{ currentRoom?.room_type || 'Double Sharing' }}</div>
+              <div class="stat-value" [title]="'Floor ' + (currentRoom?.floor_number || 1) + ' • ' + (currentRoom?.room_type || 'Double Sharing')">
+                <span class="d-none d-sm-inline">Floor {{ currentRoom?.floor_number || 1 }} • </span>{{ currentRoom?.room_type || 'Double Sharing' }}
+              </div>
             </div>
           </div>
 

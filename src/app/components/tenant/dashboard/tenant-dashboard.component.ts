@@ -52,6 +52,11 @@ export class TenantDashboardComponent implements OnInit {
 
   isMobileSidebarOpen = false;
 
+  get userFirstName(): string {
+    if (!this.user?.full_name) return 'Resident';
+    return this.user.full_name.split(' ')[0] || 'Resident';
+  }
+
   toggleMobileSidebar() {
     this.isMobileSidebarOpen = !this.isMobileSidebarOpen;
   }
