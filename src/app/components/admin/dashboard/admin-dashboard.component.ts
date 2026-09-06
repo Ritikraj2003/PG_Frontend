@@ -1,9 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { ApiService } from '../../../services/api.service';
 import { SubscriptionPlan } from '../../../models/types';
+import { getInstantUpiQrUrl } from '../../../utils/upi-qr.util';
 import { environment } from '../../../../environments/environment';
 import { AdminSidebarComponent } from '../sidebar/admin-sidebar.component';
 import { AdminOverviewComponent } from '../overview/admin-overview.component';
@@ -187,9 +189,6 @@ export class AdminDashboardComponent implements OnInit {
     this.closeMobileSidebar();
     const targetRoute = tab === 'overview' ? 'dashboard' : tab;
     this.router.navigate(['/admin', targetRoute]);
-    if (tab === 'settings') {
-      this.loadGeneralSettings();
-    }
   }
 
   private syncTabFromUrl() {
@@ -202,7 +201,6 @@ export class AdminDashboardComponent implements OnInit {
     else if (url.includes('/admin/reports')) this.activeTab = 'reports';
     else if (url.includes('/admin/settings') || url.includes('/admin/generalsetting')) {
       this.activeTab = 'settings';
-      this.loadGeneralSettings();
     }
     else if (url.includes('/admin/overview') || url.includes('/admin/dashboard')) this.activeTab = 'overview';
   }
@@ -215,13 +213,12 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.syncTabFromUrl();
-    this.router.events.subscribe(() => {
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd)
+    ).subscribe(() => {
       this.syncTabFromUrl();
     });
     this.fetchData();
-    if (this.activeTab === 'settings') {
-      this.loadGeneralSettings();
-    }
   }
 
   async fetchData() {
@@ -534,6 +531,13 @@ export class AdminDashboardComponent implements OnInit {
       return;
     }
 
+    if (this.ownerData.payment_mode === 'UPI') {
+      if (!this.ownerData.payment_ref || this.ownerData.payment_ref.trim().length < 4) {
+        alert('Please enter the 12-digit UPI UTR / Transaction Reference number after completing payment.');
+        return;
+      }
+    }
+
     if (this.ownerData.payment_mode === 'RAZORPAY') {
       await this.payWithRazorpayAndCreate();
     } else {
@@ -664,6 +668,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
     addBranchForOwner(owner: any) {
+    this.loadGeneralSettings();
     const prop = this.properties.find(p => p.owner_id === owner.id);
     if (!prop) {
       alert(`Owner "${owner.full_name}" does not have a property assigned yet.`);
@@ -844,6 +849,13 @@ export class AdminDashboardComponent implements OnInit {
         return;
       }
 
+      if (!this.isBranchCoveredByPlan && this.branchData.payment_mode === 'UPI') {
+        if (!this.branchData.payment_ref || this.branchData.payment_ref.trim().length < 4) {
+          alert('Please enter the 12-digit UPI UTR / Transaction Reference number after completing payment.');
+          return;
+        }
+      }
+
       if (!this.isBranchCoveredByPlan && this.branchData.payment_mode === 'RAZORPAY') {
         await this.payWithRazorpayAndCreateBranch();
         return;
@@ -961,11 +973,20 @@ export class AdminDashboardComponent implements OnInit {
     }
   }
   async loadGeneralSettings() {
+    if (this.generalSettingsLoading) return;
+    if (this.generalSettings?.upi_id && this.generalSettings.upi_id !== '') return;
     try {
       this.generalSettingsLoading = true;
       this.generalSettingsError = '';
       const res = await this.apiService.admin.getGeneralSettings();
       if (res) {
+        const mailVal = res.mail || res.smtp_email || '';
+        const userVal = res.user_name || res.smtp_username || '';
+        const displayVal = res.display_name || res.smtp_display_name || '';
+        const passVal = res.password || res.smtp_password || '';
+        const hostVal = res.host || res.smtp_host || '';
+        const portVal = res.port || res.smtp_port || '';
+
         this.generalSettings = {
           ...this.generalSettings,
           ...res,
@@ -973,8 +994,18 @@ export class AdminDashboardComponent implements OnInit {
           razorpay_secret: res.razorpay_secret || '',
           upi_id: res.upi_id || '',
           upi_qr_url: res.upi_qr_url || '',
-          smtp_email: res.smtp_email || '',
-          smtp_password: res.smtp_password || '',
+          mail: mailVal,
+          smtp_email: mailVal,
+          user_name: userVal,
+          smtp_username: userVal,
+          display_name: displayVal,
+          smtp_display_name: displayVal,
+          password: passVal,
+          smtp_password: passVal,
+          host: hostVal,
+          smtp_host: hostVal,
+          port: portVal,
+          smtp_port: portVal,
         };
       }
     } catch (err: any) {
@@ -985,13 +1016,36 @@ export class AdminDashboardComponent implements OnInit {
     }
   }
 
+  getQrImageUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    if (url.startsWith('data:image/')) return url;
+    if (url.length > 100 && !url.startsWith('http') && !url.startsWith('/')) {
+      return `data:image/png;base64,${url}`;
+    }
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `${this.apiUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+
+  getUpiQrImage(amount?: number): string {
+    const upiId = this.generalSettings?.upi_id || 'platform@staypulse';
+    const amt = amount || 1999;
+    return getInstantUpiQrUrl({
+      upiId,
+      payeeName: 'StayPulse Admin',
+      amount: amt,
+      transactionNote: 'Branch Subscription',
+    });
+  }
+
   onQrFileSelected(event: any) {
     const file = event.target.files?.[0];
     if (file) {
       this.qrFile = file;
       const reader = new FileReader();
       reader.onload = () => {
-        this.qrPreview = reader.result as string;
+        const base64 = reader.result as string;
+        this.qrPreview = base64;
+        this.generalSettings.upi_qr_url = base64;
       };
       reader.readAsDataURL(file);
     }
@@ -1007,14 +1061,55 @@ export class AdminDashboardComponent implements OnInit {
       if (this.generalSettings.razorpay_key) formData.append('razorpay_key', this.generalSettings.razorpay_key);
       if (this.generalSettings.razorpay_secret) formData.append('razorpay_secret', this.generalSettings.razorpay_secret);
       if (this.generalSettings.upi_id) formData.append('upi_id', this.generalSettings.upi_id);
-      if (this.generalSettings.smtp_email) formData.append('smtp_email', this.generalSettings.smtp_email);
-      if (this.generalSettings.smtp_password) formData.append('smtp_password', this.generalSettings.smtp_password);
+
+      const mail = this.generalSettings.mail || this.generalSettings.smtp_email;
+      const user_name = this.generalSettings.user_name || this.generalSettings.smtp_username;
+      const display_name = this.generalSettings.display_name || this.generalSettings.smtp_display_name;
+      const password = this.generalSettings.password || this.generalSettings.smtp_password;
+      const host = this.generalSettings.host || this.generalSettings.smtp_host;
+      const port = this.generalSettings.port || this.generalSettings.smtp_port;
+
+      if (mail) {
+        formData.append('mail', mail);
+        formData.append('smtp_email', mail);
+      }
+      if (user_name) {
+        formData.append('user_name', user_name);
+        formData.append('smtp_username', user_name);
+      }
+      if (display_name) {
+        formData.append('display_name', display_name);
+        formData.append('smtp_display_name', display_name);
+      }
+      if (password) {
+        formData.append('password', password);
+        formData.append('smtp_password', password);
+      }
+      if (host) {
+        formData.append('host', host);
+        formData.append('smtp_host', host);
+      }
+      if (port) {
+        formData.append('port', port);
+        formData.append('smtp_port', port);
+      }
+
+      if (this.generalSettings.upi_qr_url && this.generalSettings.upi_qr_url.startsWith('data:image/')) {
+        formData.append('upi_qr_base64', this.generalSettings.upi_qr_url);
+      }
       if (this.qrFile) {
         formData.append('upi_qr', this.qrFile);
       }
 
       const res = await this.apiService.admin.updateGeneralSettings(formData);
       if (res) {
+        const mailVal = res.mail || res.smtp_email || '';
+        const userVal = res.user_name || res.smtp_username || '';
+        const displayVal = res.display_name || res.smtp_display_name || '';
+        const passVal = res.password || res.smtp_password || '';
+        const hostVal = res.host || res.smtp_host || '';
+        const portVal = res.port || res.smtp_port || '';
+
         this.generalSettings = {
           ...this.generalSettings,
           ...res,
@@ -1022,8 +1117,18 @@ export class AdminDashboardComponent implements OnInit {
           razorpay_secret: res.razorpay_secret || '',
           upi_id: res.upi_id || '',
           upi_qr_url: res.upi_qr_url || '',
-          smtp_email: res.smtp_email || '',
-          smtp_password: res.smtp_password || '',
+          mail: mailVal,
+          smtp_email: mailVal,
+          user_name: userVal,
+          smtp_username: userVal,
+          display_name: displayVal,
+          smtp_display_name: displayVal,
+          password: passVal,
+          smtp_password: passVal,
+          host: hostVal,
+          smtp_host: hostVal,
+          port: portVal,
+          smtp_port: portVal,
         };
       }
       this.generalSettingsSuccess = 'Platform General Settings saved successfully!';

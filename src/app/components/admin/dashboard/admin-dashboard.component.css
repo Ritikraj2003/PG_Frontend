@@ -1262,6 +1262,10 @@
 @media (max-width: 650px) {
   .payment-options-grid {
     grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .payment-option-card {
+    padding: 0.65rem 0.85rem;
   }
 }
 
@@ -1347,8 +1351,21 @@
 }
 
 .upi-panel {
-  background: #f0fdf4;
-  border: 1.5px solid #bbf7d0;
+  background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+  border: 1.5px solid #86efac;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.08);
+}
+
+.upi-qr-display-card {
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+}
+
+.qr-wrapper {
+  background: #ffffff;
+  border: 2px dashed #16a34a !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
 
 .cash-panel {

@@ -85,6 +85,16 @@ export interface BranchSettings {
   upi_qr_url?: string;
   smtp_email?: string;
   smtp_password?: string;
+  smtp_host?: string;
+  smtp_port?: string;
+  smtp_username?: string;
+  smtp_display_name?: string;
+  mail?: string;
+  user_name?: string;
+  display_name?: string;
+  password?: string;
+  host?: string;
+  port?: string;
 }
 
 export interface Room {

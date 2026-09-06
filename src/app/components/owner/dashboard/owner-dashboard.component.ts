@@ -14,6 +14,7 @@ import { OwnerSettingsComponent } from '../settings/owner-settings.component';
 import { OwnerPaymentsComponent } from '../payments/owner-payments.component';
 import { OwnerRolesComponent } from '../roles/owner-roles.component';
 import { SubscriptionPlan } from '../../../models/types';
+import { getInstantUpiQrUrl } from '../../../utils/upi-qr.util';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -264,11 +265,32 @@ export class OwnerDashboardComponent implements OnInit {
     }
   }
 
+  getQrImageUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    if (url.startsWith('data:image/')) return url;
+    if (url.length > 100 && !url.startsWith('http') && !url.startsWith('/')) {
+      return `data:image/png;base64,${url}`;
+    }
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `${this.apiUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+
   copyUpiId() {
     if (this.platformPaymentInfo?.upi_id) {
       navigator.clipboard.writeText(this.platformPaymentInfo.upi_id);
       alert('SuperAdmin UPI ID copied to clipboard!');
     }
+  }
+
+  getOwnerRenewalUpiQrUrl(): string {
+    const upiId = this.platformPaymentInfo?.upi_id || 'platform@staypulse';
+    const amount = this.getSelectedPlanPrice();
+    return getInstantUpiQrUrl({
+      upiId,
+      payeeName: 'StayPulse Admin',
+      amount,
+      transactionNote: 'Branch Subscription Renewal',
+    });
   }
 
   async payWithRazorpay() {

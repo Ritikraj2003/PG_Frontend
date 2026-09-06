@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 import { User } from '../../../models/types';
+import { getInstantUpiQrUrl } from '../../../utils/upi-qr.util';
 import { TenantSidebarComponent } from '../sidebar/tenant-sidebar.component';
 import { TenantOverviewComponent } from '../overview/tenant-overview.component';
 import { TenantExploreComponent } from '../explore/tenant-explore.component';
@@ -229,6 +230,37 @@ export class TenantDashboardComponent implements OnInit {
   isPaying = false;
   
   apiUrl = 'http://localhost:5000';
+
+  getQrImageUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    if (url.startsWith('data:image/')) return url;
+    if (url.length > 100 && !url.startsWith('http') && !url.startsWith('/')) {
+      return `data:image/png;base64,${url}`;
+    }
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `${this.apiUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+
+  getTenantUpiQrUrl(): string {
+    const upiId = this.branchSettings?.upi_id || '';
+    if (!upiId) return '';
+    const amount = Number(this.selectedInvoice?.amount || this.selectedInvoice?.balance_amount || 0);
+    const branchName = this.branchSettings?.branch_name || 'PG Rental';
+    const note = this.selectedInvoice?.invoice_number ? `Rent ${this.selectedInvoice.invoice_number}` : 'Room Rent';
+    return getInstantUpiQrUrl({
+      upiId,
+      payeeName: branchName,
+      amount,
+      transactionNote: note,
+    });
+  }
+
+  copyText(val: string) {
+    if (!val) return;
+    navigator.clipboard.writeText(val).then(() => {
+      alert('UPI ID copied to clipboard!');
+    }).catch(() => {});
+  }
 
   async openPaymentModal(inv: any) {
     this.selectedInvoice = inv;

@@ -180,19 +180,42 @@
       </div>
 
       @if (paymentMethod === 'MANUAL_QR') {
-        <div class="qr-section p-3 border rounded mb-4 text-center">
-          @if (branchSettings?.upi_qr_url) {
-            <p class="mb-2 font-bold">Scan QR Code to Pay</p>
-            <img [src]="apiUrl + branchSettings.upi_qr_url" alt="UPI QR" class="qr-image mb-3 mx-auto" style="max-width: 200px;">
-            <p class="text-muted mb-3">UPI ID: {{ branchSettings.upi_id || 'Not provided' }}</p>
+        <div class="qr-section p-3 border rounded mb-4 text-center" style="background: #f8fafc;">
+          @if (branchSettings?.upi_id) {
+            <p class="mb-1 font-bold text-dark" style="font-size: 0.95rem;">
+              <i class="fa-solid fa-qrcode text-success me-1"></i> Scan Dynamic UPI QR Code
+            </p>
+            <div class="mb-2">
+              <span class="badge bg-success font-bold px-3 py-1" style="font-size: 0.8rem;">
+                <i class="fa-solid fa-bolt me-1"></i> Exact Amount Pre-filled: ₹{{ (selectedInvoice?.amount || selectedInvoice?.balance_amount || 0) | number }}
+              </span>
+            </div>
+
+            <div class="p-2 border rounded bg-white shadow-sm d-inline-block mb-3" style="border: 2px dashed #16a34a !important;">
+              <img [src]="getTenantUpiQrUrl()" alt="Dynamic UPI QR" class="qr-image mx-auto" style="width: 200px; height: 200px; object-fit: contain;">
+            </div>
+
+            <p class="text-muted mb-2" style="font-size: 0.8rem;">
+              Scan using <strong>GPay, PhonePe, Paytm, BHIM</strong>. Amount is pre-set automatically!
+            </p>
+
+            <div class="p-2 border rounded bg-white d-flex align-items-center justify-content-between gap-2 mx-auto mb-3" style="max-width: 320px;">
+              <div class="text-start">
+                <small class="text-muted d-block" style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Branch UPI ID</small>
+                <strong class="font-monospace text-dark" style="font-size: 0.88rem;">{{ branchSettings.upi_id }}</strong>
+              </div>
+              <button type="button" class="btn btn-outline-secondary btn-sm py-1 px-2" (click)="copyText(branchSettings.upi_id)">
+                <i class="fa-solid fa-copy me-1"></i> Copy
+              </button>
+            </div>
           } @else {
-            <div class="alert alert-warning">
-              <i class="fa-solid fa-triangle-exclamation"></i> The branch has not setup a QR code. Please pay via Razorpay.
+            <div class="alert alert-warning text-start">
+              <i class="fa-solid fa-triangle-exclamation me-1"></i> The branch has not configured their UPI ID yet. Please select <strong>Online Payment (Razorpay)</strong>.
             </div>
           }
 
-          <div class="upload-section text-left">
-            <label class="form-label">Upload Payment Screenshot *</label>
+          <div class="upload-section text-start mt-3">
+            <label class="form-label font-bold text-dark" style="font-size: 0.85rem;">Upload Payment Screenshot *</label>
             <input type="file" class="form-control" (change)="onScreenshotSelected($event)" accept="image/*">
             @if (screenshotPreview) {
               <img [src]="screenshotPreview" class="img-thumbnail mt-2" style="max-height: 150px;">
@@ -202,7 +225,7 @@
       }
 
       <div class="form-actions">
-        <button class="btn btn-primary flex-1" (click)="processPayment()" [disabled]="isPaying || (paymentMethod === 'MANUAL_QR' && (!screenshotFile || !branchSettings?.upi_qr_url))">
+        <button class="btn btn-primary flex-1 py-2 font-bold shadow-sm" (click)="processPayment()" [disabled]="isPaying || (paymentMethod === 'MANUAL_QR' && (!screenshotFile || !branchSettings?.upi_id))">
           @if (isPaying) {
             <i class="fa-solid fa-spinner fa-spin me-2"></i> Processing...
           } @else {

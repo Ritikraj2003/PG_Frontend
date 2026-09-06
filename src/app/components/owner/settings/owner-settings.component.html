@@ -26,20 +26,23 @@
 
       <!-- UPI / QR Section -->
       <div class="settings-section">
-        <h3><i class="fa-solid fa-qrcode me-2"></i> Manual UPI / QR Code</h3>
+        <h3><i class="fa-solid fa-qrcode me-2 text-success"></i> Manual UPI & Dynamic QR</h3>
         <div class="form-row">
-          <div class="form-group">
-            <label>UPI ID</label>
-            <input type="text" class="form-control" name="upi_id" [(ngModel)]="settings.upi_id" placeholder="yourname@bank">
+          <div class="form-group" style="flex: 1;">
+            <label class="font-bold">Branch UPI ID (VPA) *</label>
+            <input type="text" class="form-control" name="upi_id" [(ngModel)]="settings.upi_id" placeholder="e.g. pgowner@okhdfcbank or 9876543210@paytm">
           </div>
-          <div class="form-group">
-            <label>Upload QR Code</label>
-            <input type="file" class="form-control" (change)="onFileChange($event)" accept="image/*">
-            
-            @if (qrPreview) {
-              <img [src]="qrPreview" class="qr-preview mt-2" alt="QR Preview">
-            } @else if (settings.upi_qr_url) {
-              <img [src]="apiUrl + settings.upi_qr_url" class="qr-preview mt-2" alt="Current QR">
+          <div class="form-group text-center" style="flex: 1;">
+            <label class="font-bold d-block text-start">Live Auto-Generated QR</label>
+            @if (settings.upi_id) {
+              <div class="p-2 border rounded bg-white shadow-sm d-inline-block mt-1" style="border: 2px dashed #16a34a !important;">
+                <img [src]="getOwnerSettingsUpiQrUrl(settings.upi_id)" class="qr-preview" style="width: 140px; height: 140px; object-fit: contain;" alt="Live Dynamic QR Preview">
+              </div>
+            } @else {
+              <div class="p-3 border rounded bg-light text-muted mt-1">
+                <i class="fa-solid fa-qrcode fa-2x mb-1 opacity-50"></i>
+                <div style="font-size: 0.78rem;">Enter your UPI ID to generate live QR</div>
+              </div>
             }
           </div>
         </div>
@@ -47,15 +50,35 @@
 
       <!-- Email Notifications -->
       <div class="settings-section">
-        <h3><i class="fa-solid fa-envelope me-2"></i> Email SMTP (For Invoices & Alerts)</h3>
+        <h3><i class="fa-solid fa-envelope me-2"></i> Mail Configuration (SMTP)</h3>
         <div class="form-row">
           <div class="form-group">
-            <label>SMTP Email</label>
-            <input type="email" class="form-control" name="smtp_email" [(ngModel)]="settings.smtp_email" placeholder="billing@yourpg.com">
+            <label>Mail (Sender Email) *</label>
+            <input type="email" class="form-control" name="mail" [(ngModel)]="settings.mail" placeholder="billing@yourpg.com" autocomplete="off">
           </div>
           <div class="form-group">
-            <label>SMTP Password / App Password</label>
-            <input type="password" class="form-control" name="smtp_password" [(ngModel)]="settings.smtp_password">
+            <label>UserName *</label>
+            <input type="text" class="form-control" name="user_name" [(ngModel)]="settings.user_name" placeholder="SMTP Username / Email" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>DisplayName</label>
+            <input type="text" class="form-control" name="display_name" [(ngModel)]="settings.display_name" placeholder="Branch Name / Sender Name" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Password *</label>
+            <input type="password" class="form-control" name="password" [(ngModel)]="settings.password" placeholder="SMTP Password or App Token" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Host *</label>
+            <input type="text" class="form-control" name="host" [(ngModel)]="settings.host" placeholder="smtp.gmail.com" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Port *</label>
+            <input type="text" class="form-control" name="port" [(ngModel)]="settings.port" placeholder="587" autocomplete="off">
           </div>
         </div>
       </div>

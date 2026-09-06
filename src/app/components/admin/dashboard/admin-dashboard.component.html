@@ -536,44 +536,71 @@
           @if (ownerData.payment_mode === 'UPI') {
             <div class="payment-details-panel upi-panel mb-3 animate-fade-in">
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom border-success-subtle">
-                <h5 class="font-bold m-0 text-success" style="font-size: 0.95rem;">
-                  <i class="fa-solid fa-qrcode me-2"></i> Platform UPI Direct Transfer
-                </h5>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="payment-option-icon bg-success-soft">
+                    <i class="fa-solid fa-qrcode text-success"></i>
+                  </div>
+                  <div>
+                    <h5 class="font-bold m-0 text-success" style="font-size: 0.95rem;">
+                      Scan SuperAdmin UPI QR Code
+                    </h5>
+                    <small class="text-muted" style="font-size: 0.72rem;">Instant transfer via any UPI application</small>
+                  </div>
+                </div>
                 <div class="text-end">
-                  <small class="text-muted d-block" style="font-size: 0.75rem;">Amount Due:</small>
-                  <strong class="text-success font-bold" style="font-size: 1.25rem;">₹{{ (getSelectedPlan()?.price || 1999) | number }}</strong>
+                  <small class="text-muted d-block" style="font-size: 0.72rem;">Payable Amount:</small>
+                  <strong class="text-success font-bold" style="font-size: 1.3rem;">₹{{ (getSelectedPlan()?.price || 1999) | number }}</strong>
                 </div>
               </div>
 
-              <div class="upi-info-card p-2 bg-white rounded border mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <div>
-                  <small class="text-muted d-block" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">SuperAdmin UPI ID (VPA):</small>
-                  <strong class="font-bold text-dark font-monospace" style="font-size: 0.95rem;">{{ generalSettings?.upi_id || 'platform@staypulse' }}</strong>
+              <!-- Step 1: QR & VPA Box -->
+              <div class="upi-qr-display-card text-center mb-3 p-3 bg-white rounded-3 shadow-sm border border-success-subtle">
+                <div class="qr-wrapper d-inline-block position-relative p-2 bg-white rounded-3">
+                  <img [src]="getUpiQrImage(getSelectedPlan()?.price || 1999)" class="qr-preview-img" style="width: 175px; height: 175px; object-fit: contain; border-radius: 8px;" alt="SuperAdmin UPI QR">
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-primary" (click)="copyUpiId(generalSettings?.upi_id || 'platform@staypulse')">
-                  <i class="fa-solid" [class.fa-copy]="!copiedUpi" [class.fa-check]="copiedUpi"></i>
-                  {{ copiedUpi ? 'Copied!' : 'Copy VPA' }}
-                </button>
+                <div class="mt-2">
+                  <span class="badge bg-success-soft text-success px-3 py-1 font-bold" style="font-size: 0.76rem;">
+                    <i class="fa-solid fa-camera me-1"></i> Scan with GPay, PhonePe, Paytm or BHIM
+                  </span>
+                </div>
+
+                <!-- SuperAdmin UPI ID (VPA) with 1-Click Copy -->
+                <div class="upi-vpa-pill mt-3 p-2 mx-auto d-flex align-items-center justify-content-between gap-2 border rounded-pill bg-light" style="max-width: 360px;">
+                  <div class="ps-2 text-start">
+                    <small class="text-muted d-block" style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">SuperAdmin UPI ID (VPA)</small>
+                    <strong class="font-monospace text-dark" style="font-size: 0.92rem;">{{ generalSettings?.upi_id || 'platform@staypulse' }}</strong>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 py-1 font-bold" (click)="copyUpiId(generalSettings?.upi_id || 'platform@staypulse')">
+                    <i class="fa-solid" [class.fa-copy]="!copiedUpi" [class.fa-check]="copiedUpi"></i>
+                    <span class="ms-1">{{ copiedUpi ? 'Copied!' : 'Copy UPI' }}</span>
+                  </button>
+                </div>
               </div>
 
-              @if (generalSettings?.upi_qr_url) {
-                <div class="text-center mb-3">
-                  <img [src]="apiUrl + generalSettings.upi_qr_url" class="qr-preview-img" style="width: 120px; height: 120px; border-radius: 8px;" alt="UPI QR">
-                  <small class="d-block text-muted mt-1" style="font-size: 0.75rem;">Scan using GPay, PhonePe, Paytm, or BHIM</small>
-                </div>
-              }
+              <!-- Step 2: Instruction banner -->
+              <div class="alert alert-light border border-success-subtle py-2 px-3 mb-3 d-flex align-items-center gap-2" style="font-size: 0.8rem; background: #f0fdf4;">
+                <i class="fa-solid fa-circle-check text-success" style="font-size: 1.1rem;"></i>
+                <span>
+                  <strong>Payment Done?</strong> Enter your <strong>12-digit UPI UTR / Ref No.</strong> below and click <strong>Confirm & Register Owner</strong>.
+                </span>
+              </div>
 
+              <!-- 12-digit UTR Input & Status -->
               <div class="row g-2">
-                <div class="col-md-6 form-group">
-                  <label class="form-label font-bold" style="font-size: 0.8rem;">12-digit UTR / Transaction Ref *</label>
-                  <input type="text" class="form-control" [(ngModel)]="ownerData.payment_ref" name="owner_payment_ref_upi" placeholder="e.g. 324567891234">
+                <div class="col-md-7 form-group">
+                  <label class="form-label font-bold text-dark d-flex align-items-center gap-1" style="font-size: 0.82rem;">
+                    <i class="fa-solid fa-receipt text-success"></i> 12-digit UTR / UPI Ref Number <span class="text-danger">*</span>
+                  </label>
+                  <input type="text" class="form-control form-control-lg font-monospace font-bold" [(ngModel)]="ownerData.payment_ref" name="owner_payment_ref_upi" placeholder="e.g. 324567891234" maxlength="30" required style="border: 2px solid #86efac; font-size: 0.95rem; letter-spacing: 0.5px;">
+                  <small class="text-muted" style="font-size: 0.72rem;">Available on your UPI app transaction receipt.</small>
                 </div>
-                <div class="col-md-6 form-group">
-                  <label class="form-label font-bold" style="font-size: 0.8rem;">Payment Status</label>
-                  <select class="form-control form-select" [(ngModel)]="ownerData.payment_status" name="owner_payment_status_upi">
+                <div class="col-md-5 form-group">
+                  <label class="form-label font-bold text-dark" style="font-size: 0.82rem;">Payment Status</label>
+                  <select class="form-control form-select form-control-lg" [(ngModel)]="ownerData.payment_status" name="owner_payment_status_upi" style="font-size: 0.88rem;">
                     <option value="PAID">Paid / Verified</option>
                     <option value="PENDING">Pending Verification</option>
                   </select>
+                  <small class="text-muted" style="font-size: 0.72rem;">Verification record.</small>
                 </div>
               </div>
             </div>
@@ -1123,44 +1150,71 @@
             @if (branchData.payment_mode === 'UPI') {
               <div class="payment-details-panel upi-panel mb-3 animate-fade-in">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom border-success-subtle">
-                  <h5 class="font-bold m-0 text-success" style="font-size: 0.95rem;">
-                    <i class="fa-solid fa-qrcode me-2"></i> Platform UPI Direct Transfer
-                  </h5>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="payment-option-icon bg-success-soft">
+                      <i class="fa-solid fa-qrcode text-success"></i>
+                    </div>
+                    <div>
+                      <h5 class="font-bold m-0 text-success" style="font-size: 0.95rem;">
+                        Scan SuperAdmin UPI QR Code
+                      </h5>
+                      <small class="text-muted" style="font-size: 0.72rem;">Instant transfer via any UPI application</small>
+                    </div>
+                  </div>
                   <div class="text-end">
-                    <small class="text-muted d-block" style="font-size: 0.75rem;">Amount Due:</small>
-                    <strong class="text-success font-bold" style="font-size: 1.25rem;">₹{{ (getBranchSelectedPlan()?.price || 1999) | number }}</strong>
+                    <small class="text-muted d-block" style="font-size: 0.72rem;">Payable Amount:</small>
+                    <strong class="text-success font-bold" style="font-size: 1.3rem;">₹{{ (getBranchSelectedPlan()?.price || 1999) | number }}</strong>
                   </div>
                 </div>
 
-                <div class="upi-info-card p-2 bg-white rounded border mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                  <div>
-                    <small class="text-muted d-block" style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700;">SuperAdmin UPI ID (VPA):</small>
-                    <strong class="font-bold text-dark font-monospace" style="font-size: 0.95rem;">{{ generalSettings?.upi_id || 'platform@staypulse' }}</strong>
+                <!-- Step 1: QR & VPA Box -->
+                <div class="upi-qr-display-card text-center mb-3 p-3 bg-white rounded-3 shadow-sm border border-success-subtle">
+                  <div class="qr-wrapper d-inline-block position-relative p-2 bg-white rounded-3">
+                    <img [src]="getUpiQrImage(getBranchSelectedPlan()?.price || 1999)" class="qr-preview-img" style="width: 175px; height: 175px; object-fit: contain; border-radius: 8px;" alt="SuperAdmin UPI QR">
                   </div>
-                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="copyUpiId(generalSettings?.upi_id || 'platform@staypulse')">
-                    <i class="fa-solid" [class.fa-copy]="!copiedUpi" [class.fa-check]="copiedUpi"></i>
-                    {{ copiedUpi ? 'Copied!' : 'Copy VPA' }}
-                  </button>
+                  <div class="mt-2">
+                    <span class="badge bg-success-soft text-success px-3 py-1 font-bold" style="font-size: 0.76rem;">
+                      <i class="fa-solid fa-camera me-1"></i> Scan with GPay, PhonePe, Paytm or BHIM
+                    </span>
+                  </div>
+
+                  <!-- SuperAdmin UPI ID (VPA) with 1-Click Copy -->
+                  <div class="upi-vpa-pill mt-3 p-2 mx-auto d-flex align-items-center justify-content-between gap-2 border rounded-pill bg-light" style="max-width: 360px;">
+                    <div class="ps-2 text-start">
+                      <small class="text-muted d-block" style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">SuperAdmin UPI ID (VPA)</small>
+                      <strong class="font-monospace text-dark" style="font-size: 0.92rem;">{{ generalSettings?.upi_id || 'platform@staypulse' }}</strong>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 py-1 font-bold" (click)="copyUpiId(generalSettings?.upi_id || 'platform@staypulse')">
+                      <i class="fa-solid" [class.fa-copy]="!copiedUpi" [class.fa-check]="copiedUpi"></i>
+                      <span class="ms-1">{{ copiedUpi ? 'Copied!' : 'Copy UPI' }}</span>
+                    </button>
+                  </div>
                 </div>
 
-                @if (generalSettings?.upi_qr_url) {
-                  <div class="text-center mb-3">
-                    <img [src]="apiUrl + generalSettings.upi_qr_url" class="qr-preview-img" style="width: 120px; height: 120px; border-radius: 8px;" alt="UPI QR">
-                    <small class="d-block text-muted mt-1" style="font-size: 0.75rem;">Scan using GPay, PhonePe, Paytm, or BHIM</small>
-                  </div>
-                }
+                <!-- Step 2: Instruction banner -->
+                <div class="alert alert-light border border-success-subtle py-2 px-3 mb-3 d-flex align-items-center gap-2" style="font-size: 0.8rem; background: #f0fdf4;">
+                  <i class="fa-solid fa-circle-check text-success" style="font-size: 1.1rem;"></i>
+                  <span>
+                    <strong>Payment Done?</strong> Enter your <strong>12-digit UPI UTR / Ref No.</strong> below and click <strong>Confirm UPI & Create Branch</strong>.
+                  </span>
+                </div>
 
+                <!-- 12-digit UTR Input & Status -->
                 <div class="row g-2">
-                  <div class="col-md-6 form-group">
-                    <label class="form-label font-bold" style="font-size: 0.8rem;">12-digit UTR / Transaction Ref *</label>
-                    <input type="text" class="form-control" [(ngModel)]="branchData.payment_ref" name="branch_payment_ref_upi" placeholder="e.g. 324567891234">
+                  <div class="col-md-7 form-group">
+                    <label class="form-label font-bold text-dark d-flex align-items-center gap-1" style="font-size: 0.82rem;">
+                      <i class="fa-solid fa-receipt text-success"></i> 12-digit UTR / UPI Ref Number <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control form-control-lg font-monospace font-bold" [(ngModel)]="branchData.payment_ref" name="branch_payment_ref_upi" placeholder="e.g. 324567891234" maxlength="30" required style="border: 2px solid #86efac; font-size: 0.95rem; letter-spacing: 0.5px;">
+                    <small class="text-muted" style="font-size: 0.72rem;">Available on your UPI app transaction receipt.</small>
                   </div>
-                  <div class="col-md-6 form-group">
-                    <label class="form-label font-bold" style="font-size: 0.8rem;">Payment Status</label>
-                    <select class="form-control form-select" [(ngModel)]="branchData.payment_status" name="branch_payment_status_upi">
+                  <div class="col-md-5 form-group">
+                    <label class="form-label font-bold text-dark" style="font-size: 0.82rem;">Payment Status</label>
+                    <select class="form-control form-select form-control-lg" [(ngModel)]="branchData.payment_status" name="branch_payment_status_upi" style="font-size: 0.88rem;">
                       <option value="PAID">Paid / Verified</option>
                       <option value="PENDING">Pending Verification</option>
                     </select>
+                    <small class="text-muted" style="font-size: 0.72rem;">Verification record.</small>
                   </div>
                 </div>
               </div>
