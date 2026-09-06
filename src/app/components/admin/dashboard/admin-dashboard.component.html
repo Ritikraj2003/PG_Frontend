@@ -22,12 +22,20 @@
   <div class="admin-content">
     <!-- Top Bar -->
     <header class="admin-topbar">
-      <div class="d-flex align-items-center flex-nowrap" style="min-width: 0;">
-        <button class="mobile-menu-btn" (click)="toggleMobileSidebar()" aria-label="Toggle Navigation">
-          <i class="fa-solid fa-bars"></i>
+      <div class="topbar-left-wrap">
+        <!-- Mobile hamburger button (same as owner portal) -->
+        <button class="hamburger d-lg-none" (click)="toggleMobileSidebar()" [class.open]="isMobileSidebarOpen" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
         </button>
-        <div class="topbar-title">
-          <i class="fa-solid fa-user-shield me-2 text-primary d-none d-sm-inline"></i>
+
+        <!-- Mobile brand (same as owner portal) -->
+        <div class="mobile-brand d-lg-none">
+          <i class="fa-solid fa-building-user"></i> StayPulse
+        </div>
+
+        <!-- Desktop Title & Breadcrumbs (visible on desktop > 991px) -->
+        <div class="topbar-title d-none d-lg-flex">
+          <i class="fa-solid fa-user-shield me-2 text-primary"></i>
           <span class="topbar-main-title">Super Admin</span>
           @if (activeTab === 'settings') {
             <span class="topbar-crumb-sep">/</span>
