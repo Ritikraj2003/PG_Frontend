@@ -374,59 +374,225 @@
 }
 
 /* ========================================== */
-/* STAYPULSE FOOTER                           */
+/* STAYPULSE HIGH-END SAAS FOOTER             */
 /* ========================================== */
 .staypulse-footer {
-  background: #ffffff;
-  border-top: 1px solid #edf2f7;
-  padding: 2.5rem 0;
+  position: relative;
+  background: linear-gradient(180deg, #090e1a 0%, #0d1527 50%, #070b14 100%);
+  color: #e2e8f0;
   margin-top: 5rem;
+  padding: 3.5rem 0 3rem;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.staypulse-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 15%;
+  width: 500px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.16) 0%, transparent 70%);
+  pointer-events: none;
+  filter: blur(50px);
+}
+
+.staypulse-footer::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 15%;
+  width: 450px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+  filter: blur(50px);
+}
+
+.footer-top-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.8), rgba(168, 85, 247, 0.8), rgba(59, 130, 246, 0.8), transparent);
+  box-shadow: 0 0 18px rgba(59, 130, 246, 0.6);
 }
 
 .footer-container {
-  max-width: 1180px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 1.75rem;
+  position: relative;
+  z-index: 2;
+}
+
+.footer-content-wrap {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: 2rem;
+}
+
+/* Brand Box */
+.footer-brand-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 .footer-brand-logo {
-  font-size: 1.35rem;
-  font-weight: 800;
-  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.brand-blue {
-  color: #0066ff;
+.footer-logo-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+.brand-text {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.brand-sub-tag {
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .copyright-text {
-  font-size: 0.82rem;
-  color: #64748b;
+  font-size: 0.85rem;
+  color: #94a3b8;
   margin: 0;
 }
 
-.footer-links-col {
+.copyright-text strong {
+  color: #e2e8f0;
+}
+
+/* Signature Badge: Design & Developed by Ritik Raj */
+.creator-signature-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  padding: 0.55rem 1.15rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.creator-signature-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(96, 165, 250, 0.45);
+  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.3);
+  transform: translateY(-2px);
+}
+
+.signature-prefix {
+  font-size: 0.84rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.creator-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.creator-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #ffffff;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  justify-content: center;
+  font-size: 0.75rem;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
 }
 
-.footer-link {
-  color: #64748b;
-  text-decoration: none;
-  font-size: 0.88rem;
-  font-weight: 600;
-  transition: color 0.2s ease;
+.creator-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #60a5fa 0%, #c084fc 60%, #f472b6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.3px;
 }
 
-.footer-link:hover {
-  color: #0066ff;
+.creator-sparkle {
+  font-size: 0.85rem;
+  animation: sparklePulse 2s infinite ease-in-out;
+}
+
+@keyframes sparklePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(244, 114, 182, 0.8));
+  }
+}
+
+/* Footer Responsive Breakpoints */
+@media (max-width: 640px) {
+  .staypulse-footer {
+    padding: 2.5rem 0;
+    margin-top: 3.5rem;
+  }
+
+  .footer-container {
+    padding: 0 1.25rem;
+  }
+
+  .footer-content-wrap {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .footer-brand-box {
+    align-items: center;
+  }
+
+  .creator-signature-card {
+    width: 100%;
+    max-width: 320px;
+    justify-content: center;
+    padding: 0.6rem 1rem;
+    box-sizing: border-box;
+  }
 }
 
 /* ========================================== */
