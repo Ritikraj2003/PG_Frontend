@@ -35,6 +35,7 @@ export class OwnerRolesComponent implements OnInit {
   editingRoleId: number | null = null;
   roleForm = {
     name: '',
+    branch_id: '',
     is_active: true
   };
 
@@ -78,19 +79,62 @@ export class OwnerRolesComponent implements OnInit {
     }
   }
 
+  getDefaultPermissions(): Permission[] {
+    return [
+      { id: 1, permission_name: 'DASHBOARD', permission_code: 'DASH' },
+      { id: 2, permission_name: 'Rooms View', permission_code: 'RMS_VIEW' },
+      { id: 3, permission_name: 'Rooms Add', permission_code: 'RMS_ADD' },
+      { id: 4, permission_name: 'Rooms Edit', permission_code: 'RMS_EDIT' },
+      { id: 5, permission_name: 'Rooms Delete', permission_code: 'RMS_DEL' },
+      { id: 6, permission_name: 'Bookings View', permission_code: 'BKG_VIEW' },
+      { id: 7, permission_name: 'Bookings Add', permission_code: 'BKG_ADD' },
+      { id: 8, permission_name: 'Bookings Edit', permission_code: 'BKG_EDIT' },
+      { id: 9, permission_name: 'Bookings Delete', permission_code: 'BKG_DEL' },
+      { id: 10, permission_name: 'Invoices View', permission_code: 'INV_VIEW' },
+      { id: 11, permission_name: 'Invoices Create', permission_code: 'INV_ADD' },
+      { id: 12, permission_name: 'Invoices Edit', permission_code: 'INV_EDIT' },
+      { id: 13, permission_name: 'Invoices Delete', permission_code: 'INV_DEL' },
+      { id: 14, permission_name: 'Payments View', permission_code: 'PYT_VIEW' },
+      { id: 15, permission_name: 'Payments Record', permission_code: 'PYT_ADD' },
+      { id: 16, permission_name: 'Payments Edit', permission_code: 'PYT_EDIT' },
+      { id: 17, permission_name: 'Payments Delete', permission_code: 'PYT_DEL' },
+      { id: 18, permission_name: 'Expenses View', permission_code: 'EXP_VIEW' },
+      { id: 19, permission_name: 'Expenses Add', permission_code: 'EXP_ADD' },
+      { id: 20, permission_name: 'Expenses Edit', permission_code: 'EXP_EDIT' },
+      { id: 21, permission_name: 'Expenses Delete', permission_code: 'EXP_DEL' },
+      { id: 22, permission_name: 'Tenants View', permission_code: 'TNT_VIEW' },
+      { id: 23, permission_name: 'Tenants Add', permission_code: 'TNT_ADD' },
+      { id: 24, permission_name: 'Tenants Edit', permission_code: 'TNT_EDIT' },
+      { id: 25, permission_name: 'Tenants Delete', permission_code: 'TNT_DEL' },
+      { id: 26, permission_name: 'Branch Settings View', permission_code: 'SET_VIEW' },
+      { id: 27, permission_name: 'Branch Settings Edit', permission_code: 'SET_EDIT' },
+      { id: 28, permission_name: 'Roles View', permission_code: 'ROL_VIEW' },
+      { id: 29, permission_name: 'Roles Manage', permission_code: 'ROL_MANAGE' }
+    ];
+  }
+
   async loadPermissions() {
     try {
-      const res = await this.api.owner.getPermissions();
-      this.permissions = res.data || [];
+      const res: any = await this.api.owner.getPermissions();
+      const rawList = Array.isArray(res) ? res : (res?.data || []);
+      if (rawList.length > 0) {
+        this.permissions = rawList.map((p: any) => ({
+          ...p,
+          id: Number(p.id)
+        }));
+      } else {
+        this.permissions = this.getDefaultPermissions();
+      }
     } catch (err: any) {
       console.error('Error loading permissions:', err);
+      this.permissions = this.getDefaultPermissions();
     }
   }
 
   async loadRoles() {
     try {
-      const res = await this.api.owner.getRoles();
-      this.roles = res.data || [];
+      const res: any = await this.api.owner.getRoles();
+      this.roles = Array.isArray(res) ? res : (res?.data || []);
     } catch (err: any) {
       console.error('Error loading roles:', err);
     }
@@ -98,8 +142,8 @@ export class OwnerRolesComponent implements OnInit {
 
   async loadStaff() {
     try {
-      const res = await this.api.owner.getTeam();
-      this.staffList = res.data || [];
+      const res: any = await this.api.owner.getTeam();
+      this.staffList = Array.isArray(res) ? res : (res?.data || []);
     } catch (err: any) {
       console.error('Error loading staff:', err);
     }
@@ -107,8 +151,8 @@ export class OwnerRolesComponent implements OnInit {
 
   async loadBranches() {
     try {
-      const res = await this.api.owner.getBranches();
-      this.branches = res.data || [];
+      const res: any = await this.api.owner.getBranches();
+      this.branches = Array.isArray(res) ? res : (res?.data || []);
     } catch (err: any) {
       console.error('Error loading branches:', err);
     }
@@ -222,7 +266,11 @@ export class OwnerRolesComponent implements OnInit {
   openCreateRoleModal() {
     this.isEditingRole = false;
     this.editingRoleId = null;
-    this.roleForm = { name: '', is_active: true };
+    this.roleForm = { 
+      name: '', 
+      branch_id: this.branchId || (this.branches.length > 0 ? this.branches[0].id : ''),
+      is_active: true 
+    };
     this.chosenPermissionIds.clear();
     this.selectedAvailableIds.clear();
     this.selectedChosenIds.clear();
@@ -237,6 +285,7 @@ export class OwnerRolesComponent implements OnInit {
     this.editingRoleId = role.id;
     this.roleForm = {
       name: role.name,
+      branch_id: role.branch_id || '',
       is_active: role.is_active !== undefined ? role.is_active : true
     };
     this.chosenPermissionIds = new Set((role.permission_ids || []).map(Number));
@@ -263,6 +312,7 @@ export class OwnerRolesComponent implements OnInit {
     try {
       const payload = {
         name: this.roleForm.name.trim(),
+        branch_id: this.roleForm.branch_id || this.branchId || null,
         is_active: this.roleForm.is_active,
         permission_ids: Array.from(this.chosenPermissionIds)
       };

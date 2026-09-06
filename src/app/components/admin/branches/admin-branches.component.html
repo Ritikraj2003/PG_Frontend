@@ -1,6 +1,10 @@
 <div class="glass-card table-card">
   <div class="table-header-row mb-3">
-    <h3 class="card-title"><i class="fa-solid fa-code-branch me-2 color-indigo"></i> All Branches & Outlets</h3>
+    <div>
+      <h3 class="card-title"><i class="fa-solid fa-code-branch me-2 color-indigo"></i> All Branches & Outlets</h3>
+      <p class="text-muted m-0" style="font-size: 0.85rem;">Manage all PG branches, active SaaS subscriptions, and remaining validity.</p>
+    </div>
+    <span class="badge-total">{{ branches.length }} Branches</span>
   </div>
   <div class="table-container">
     @if (branches && branches.length > 0) {
@@ -8,21 +12,67 @@
         <thead>
           <tr>
             <th>Branch Name</th>
-            <th>Address</th>
-            <th>City</th>
-            <th>Contact</th>
+            <th>Property & Owner</th>
+            <th>City / Contact</th>
+            <th>Subscription Plan</th>
+            <th>Remaining Days</th>
             <th class="text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
           @for (b of branches; track b.id) {
           <tr>
-            <td class="font-bold"><i class="fa-solid fa-code-branch me-2 text-primary"></i>{{ b.branch_name }}</td>
-            <td>{{ b.address }}</td>
-            <td>{{ b.city }}</td>
-            <td>{{ b.contact_number || 'N/A' }}</td>
+            <td>
+              <div class="font-bold text-dark">
+                <i class="fa-solid fa-code-branch me-2 text-primary"></i>{{ b.branch_name }}
+              </div>
+              <small class="text-muted">{{ b.address }}</small>
+            </td>
+            <td>
+              <div class="font-bold text-dark">{{ b.property_name || 'PG Property' }}</div>
+              <small class="text-muted"><i class="fa-solid fa-user-tie me-1"></i>{{ b.owner_name || 'Owner' }}</small>
+            </td>
+            <td>
+              <div>{{ b.city || 'Bengaluru' }}</div>
+              <small class="text-muted"><i class="fa-solid fa-phone me-1"></i>{{ b.contact_number || 'N/A' }}</small>
+            </td>
+            <td>
+              <div class="d-flex flex-column gap-1">
+                <span class="plan-pill">
+                  <i class="fa-solid fa-layer-group me-1 text-primary"></i>
+                  {{ b.plan_name || 'Standard Plan' }}
+                </span>
+                @if (b.plan_price) {
+                  <small class="text-muted">₹{{ b.plan_price }} • {{ b.duration_months || 1 }} mo</small>
+                }
+              </div>
+            </td>
+            <td>
+              @if (b.subscription_status === 'ACTIVE' && !b.is_expired) {
+                <div class="days-pill" [class.days-green]="b.days_remaining > 15" [class.days-amber]="b.days_remaining <= 15">
+                  <i class="fa-solid" [class.fa-hourglass-half]="b.days_remaining > 15" [class.fa-clock-rotate-left]="b.days_remaining <= 15"></i>
+                  <span><strong>{{ b.days_remaining }}</strong> Day{{ b.days_remaining === 1 ? '' : 's' }} Left</span>
+                </div>
+                @if (b.end_date) {
+                  <small class="sub-expiry text-muted">Expires {{ b.end_date | date:'dd MMM yyyy' }}</small>
+                }
+              } @else if (b.subscription_status === 'EXPIRED' || b.is_expired) {
+                <div class="days-pill days-red">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  <span><strong>Expired</strong> (0 Days)</span>
+                </div>
+                @if (b.end_date) {
+                  <small class="sub-expiry text-danger">Ended {{ b.end_date | date:'dd MMM yyyy' }}</small>
+                }
+              } @else {
+                <span class="badge badge-secondary">No Plan</span>
+              }
+            </td>
             <td>
               <div class="table-actions">
+                <button class="action-btn btn-renew" (click)="renewBranch.emit(b)" title="Renew / Extend Subscription">
+                  <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
                 <button class="action-btn btn-edit" (click)="editBranch.emit(b)" title="Edit Branch">
                   <i class="fa-solid fa-pen"></i>
                 </button>

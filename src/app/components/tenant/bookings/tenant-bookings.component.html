@@ -22,7 +22,14 @@
       <tbody>
         @for (bk of bookings; track bk.id) {
           <tr>
-            <td class="font-bold">{{ bk.booking_number }}</td>
+            <td class="font-bold text-primary">
+              {{ bk.booking_number || ('BK-' + (bk.id ? bk.id.slice(0, 8).toUpperCase() : '')) }}
+              @if (bk.document_url) {
+                <span class="badge badge-kyc-attached ms-1" title="KYC Document Attached">
+                  <i class="fa-solid fa-id-card"></i> KYC
+                </span>
+              }
+            </td>
             <td>
               <div class="font-bold">{{ bk.property_name || 'PG Stay' }}</div>
               <small class="text-muted">{{ bk.branch_name || 'Branch' }}</small>
@@ -36,23 +43,44 @@
               <small class="text-muted">Dep: ₹{{ bk.security_deposit }}</small>
             </td>
             <td>
-              <span class="badge" [class.badge-success]="bk.status === 'CONFIRMED' || bk.status === 'APPROVED'" [class.badge-warning]="bk.status === 'PENDING'">
-                {{ bk.status }}
+              <span class="badge" 
+                [class.badge-success]="bk.status === 'CONFIRMED' || bk.status === 'APPROVED' || bk.status === 'PAID' || bk.status === 'CHECKED_IN' || bk.display_status === 'CONFIRMED'" 
+                [class.badge-warning]="bk.status === 'PENDING'"
+                [class.badge-secondary]="bk.status === 'CHECKED_OUT' || bk.status === 'CANCELLED' || bk.status === 'REJECTED'">
+                {{ bk.status === 'CHECKED_OUT' ? 'CHECKED OUT' : (bk.status === 'PAID' ? 'CONFIRMED' : (bk.display_status || bk.status)) }}
               </span>
             </td>
             <td>
-              <span class="badge" [class.badge-success]="bk.payment_status === 'PAID'" [class.badge-danger]="bk.payment_status === 'UNPAID' || bk.payment_status === 'PENDING'">
-                {{ bk.payment_status || 'UNPAID' }}
+              <span class="badge" 
+                [class.badge-success]="bk.payment_status === 'PAID' || bk.status === 'PAID' || bk.status === 'CHECKED_OUT'" 
+                [class.badge-warning]="bk.payment_status === 'PENDING_VERIFICATION'" 
+                [class.badge-danger]="(bk.payment_status === 'UNPAID' || bk.payment_status === 'PENDING') && bk.status !== 'PAID' && bk.status !== 'CHECKED_OUT'">
+                {{ (bk.payment_status === 'PAID' || bk.status === 'PAID' || bk.status === 'CHECKED_OUT') ? 'PAID' : (bk.payment_status === 'PENDING_VERIFICATION' ? 'VERIFYING' : (bk.payment_status || 'UNPAID')) }}
               </span>
             </td>
             <td>
-              @if (bk.payment_status !== 'PAID') {
-                <button class="btn btn-primary btn-sm pay-btn" (click)="onPayBooking(bk)">
-                  <i class="fa-solid fa-credit-card mr-1"></i> Pay Now
+              <div class="d-flex align-items-center gap-1">
+                <button class="btn btn-outline-secondary btn-sm action-btn" (click)="openBookingDetails(bk)" title="View Details & Documents">
+                  <i class="fa-solid fa-eye me-1"></i> Details
                 </button>
-              } @else {
-                <span class="text-success font-bold"><i class="fa-solid fa-check"></i> Paid</span>
-              }
+                @if (bk.status === 'CHECKED_OUT') {
+                  <span class="badge badge-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.65rem;">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i> Checked Out
+                  </span>
+                } @else if (bk.status === 'CANCELLED' || bk.status === 'REJECTED') {
+                  <span class="badge badge-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.65rem;">
+                    <i class="fa-solid fa-ban me-1"></i> Cancelled
+                  </span>
+                } @else if (bk.payment_status === 'PAID' || bk.status === 'PAID') {
+                  <span class="text-success font-bold ms-1"><i class="fa-solid fa-check"></i> Paid</span>
+                } @else if (bk.payment_status === 'PENDING_VERIFICATION') {
+                  <span class="text-warning font-bold ms-1"><i class="fa-solid fa-clock"></i> Verifying</span>
+                } @else {
+                  <button class="btn btn-primary btn-sm pay-btn" (click)="onPayBooking(bk)">
+                    <i class="fa-solid fa-credit-card me-1"></i> Pay Now
+                  </button>
+                }
+              </div>
             </td>
           </tr>
         } @empty {
@@ -64,3 +92,206 @@
     </table>
   </div>
 </div>
+
+<!-- ========================================== -->
+<!-- BOOKING & KYC DETAILS MODAL -->
+<!-- ========================================== -->
+@if (showDetailsModal && selectedBooking) {
+  <div class="modal-overlay" (click)="closeBookingDetails()">
+    <div class="modal-content glass-card booking-details-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 class="m-0 d-flex align-items-center gap-2">
+            <i class="fa-solid fa-file-invoice text-primary"></i>
+            Booking Reference: {{ selectedBooking.booking_number || ('BK-' + selectedBooking.id.slice(0, 8).toUpperCase()) }}
+          </h3>
+          <small class="text-muted">Created on {{ selectedBooking.booking_date | date:'medium' }}</small>
+        </div>
+        <button type="button" class="close-icon-btn" (click)="closeBookingDetails()">&times;</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Status Banner -->
+        <div class="booking-status-banner mb-3">
+          <div class="banner-item">
+            <span class="text-muted">Stay Status:</span>
+            <span class="badge ms-1"
+              [class.badge-success]="selectedBooking.status === 'CONFIRMED' || selectedBooking.status === 'APPROVED' || selectedBooking.status === 'PAID' || selectedBooking.status === 'CHECKED_IN'"
+              [class.badge-warning]="selectedBooking.status === 'PENDING'"
+              [class.badge-secondary]="selectedBooking.status === 'CHECKED_OUT' || selectedBooking.status === 'CANCELLED'">
+              {{ selectedBooking.status }}
+            </span>
+          </div>
+          <div class="banner-item">
+            <span class="text-muted">Payment:</span>
+            <span class="badge ms-1"
+              [class.badge-success]="selectedBooking.payment_status === 'PAID' || selectedBooking.status === 'PAID'"
+              [class.badge-warning]="selectedBooking.payment_status === 'PENDING_VERIFICATION'"
+              [class.badge-danger]="selectedBooking.payment_status === 'UNPAID'">
+              {{ selectedBooking.payment_status }}
+            </span>
+          </div>
+          @if (selectedBooking.expected_check_in_date) {
+            <div class="banner-item">
+              <span class="text-muted">Expected Check-In:</span>
+              <strong class="ms-1">{{ selectedBooking.expected_check_in_date | date:'mediumDate' }}</strong>
+            </div>
+          }
+        </div>
+
+        <!-- Room & Property Info -->
+        <div class="info-section mb-3">
+          <h5 class="section-title"><i class="fa-solid fa-hotel me-2 text-primary"></i> Accommodation Details</h5>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">Property / PG</span>
+              <span class="val font-bold">{{ selectedBooking.property_name || 'PG Management' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Branch</span>
+              <span class="val">{{ selectedBooking.branch_name }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Allocated Room</span>
+              <span class="val font-bold text-primary">Room {{ selectedBooking.room_number || '-' }} ({{ selectedBooking.room_type || 'Standard' }})</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Allocated Bed</span>
+              <span class="val">{{ selectedBooking.bed_number ? ('Bed ' + selectedBooking.bed_number) : 'Not Specified' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Financial Breakdown -->
+        <div class="info-section mb-3">
+          <h5 class="section-title"><i class="fa-solid fa-indian-rupee-sign me-2 text-success"></i> Financials & Advance</h5>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">Monthly Rent</span>
+              <span class="val">₹{{ selectedBooking.monthly_rent }} / mo</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Security Deposit</span>
+              <span class="val">₹{{ selectedBooking.security_deposit }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Advance Paid</span>
+              <span class="val font-bold text-success">₹{{ selectedBooking.advance_payment_amount || selectedBooking.total_advance || '0' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Payment Mode</span>
+              <span class="val">{{ selectedBooking.payment_method || 'Online / UPI' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KYC & Uploaded Documents Section -->
+        <div class="info-section mb-3">
+          <h5 class="section-title"><i class="fa-solid fa-shield-halved me-2 text-info"></i> Uploaded Documents & KYC</h5>
+          
+          <div class="row g-3">
+            <!-- KYC ID Proof -->
+            <div class="col-md-6">
+              <div class="doc-preview-card">
+                <div class="doc-card-header">
+                  <span class="doc-badge"><i class="fa-solid fa-id-card me-1"></i> ID Proof Document</span>
+                  <small class="text-muted">{{ selectedBooking.document_type || 'Aadhaar / ID' }}</small>
+                </div>
+                <div class="doc-card-body">
+                  @if (selectedBooking.document_url) {
+                    <div class="preview-img-box">
+                      <img [src]="getImageUrl(selectedBooking.document_url)" alt="KYC Document" class="preview-thumb" />
+                    </div>
+                    <div class="doc-card-actions mt-2">
+                      <a [href]="getImageUrl(selectedBooking.document_url)" target="_blank" class="btn btn-sm btn-primary w-100">
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Full Document
+                      </a>
+                    </div>
+                  } @else {
+                    <div class="no-doc-box">
+                      <i class="fa-solid fa-file-excel fa-2x text-muted mb-1"></i>
+                      <p class="m-0 text-muted">No ID proof attached</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile Photo -->
+            <div class="col-md-6">
+              <div class="doc-preview-card">
+                <div class="doc-card-header">
+                  <span class="doc-badge"><i class="fa-solid fa-user me-1"></i> Profile Photo</span>
+                  <small class="text-muted">Resident Photo</small>
+                </div>
+                <div class="doc-card-body">
+                  @if (selectedBooking.photo_url || selectedBooking.photo) {
+                    <div class="preview-img-box">
+                      <img [src]="getImageUrl(selectedBooking.photo_url || selectedBooking.photo)" alt="Profile Photo" class="preview-thumb avatar-thumb" />
+                    </div>
+                    <div class="doc-card-actions mt-2">
+                      <a [href]="getImageUrl(selectedBooking.photo_url || selectedBooking.photo)" target="_blank" class="btn btn-sm btn-secondary w-100">
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Full Photo
+                      </a>
+                    </div>
+                  } @else {
+                    <div class="no-doc-box">
+                      <i class="fa-solid fa-user-xmark fa-2x text-muted mb-1"></i>
+                      <p class="m-0 text-muted">No profile photo attached</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal & Emergency Information -->
+        @if (selectedBooking.occupation || selectedBooking.company_name || selectedBooking.permanent_address || selectedBooking.emergency_name) {
+          <div class="info-section">
+            <h5 class="section-title"><i class="fa-solid fa-address-card me-2 text-warning"></i> Resident & Emergency Details</h5>
+            <div class="detail-grid">
+              @if (selectedBooking.occupation) {
+                <div class="detail-item">
+                  <span class="label">Occupation</span>
+                  <span class="val">{{ selectedBooking.occupation }}</span>
+                </div>
+              }
+              @if (selectedBooking.company_name) {
+                <div class="detail-item">
+                  <span class="label">Company / Institute</span>
+                  <span class="val">{{ selectedBooking.company_name }}</span>
+                </div>
+              }
+              @if (selectedBooking.permanent_address) {
+                <div class="detail-item full-span">
+                  <span class="label">Permanent Address</span>
+                  <span class="val">
+                    {{ selectedBooking.permanent_address }}
+                    @if (selectedBooking.city) { , {{ selectedBooking.city }} }
+                    @if (selectedBooking.state) { , {{ selectedBooking.state }} }
+                    @if (selectedBooking.pincode) { - {{ selectedBooking.pincode }} }
+                  </span>
+                </div>
+              }
+              @if (selectedBooking.emergency_name) {
+                <div class="detail-item">
+                  <span class="label">Emergency Contact</span>
+                  <span class="val">{{ selectedBooking.emergency_name }} ({{ selectedBooking.emergency_relation || 'Relative' }})</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Emergency Phone</span>
+                  <span class="val font-semibold">{{ selectedBooking.emergency_phone }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeBookingDetails()">Close</button>
+      </div>
+    </div>
+  </div>
+}

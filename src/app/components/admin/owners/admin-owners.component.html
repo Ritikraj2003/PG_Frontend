@@ -1,42 +1,148 @@
 <div class="glass-card table-card">
-  <div class="table-header-row mb-3">
-    <h3 class="card-title"><i class="fa-solid fa-building-user me-2 color-blue"></i> Property Owners List</h3>
-    <button class="btn btn-primary btn-sm" (click)="registerOwner.emit()">
-      <i class="fa-solid fa-plus me-1"></i> Register Owner
+  <!-- Header Action Row -->
+  <div class="owners-header-row mb-4">
+    <div class="owners-title-area">
+      <div class="title-with-icon">
+        <div class="header-icon-box">
+          <i class="fa-solid fa-building-user"></i>
+        </div>
+        <div>
+          <h3 class="card-title">Property Owners Directory</h3>
+          <p class="subtitle-text text-muted">Manage registered PG owners, branch allocations, and active subscriptions.</p>
+        </div>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="btn btn-primary btn-register-owner"
+      (click)="registerOwner.emit()"
+    >
+      <i class="fa-solid fa-plus"></i>
+      <span>Register Owner</span>
     </button>
   </div>
+
+  <!-- Search & Filter Controls -->
+  <div class="filter-bar mb-3">
+    <div class="search-input-wrap">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search by owner, business, code, phone, city..."
+        [(ngModel)]="searchQuery"
+      />
+      @if (searchQuery) {
+        <button type="button" class="search-clear-btn" (click)="searchQuery = ''" aria-label="Clear search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      }
+    </div>
+
+    <div class="filter-pills">
+      <button
+        type="button"
+        class="filter-pill-btn"
+        [class.active]="statusFilter === 'ALL'"
+        (click)="statusFilter = 'ALL'"
+      >
+        All ({{ owners.length }})
+      </button>
+      <button
+        type="button"
+        class="filter-pill-btn pill-active"
+        [class.active]="statusFilter === 'ACTIVE'"
+        (click)="statusFilter = 'ACTIVE'"
+      >
+        Active
+      </button>
+      <button
+        type="button"
+        class="filter-pill-btn pill-expired"
+        [class.active]="statusFilter === 'EXPIRED'"
+        (click)="statusFilter = 'EXPIRED'"
+      >
+        Expired
+      </button>
+    </div>
+  </div>
+
+  <!-- Scroll Hint on Mobile -->
+  <div class="scroll-hint d-md-none text-muted mb-2">
+    <i class="fa-solid fa-arrows-left-right me-1 text-primary"></i>
+    <span>Swipe table horizontally to view all columns & actions</span>
+  </div>
+
+  <!-- Proper Responsive Table View -->
   <div class="table-container">
     <table class="table align-middle">
       <thead>
         <tr>
-          <th>Code</th>
-          <th>Business Name</th>
-          <th>Owner Name</th>
-          <th>Contact</th>
-          <th>City</th>
-          <th class="text-center">Actions</th>
+          <th style="min-width: 130px;">Code</th>
+          <th style="min-width: 180px;">Business & Owner</th>
+          <th style="min-width: 150px;">Contact & City</th>
+          <th style="min-width: 170px;">Subscription Plan</th>
+          <th style="min-width: 150px;">Remaining Days</th>
+          <th style="min-width: 175px;" class="text-center">Actions</th>
         </tr>
       </thead>
       <tbody>
-        @for (o of owners; track o.id) {
+        @for (o of filteredOwners; track o.id) {
         <tr>
-          <td><span class="property-badge">{{ o.owner_code }}</span></td>
-          <td class="font-bold">{{ o.business_name }}</td>
-          <td>{{ o.full_name }}</td>
-          <td>{{ o.contact_number }}</td>
-          <td>{{ o.city }}</td>
+          <td><span class="owner-code-badge">{{ o.owner_code }}</span></td>
+          <td>
+            <div class="font-bold text-dark">{{ o.business_name || o.property_name || 'PG Business' }}</div>
+            <small class="text-muted"><i class="fa-solid fa-user me-1 text-primary"></i>{{ o.full_name }}</small>
+          </td>
+          <td>
+            <div class="contact-num">{{ o.contact_number || o.mobile_number || 'N/A' }}</div>
+            <small class="text-muted"><i class="fa-solid fa-location-dot me-1 text-danger"></i>{{ o.city || 'Bengaluru' }}</small>
+          </td>
+          <td>
+            <div class="d-flex flex-column gap-1">
+              <span class="plan-pill">
+                <i class="fa-solid fa-layer-group me-1 text-primary"></i>
+                {{ o.plan_name || 'Standard Plan' }}
+              </span>
+              <small class="text-muted">{{ o.total_branches || 1 }} Branch{{ (o.total_branches || 1) > 1 ? 'es' : '' }} (Max {{ o.max_branches || 1 }})</small>
+            </div>
+          </td>
+          <td>
+            @if (o.subscription_status === 'ACTIVE' && !o.is_expired && o.days_remaining > 0) {
+              <div class="days-pill" [class.days-green]="o.days_remaining > 15" [class.days-amber]="o.days_remaining <= 15">
+                <i class="fa-solid" [class.fa-hourglass-half]="o.days_remaining > 15" [class.fa-clock-rotate-left]="o.days_remaining <= 15"></i>
+                <span><strong>{{ o.days_remaining }}</strong> Day{{ o.days_remaining === 1 ? '' : 's' }} Left</span>
+              </div>
+              @if (o.end_date) {
+                <small class="sub-expiry text-muted">Expires {{ o.end_date | date:'dd MMM yyyy' }}</small>
+              }
+            } @else if (o.subscription_status === 'EXPIRED' || o.is_expired || o.days_remaining <= 0) {
+              <div class="days-pill days-red">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span><strong>Expired</strong> (0 Days)</span>
+              </div>
+              @if (o.end_date) {
+                <small class="sub-expiry text-danger">Ended {{ o.end_date | date:'dd MMM yyyy' }}</small>
+              }
+            } @else {
+              <span class="badge badge-secondary">No Plan</span>
+            }
+          </td>
           <td>
             <div class="table-actions">
-              <button class="action-btn btn-view" (click)="viewOwner.emit(o)" title="View Details">
+              <button type="button" class="action-btn btn-view" (click)="viewOwner.emit(o)" title="View Details">
                 <i class="fa-solid fa-eye"></i>
               </button>
-              <button class="action-btn btn-edit" (click)="editOwner.emit(o)" title="Edit Owner">
+              <button type="button" class="action-btn btn-renew" (click)="renewOwner.emit(o)" title="Renew Subscription">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </button>
+              <button type="button" class="action-btn btn-edit" (click)="editOwner.emit(o)" title="Edit Owner">
                 <i class="fa-solid fa-pen"></i>
               </button>
-              <button class="action-btn btn-branch" (click)="addBranch.emit(o)" title="Add Branch">
+              <button type="button" class="action-btn btn-branch" (click)="addBranch.emit(o)" title="Add Branch">
                 <i class="fa-solid fa-code-branch"></i>
               </button>
-              <button class="action-btn btn-delete" (click)="deleteOwner.emit(o)" title="Delete Owner">
+              <button type="button" class="action-btn btn-delete" (click)="deleteOwner.emit(o)" title="Delete Owner">
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             </div>
@@ -45,7 +151,7 @@
         } @empty {
         <tr>
           <td colspan="6" class="text-center text-muted p-4">
-            No registered property owners found.
+            No registered property owners found matching search criteria.
           </td>
         </tr>
         }

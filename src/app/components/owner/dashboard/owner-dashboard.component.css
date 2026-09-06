@@ -91,6 +91,13 @@
   border-color: #c28859;
 }
 
+.branch-select:disabled {
+  opacity: 0.95;
+  cursor: default;
+  background: #f1eae2;
+  color: #1a2744;
+}
+
 /* ==========================================
    SCROLLABLE PAGE AREA
    ========================================== */

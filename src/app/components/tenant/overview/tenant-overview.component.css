@@ -2,57 +2,266 @@
   display: block;
 }
 
+/* ============================================================ */
+/* 1. METRICS GRID                                              */
+/* ============================================================ */
 .metrics-grid {
-  margin-bottom: 2rem;
-}
-
-.grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .metric-card {
-  padding: 1.5rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 1.25rem 1.35rem;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(122, 66, 47, 0.08);
+  box-shadow: 0 4px 18px rgba(26, 39, 68, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(26, 39, 68, 0.08);
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
 }
 
 .metric-label {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: #64748b;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+.metric-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.icon-purple { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+.icon-green { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.icon-red { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+.icon-amber { background: rgba(245, 158, 11, 0.12); color: #d97706; }
 
 .metric-value {
-  font-size: 1.8rem;
+  font-size: 1.55rem;
   font-weight: 800;
-  margin-top: 6px;
   line-height: 1.2;
+  margin: 2px 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.color-purple { color: #4f46e5; }
-.color-green { color: #047857; }
+.color-purple { color: #4338ca; }
+.color-green { color: #059669; }
 .color-red { color: #dc2626; }
+.color-amber { color: #d97706; }
 
-.font-bold {
-  font-weight: 700;
+.metric-hint {
+  font-size: 0.76rem;
+  color: #64748b;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* ============================================================ */
+/* 2. RESIDENT QUICK SERVICES                                   */
+/* ============================================================ */
+.quick-services-card {
+  padding: 1.4rem 1.5rem;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(122, 66, 47, 0.08);
+  box-shadow: 0 4px 18px rgba(26, 39, 68, 0.04);
+}
+
+.services-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1a2744;
+  margin: 0;
+}
+
+.quick-services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.quick-service-btn {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  min-width: 0;
+}
+
+.quick-service-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.btn-view-pg:hover { border-color: #3b82f6; background: #eff6ff; }
+.btn-browse-pg:hover { border-color: #10b981; background: #f0fdf4; }
+.btn-invoices:hover { border-color: #ef4444; background: #fef2f2; }
+.btn-complaint:hover { border-color: #f59e0b; background: #fffbeb; }
+
+.service-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.btn-view-pg .service-icon { background: #dbeafe; color: #2563eb; }
+.btn-browse-pg .service-icon { background: #d1fae5; color: #059669; }
+.btn-invoices .service-icon { background: #fee2e2; color: #dc2626; }
+.btn-complaint .service-icon { background: #fef3c7; color: #d97706; }
+
+.service-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.service-title {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.service-sub {
+  display: block;
+  font-size: 0.72rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* ============================================================ */
+/* 3. RESPONSIVE BREAKPOINTS                                    */
+/* ============================================================ */
 @media (max-width: 991px) {
-  .grid-3.metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.85rem !important;
+  }
+
+  .quick-services-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.85rem !important;
   }
 }
 
-@media (max-width: 640px) {
-  .grid-3.metrics-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+@media (max-width: 600px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .metric-card {
+    padding: 0.8rem 0.7rem !important;
+    border-radius: 12px !important;
+  }
+
+  .metric-header {
+    margin-bottom: 0.2rem !important;
+  }
+
+  .metric-label {
+    font-size: 0.62rem !important;
+  }
+
+  .metric-icon-wrap {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 0.75rem !important;
+    border-radius: 6px !important;
+  }
+
+  .metric-value {
+    font-size: 1.35rem !important;
+    margin: 1px 0 2px 0 !important;
+  }
+
+  .metric-hint {
+    font-size: 0.68rem !important;
+  }
+
+  .quick-services-card {
+    padding: 1rem 0.85rem !important;
+    border-radius: 14px !important;
+  }
+
+  .services-title {
+    font-size: 1rem !important;
+  }
+
+  .quick-services-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .quick-service-btn {
+    padding: 0.75rem 0.65rem !important;
+    gap: 0.5rem !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .service-icon {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.95rem !important;
+    border-radius: 8px !important;
+  }
+
+  .service-title {
+    font-size: 0.78rem !important;
+  }
+
+  .service-sub {
+    font-size: 0.65rem !important;
   }
 }

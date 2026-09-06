@@ -1,67 +1,116 @@
-<!-- Metrics Grid -->
-<div class="grid-3 metrics-grid mb-4">
-  <div class="glass-card metric-card">
-    <div class="metric-label">MY REGISTERED PG</div>
-    <div class="metric-value color-purple">{{ currentProperty?.property_name || 'Stay raj' }}</div>
-    <p class="text-muted" style="margin-top: 4px; font-size: 0.85rem;">
-      <i class="fa-solid fa-location-dot me-1 text-danger"></i> {{ currentProperty?.branch_city || 'Bengaluru' }} ({{ currentProperty?.branch_name || 'BTM Branch' }})
+<!-- Metrics Grid (2x2 on mobile, 4-card on desktop) -->
+<div class="metrics-grid mb-4">
+  <!-- Metric 1: My Registered PG -->
+  <div class="glass-card metric-card" (click)="onNavigate('property')" style="cursor: pointer;">
+    <div class="metric-header">
+      <span class="metric-label">MY REGISTERED PG</span>
+      <div class="metric-icon-wrap icon-purple">
+        <i class="fa-solid fa-hotel"></i>
+      </div>
+    </div>
+    <div class="metric-value color-purple" [class.text-muted]="!currentProperty">
+      {{ currentProperty?.property_name || 'No Active PG' }}
+    </div>
+    <p class="metric-hint">
+      @if (currentProperty) {
+        <i class="fa-solid fa-location-dot me-1 text-danger"></i> {{ currentProperty.branch_city || 'City' }} ({{ currentProperty.branch_name }})
+      } @else {
+        <span>Explore PGs & book a stay</span>
+      }
     </p>
   </div>
 
-  <div class="glass-card metric-card">
-    <div class="metric-label">ROOM & BED ALLOCATION</div>
-    <div class="metric-value color-green">Room {{ currentRoom?.room_number || '101' }}</div>
-    <p class="text-muted" style="margin-top: 4px; font-size: 0.85rem;">
-      <i class="fa-solid fa-bed me-1 text-primary"></i> Bed {{ currentRoom?.bed_number || '101-B1' }} &bull; {{ currentRoom?.room_type || 'Double Sharing' }}
+  <!-- Metric 2: Room & Bed Allocation -->
+  <div class="glass-card metric-card" (click)="onNavigate('property')" style="cursor: pointer;">
+    <div class="metric-header">
+      <span class="metric-label">ROOM & BED</span>
+      <div class="metric-icon-wrap icon-green">
+        <i class="fa-solid fa-bed"></i>
+      </div>
+    </div>
+    <div class="metric-value color-green" [class.text-muted]="!currentRoom">
+      {{ currentRoom ? ('Room ' + currentRoom.room_number) : 'Not Assigned' }}
+    </div>
+    <p class="metric-hint">
+      @if (currentRoom) {
+        <span>Bed {{ currentRoom.bed_number }} &bull; {{ currentRoom.room_type }}</span>
+      } @else {
+        <span>No room allocated</span>
+      }
     </p>
   </div>
 
-  <div class="glass-card metric-card">
-    <div class="metric-label">PENDING DUES / INVOICES</div>
+  <!-- Metric 3: Pending Dues / Invoices -->
+  <div class="glass-card metric-card" (click)="onNavigate('invoices')" style="cursor: pointer;">
+    <div class="metric-header">
+      <span class="metric-label">PENDING DUES</span>
+      <div class="metric-icon-wrap icon-red">
+        <i class="fa-solid fa-receipt"></i>
+      </div>
+    </div>
     <div class="metric-value color-red">
       ₹{{ invoices[0]?.balance_amount || '0' }}
     </div>
-    <p class="text-muted" style="margin-top: 4px; font-size: 0.85rem;">
-      {{ invoices.length }} Total Invoices Recorded
+    <p class="metric-hint">
+      {{ invoices.length }} Invoice(s) Recorded
+    </p>
+  </div>
+
+  <!-- Metric 4: Support & Requests -->
+  <div class="glass-card metric-card" (click)="onNavigate('complaints')" style="cursor: pointer;">
+    <div class="metric-header">
+      <span class="metric-label">HELP & SUPPORT</span>
+      <div class="metric-icon-wrap icon-amber">
+        <i class="fa-solid fa-headset"></i>
+      </div>
+    </div>
+    <div class="metric-value color-amber">
+      {{ activeComplaintsCount > 0 ? (activeComplaintsCount + ' Open') : 'All Good' }}
+    </div>
+    <p class="metric-hint">
+      {{ complaints.length }} Ticket(s) Raised
     </p>
   </div>
 </div>
 
 <!-- Quick Action / Overview Details Card -->
-<div class="glass-card mb-4" style="padding: 1.5rem;">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="m-0" style="font-size: 1.25rem; font-weight: 700; color: #1a2744;">
+<div class="glass-card quick-services-card mb-4">
+  <div class="services-header mb-3">
+    <h3 class="services-title">
       <i class="fa-solid fa-bolt me-2 text-warning"></i> Resident Quick Services
     </h3>
   </div>
-  <div class="row g-3">
-    <div class="col-md-3">
-      <button class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center gap-2" (click)="onNavigate('property')">
-        <i class="fa-solid fa-building-user fa-2x"></i>
-        <span class="font-bold">View PG Details</span>
-        <small class="text-muted">Amenities, specs & rules</small>
-      </button>
-    </div>
-    <div class="col-md-3">
-      <button class="btn btn-outline-success w-100 py-3 d-flex flex-column align-items-center gap-2" (click)="onNavigate('explore')">
-        <i class="fa-solid fa-magnifying-glass-location fa-2x"></i>
-        <span class="font-bold">Browse More PGs</span>
-        <small class="text-muted">Explore branches & rooms</small>
-      </button>
-    </div>
-    <div class="col-md-3">
-      <button class="btn btn-outline-danger w-100 py-3 d-flex flex-column align-items-center gap-2" (click)="onNavigate('invoices')">
-        <i class="fa-solid fa-receipt fa-2x"></i>
-        <span class="font-bold">View Rent Invoices</span>
-        <small class="text-muted">Pay monthly dues & rent</small>
-      </button>
-    </div>
-    <div class="col-md-3">
-      <button class="btn btn-outline-secondary w-100 py-3 d-flex flex-column align-items-center gap-2" (click)="onNavigate('complaints')">
-        <i class="fa-solid fa-screwdriver-wrench fa-2x"></i>
-        <span class="font-bold">Raise Complaint</span>
-        <small class="text-muted">Report maintenance issue</small>
-      </button>
-    </div>
+  <div class="quick-services-grid">
+    <button class="quick-service-btn btn-view-pg" (click)="onNavigate('property')">
+      <div class="service-icon"><i class="fa-solid fa-building-user"></i></div>
+      <div class="service-text">
+        <span class="service-title">View PG Details</span>
+        <small class="service-sub">Amenities, specs & rules</small>
+      </div>
+    </button>
+
+    <button class="quick-service-btn btn-browse-pg" (click)="onNavigate('explore')">
+      <div class="service-icon"><i class="fa-solid fa-magnifying-glass-location"></i></div>
+      <div class="service-text">
+        <span class="service-title">Browse More PGs</span>
+        <small class="service-sub">Explore branches & rooms</small>
+      </div>
+    </button>
+
+    <button class="quick-service-btn btn-invoices" (click)="onNavigate('invoices')">
+      <div class="service-icon"><i class="fa-solid fa-receipt"></i></div>
+      <div class="service-text">
+        <span class="service-title">View Invoices</span>
+        <small class="service-sub">Pay monthly dues & rent</small>
+      </div>
+    </button>
+
+    <button class="quick-service-btn btn-complaint" (click)="onNavigate('complaints')">
+      <div class="service-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+      <div class="service-text">
+        <span class="service-title">Raise Complaint</span>
+        <small class="service-sub">Report maintenance issue</small>
+      </div>
+    </button>
   </div>
 </div>

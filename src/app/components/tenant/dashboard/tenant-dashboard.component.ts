@@ -112,75 +112,82 @@ export class TenantDashboardComponent implements OnInit {
   }
 
   get currentProperty(): any {
-    if (this.dashboard?.registeredProperty) {
+    if (this.dashboard?.registeredProperty && (this.dashboard?.activeTenant?.status === 'ACTIVE' || (this.dashboard?.booking && this.dashboard?.booking?.status !== 'CHECKED_OUT' && this.dashboard?.booking?.status !== 'CANCELLED'))) {
       return this.dashboard.registeredProperty;
     }
     if (this.bookings && this.bookings.length > 0) {
-      const b = this.bookings.find((x: any) => x.status === 'PAID' || x.status === 'APPROVED' || x.status === 'CONFIRMED') || this.bookings[0];
-      return {
-        property_id: b.property_id || '',
-        property_name: b.property_name || 'Stay raj',
-        property_description: b.property_description || 'Modern and secure residential PG accommodation equipped with premium amenities for students and working professionals.',
-        branch_id: b.branch_id || '',
-        branch_name: b.branch_name || 'BTM Branch',
-        branch_address: b.branch_address || b.address || 'NEAR MG School for Excellence',
-        branch_city: b.branch_city || b.city || 'Bengaluru',
-        branch_state: b.branch_state || b.state || 'Karnataka',
-        branch_contact: b.branch_contact || b.contact_number || '06205041011',
-        owner_name: b.owner_name || 'Ritik Raj',
-        owner_email: b.owner_email || 'ritikraj@gmail.com',
-        owner_contact: b.owner_contact || '07805041011',
-        amenities: [
-          'High-Speed Wi-Fi',
-          '24/7 Power Backup',
-          'RO Purified Drinking Water',
-          'Daily Housekeeping',
-          'Hot Water Geyser',
-          'CCTV Surveillance & Security',
-          'Washing Machine & Laundry Area',
-          'Spacious Wardrobes & Study Desk'
-        ],
-        rules: [
-          'Visitors allowed only in common areas during designated visiting hours (9 AM - 8 PM).',
-          'Quiet hours observed between 10:30 PM and 6:30 AM.',
-          'Smoking and alcohol consumption inside rooms is strictly prohibited.',
-          'Maintain cleanliness and hygiene in rooms, washrooms, and dining area.'
-        ]
-      };
+      const b = this.bookings.find((x: any) => (x.status === 'PAID' || x.status === 'APPROVED' || x.status === 'CONFIRMED' || x.status === 'CHECKED_IN') && x.status !== 'CHECKED_OUT' && x.status !== 'CANCELLED' && x.status !== 'REJECTED');
+      if (b) {
+        return {
+          property_id: b.property_id || '',
+          property_name: b.property_name || 'PG Stay',
+          property_description: b.property_description || 'Modern and secure residential PG accommodation equipped with premium amenities for students and working professionals.',
+          branch_id: b.branch_id || '',
+          branch_name: b.branch_name || 'Branch',
+          branch_address: b.branch_address || b.address || '',
+          branch_city: b.branch_city || b.city || 'Bengaluru',
+          branch_state: b.branch_state || b.state || 'Karnataka',
+          branch_contact: b.branch_contact || b.contact_number || '',
+          owner_name: b.owner_name || '',
+          owner_email: b.owner_email || '',
+          owner_contact: b.owner_contact || '',
+          amenities: [
+            'High-Speed Wi-Fi',
+            '24/7 Power Backup',
+            'RO Purified Drinking Water',
+            'Daily Housekeeping',
+            'Hot Water Geyser',
+            'CCTV Surveillance & Security',
+            'Washing Machine & Laundry Area',
+            'Spacious Wardrobes & Study Desk'
+          ],
+          rules: [
+            'Visitors allowed only in common areas during designated visiting hours (9 AM - 8 PM).',
+            'Quiet hours observed between 10:30 PM and 6:30 AM.',
+            'Smoking and alcohol consumption inside rooms is strictly prohibited.',
+            'Maintain cleanliness and hygiene in rooms, washrooms, and dining area.'
+          ]
+        };
+      }
     }
     return null;
   }
 
   get currentRoom(): any {
-    if (this.dashboard?.room) {
+    if (this.dashboard?.room && (this.dashboard?.activeTenant?.status === 'ACTIVE' || (this.dashboard?.booking && this.dashboard?.booking?.status !== 'CHECKED_OUT' && this.dashboard?.booking?.status !== 'CANCELLED'))) {
       return this.dashboard.room;
     }
     if (this.bookings && this.bookings.length > 0) {
-      const b = this.bookings.find((x: any) => x.status === 'PAID' || x.status === 'APPROVED' || x.status === 'CONFIRMED') || this.bookings[0];
-      return {
-        room_number: b.room_number || '101',
-        room_type: b.room_type || 'Double Sharing',
-        bed_number: b.bed_number || '101-B1',
-        floor_number: b.floor_number || 1,
-        monthly_rent: b.monthly_rent || '8500.00',
-        security_deposit: b.security_deposit || '15000.00'
-      };
+      const b = this.bookings.find((x: any) => (x.status === 'PAID' || x.status === 'APPROVED' || x.status === 'CONFIRMED' || x.status === 'CHECKED_IN') && x.status !== 'CHECKED_OUT' && x.status !== 'CANCELLED' && x.status !== 'REJECTED');
+      if (b) {
+        return {
+          room_number: b.room_number || '',
+          room_type: b.room_type || 'Double Sharing',
+          bed_number: b.bed_number || '',
+          floor_number: b.floor_number || 1,
+          monthly_rent: b.monthly_rent || '0',
+          security_deposit: b.security_deposit || '0'
+        };
+      }
     }
     return null;
   }
 
   get currentBooking(): any {
-    if (this.dashboard?.booking) {
+    if (this.dashboard?.booking && this.dashboard?.booking?.status !== 'CHECKED_OUT' && this.dashboard?.booking?.status !== 'CANCELLED') {
       return this.dashboard.booking;
     }
     if (this.bookings && this.bookings.length > 0) {
-      return this.bookings.find((x: any) => x.status === 'PAID' || x.status === 'APPROVED' || x.status === 'CONFIRMED') || this.bookings[0];
+      return this.bookings.find((x: any) => (x.status === 'PAID' || x.status === 'APPROVED' || x.status === 'CONFIRMED' || x.status === 'CHECKED_IN') && x.status !== 'CHECKED_OUT' && x.status !== 'CANCELLED' && x.status !== 'REJECTED') || null;
     }
     return null;
   }
 
   get currentTenantCode(): string {
-    return this.dashboard?.activeTenant?.tenant_code || (this.bookings?.length > 0 ? 'TNT-9137' : '');
+    if (this.dashboard?.activeTenant && this.dashboard.activeTenant.status === 'ACTIVE') {
+      return this.dashboard.activeTenant.tenant_code;
+    }
+    return '';
   }
 
   openComplaintModal() {

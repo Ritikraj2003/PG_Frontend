@@ -81,6 +81,70 @@
 .btn-delete { background: #fee2e2; color: #dc2626; }
 .btn-delete:hover { background: #fecaca; }
 
+.btn-renew { background: #ecfdf5; color: #059669; }
+.btn-renew:hover { background: #d1fae5; }
+
 .font-bold {
   font-weight: 700;
+}
+
+.text-dark {
+  color: #0f172a;
+}
+
+.badge-total {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+}
+
+.plan-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+  background: #f8fafc;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.days-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.days-green {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.days-amber {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.days-red {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.sub-expiry {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
 }

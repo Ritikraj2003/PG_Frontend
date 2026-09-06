@@ -33,6 +33,27 @@
 
 @media (max-width: 900px) {
   .grid-3 {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+
+  .metric-card {
+    padding: 0.9rem 0.75rem;
+    border-radius: 12px;
+  }
+
+  .metric-label {
+    font-size: 0.65rem;
+  }
+
+  .metric-value {
+    font-size: 1.55rem;
   }
 }

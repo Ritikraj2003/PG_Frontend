@@ -71,11 +71,14 @@
                 </div>
                 <div>
                   <h4 class="role-name">{{ role.name }}</h4>
-                  <div class="d-flex gap-1 mt-1">
+                  <div class="d-flex gap-1 mt-1 flex-wrap">
                     @if (!role.owner_id) {
                       <span class="badge badge-system">Built-in System Role</span>
                     } @else {
                       <span class="badge badge-custom">Custom Role</span>
+                    }
+                    @if (role.branch_name) {
+                      <span class="badge badge-branch"><i class="fa-solid fa-location-dot me-1"></i>{{ role.branch_name }}</span>
                     }
                     @if (role.is_active === false) {
                       <span class="badge badge-inactive">Inactive</span>
@@ -223,7 +226,7 @@
       <div class="modal-content custom-role-modal shadow-lg">
         
         <!-- Modal Top Bar -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 modal-header-bar">
           <h2 class="modal-main-title m-0">
             {{ isEditingRole ? 'Edit Role' : 'Add Role' }}
           </h2>
@@ -234,21 +237,34 @@
 
         <div class="modal-form-body">
           <!-- Role Name Field -->
-          <div class="mb-4">
-            <label class="form-label font-bold field-label">
-              Role Name<span class="text-danger">*</span>
+          <div class="form-group-custom">
+            <label class="field-label">
+              Role Name <span class="text-danger">*</span>
             </label>
             <input 
               type="text" 
-              class="form-control role-input" 
+              class="role-input" 
               [(ngModel)]="roleForm.name" 
-              placeholder="Role Name">
+              placeholder="e.g. Property Manager, Caretaker, Warden">
+          </div>
+
+          <!-- Assigned Branch Field (Optional) -->
+          <div class="form-group-custom">
+            <label class="field-label">
+              Assigned Branch <span class="text-muted-hint">(Optional - defaults to All Branches)</span>
+            </label>
+            <select class="role-input role-select" [(ngModel)]="roleForm.branch_id">
+              <option value="">All Branches (Global Role)</option>
+              @for (b of branches; track b.id) {
+                <option [value]="b.id">{{ b.name }} ({{ b.city || 'Branch' }})</option>
+              }
+            </select>
           </div>
 
           <!-- User Permissions Dual Listbox -->
-          <div class="mb-4">
-            <label class="form-label font-bold field-label">
-              User Permissions<span class="text-danger">*</span>
+          <div class="form-group-custom">
+            <label class="field-label">
+              User Permissions <span class="text-danger">*</span>
             </label>
 
             <div class="dual-listbox-container">
@@ -256,15 +272,16 @@
               <!-- LEFT BOX: Available User Permissions -->
               <div class="listbox-box available-box">
                 <div class="listbox-header available-header">
-                  Available User Permissions
+                  <span>Available Permissions</span>
+                  <span class="count-pill">{{ availableList.length }}</span>
                 </div>
 
                 <div class="listbox-search-wrap">
                   <input 
                     type="text" 
-                    class="form-control listbox-search-input" 
+                    class="listbox-search-input" 
                     [(ngModel)]="searchAvailable" 
-                    placeholder="Search here">
+                    placeholder="Search permissions...">
                 </div>
 
                 <div class="listbox-items-scroll">
@@ -300,7 +317,8 @@
                   (click)="moveSelectedToChosen()"
                   [disabled]="selectedAvailableIds.size === 0"
                   title="Move selected to Chosen">
-                  <i class="fa-solid fa-arrow-right"></i>
+                  <i class="fa-solid fa-arrow-right d-desktop-only"></i>
+                  <i class="fa-solid fa-arrow-down d-mobile-only"></i>
                 </button>
 
                 <button 
@@ -309,14 +327,16 @@
                   (click)="moveSelectedToAvailable()"
                   [disabled]="selectedChosenIds.size === 0"
                   title="Move selected to Available">
-                  <i class="fa-solid fa-arrow-left"></i>
+                  <i class="fa-solid fa-arrow-left d-desktop-only"></i>
+                  <i class="fa-solid fa-arrow-up d-mobile-only"></i>
                 </button>
               </div>
 
               <!-- RIGHT BOX: Chosen User Permissions -->
               <div class="listbox-box chosen-box">
                 <div class="listbox-header chosen-header">
-                  Chosen User Permissions
+                  <span>Chosen Permissions</span>
+                  <span class="count-pill pill-light">{{ chosenList.length }}</span>
                 </div>
 
                 <div class="listbox-items-scroll chosen-scroll">
@@ -348,10 +368,13 @@
           </div>
 
           <!-- Status Switch -->
-          <div class="status-row-section mb-4">
-            <label class="form-label font-bold field-label mb-1">Status</label>
-            <div class="d-flex align-items-center gap-3">
-              <span class="font-bold status-label-text">Active</span>
+          <div class="status-row-section">
+            <div>
+              <div class="status-title">Role Status</div>
+              <div class="status-desc">Allow staff members to use this role</div>
+            </div>
+            <div class="status-toggle-wrap">
+              <span class="status-label-text" [class.text-active]="roleForm.is_active">{{ roleForm.is_active ? 'Active' : 'Inactive' }}</span>
               <label class="switch-toggle">
                 <input type="checkbox" [(ngModel)]="roleForm.is_active">
                 <span class="slider round"></span>
@@ -362,15 +385,15 @@
         </div>
 
         <!-- Modal Footer Actions -->
-        <div class="modal-footer-custom d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-          <button type="button" class="btn btn-cancel-orange" (click)="closeRoleModal()">
+        <div class="modal-footer-custom">
+          <button type="button" class="btn btn-cancel-custom" (click)="closeRoleModal()">
             Cancel
           </button>
-          <button type="button" class="btn btn-save-orange" [disabled]="isLoading" (click)="saveRole()">
+          <button type="button" class="btn btn-save-custom" [disabled]="isLoading" (click)="saveRole()">
             @if (isLoading) {
               <i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...
             } @else {
-              Save
+              <i class="fa-solid fa-check me-1"></i> Save Role
             }
           </button>
         </div>
@@ -382,55 +405,97 @@
   <!-- STAFF MODAL (Create / Edit) -->
   @if (showStaffModal) {
     <div class="modal-overlay">
-      <div class="modal-content glass-card" style="max-width: 550px;">
-        <div class="modal-header">
-          <h3 class="modal-title">
-            <i class="fa-solid fa-user-plus text-primary me-2"></i>
-            {{ isEditingStaff ? 'Edit Staff Member' : 'Add Staff Member' }}
-          </h3>
-          <button type="button" class="btn-close" (click)="closeStaffModal()">
+      <div class="modal-content custom-role-modal shadow-lg" style="max-width: 580px;">
+        
+        <!-- Modal Top Bar -->
+        <div class="modal-header-bar">
+          <div class="modal-header-title-wrap">
+            <div class="modal-header-icon">
+              <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <h2 class="modal-main-title m-0">
+              {{ isEditingStaff ? 'Edit Staff Member' : 'Add Staff Member' }}
+            </h2>
+          </div>
+          <button type="button" class="btn-close-custom" (click)="closeStaffModal()" aria-label="Close">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
 
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label font-bold">Full Name <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" [(ngModel)]="staffForm.full_name" placeholder="Staff member's full name">
-          </div>
-
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label class="form-label font-bold">Email Address <span class="text-danger">*</span></label>
-              <input type="email" class="form-control" [(ngModel)]="staffForm.email" [disabled]="isEditingStaff" placeholder="staff@example.com">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label font-bold">Mobile Number <span class="text-danger">*</span></label>
-              <input type="tel" class="form-control" [(ngModel)]="staffForm.mobile_number" placeholder="10-digit mobile">
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label font-bold">
-              {{ isEditingStaff ? 'Reset Password (leave blank to keep current)' : 'Password' }}
-              @if (!isEditingStaff) { <span class="text-danger">*</span> }
+        <div class="modal-form-body">
+          <!-- Full Name -->
+          <div class="form-group-custom">
+            <label class="field-label">
+              Full Name <span class="text-danger">*</span>
             </label>
-            <input type="password" class="form-control" [(ngModel)]="staffForm.password" placeholder="Account login password">
+            <input 
+              type="text" 
+              class="role-input" 
+              [(ngModel)]="staffForm.full_name" 
+              placeholder="e.g. John Doe">
           </div>
 
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label font-bold">Assign Role <span class="text-danger">*</span></label>
-              <select class="form-select" [(ngModel)]="staffForm.role_id">
+          <!-- Email & Mobile (2 Cols) -->
+          <div class="form-row-2col">
+            <div class="form-group-custom m-0">
+              <label class="field-label">
+                Email Address <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="email" 
+                class="role-input" 
+                [(ngModel)]="staffForm.email" 
+                [disabled]="isEditingStaff" 
+                placeholder="staff@example.com">
+            </div>
+
+            <div class="form-group-custom m-0">
+              <label class="field-label">
+                Mobile Number <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="tel" 
+                class="role-input" 
+                [(ngModel)]="staffForm.mobile_number" 
+                placeholder="10-digit mobile number">
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group-custom">
+            <label class="field-label">
+              {{ isEditingStaff ? 'Reset Password' : 'Password' }}
+              @if (!isEditingStaff) {
+                <span class="text-danger">*</span>
+              } @else {
+                <span class="text-muted-hint">(leave blank to keep current)</span>
+              }
+            </label>
+            <input 
+              type="password" 
+              class="role-input" 
+              [(ngModel)]="staffForm.password" 
+              placeholder="Account login password">
+          </div>
+
+          <!-- Role & Branch (2 Cols) -->
+          <div class="form-row-2col">
+            <div class="form-group-custom m-0">
+              <label class="field-label">
+                Assign Role <span class="text-danger">*</span>
+              </label>
+              <select class="role-input role-select" [(ngModel)]="staffForm.role_id">
                 @for (r of roles; track r.id) {
                   <option [value]="r.id">{{ r.name }}</option>
                 }
               </select>
             </div>
 
-            <div class="col-md-6">
-              <label class="form-label font-bold">Assign Branch</label>
-              <select class="form-select" [(ngModel)]="staffForm.branch_id">
+            <div class="form-group-custom m-0">
+              <label class="field-label">
+                Assign Branch <span class="text-muted-hint">(Optional)</span>
+              </label>
+              <select class="role-input role-select" [(ngModel)]="staffForm.branch_id">
                 <option value="">All Branches</option>
                 @for (b of branches; track b.id) {
                   <option [value]="b.id">{{ b.name || b.branch_name }}</option>
@@ -440,16 +505,20 @@
           </div>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeStaffModal()">Cancel</button>
-          <button type="button" class="btn btn-save-orange px-4" [disabled]="isLoading" (click)="saveStaff()">
+        <!-- Modal Footer Actions -->
+        <div class="modal-footer-custom">
+          <button type="button" class="btn btn-cancel-custom" (click)="closeStaffModal()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-save-custom" [disabled]="isLoading" (click)="saveStaff()">
             @if (isLoading) {
-              <i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...
             } @else {
               <i class="fa-solid fa-check me-1"></i> {{ isEditingStaff ? 'Update Staff' : 'Create Staff' }}
             }
           </button>
         </div>
+
       </div>
     </div>
   }

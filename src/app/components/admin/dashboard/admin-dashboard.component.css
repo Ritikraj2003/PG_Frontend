@@ -1662,8 +1662,8 @@
 
 @media (max-width: 640px) {
   .metrics-grid {
-    grid-template-columns: 1fr !important;
-    gap: 0.75rem !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
   }
 
   .admin-topbar {
@@ -1696,7 +1696,185 @@
     grid-template-columns: 1fr !important;
   }
 
+  .detail-item.full-width {
+    grid-column: span 1 !important;
+  }
+
   .settings-grid {
     grid-template-columns: 1fr !important;
   }
+
+  /* Plan Modal Mobile */
+  .plan-modal-box {
+    padding: 1.25rem 1rem !important;
+    border-radius: 18px 18px 0 0 !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+  }
+
+  .plan-modal-title {
+    font-size: 1.05rem !important;
+  }
+
+  .plan-form-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .plan-form-label {
+    font-size: 0.7rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .plan-form-input {
+    padding: 0.55rem 0.75rem !important;
+    font-size: 0.88rem !important;
+  }
+
+  .plan-modal-actions {
+    display: flex !important;
+    gap: 0.5rem !important;
+  }
+
+  .btn-plan-cancel {
+    flex: 1 !important;
+    height: 42px !important;
+  }
+
+  .btn-plan-submit {
+    flex: 2 !important;
+    height: 42px !important;
+  }
+}
+
+/* ========================================================
+   MODERN SUBSCRIPTION PLAN MODAL STYLES
+   ======================================================== */
+.plan-modal-box {
+  max-width: 520px !important;
+  border-radius: 18px !important;
+  padding: 1.75rem !important;
+  background: #ffffff !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.plan-modal-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+
+.plan-modal-title {
+  font-size: 1.18rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+}
+
+.plan-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.9rem;
+}
+
+.plan-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.plan-form-group.full-width {
+  grid-column: span 2;
+}
+
+.plan-form-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+}
+
+.plan-form-input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 0.92rem;
+  color: #0f172a;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.plan-form-input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15);
+}
+
+.plan-form-select {
+  cursor: pointer;
+}
+
+.plan-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-plan-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 42px;
+}
+
+.btn-plan-cancel:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.btn-plan-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s;
+  height: 42px;
+}
+
+.btn-plan-submit:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
 }

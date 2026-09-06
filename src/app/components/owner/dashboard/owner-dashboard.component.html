@@ -47,7 +47,7 @@
 
         <div class="topbar-branch">
           <i class="fa-solid fa-code-branch"></i>
-          <select class="branch-select" [(ngModel)]="selectedBranchId" (change)="onBranchChange()">
+          <select class="branch-select" [(ngModel)]="selectedBranchId" (change)="onBranchChange()" [disabled]="branches.length <= 1">
             @for (b of branches; track b.id) {
               <option [value]="b.id">
                 {{ b.branch_name || b.name }}

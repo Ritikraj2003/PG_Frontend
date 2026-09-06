@@ -7,7 +7,7 @@
           <th>Tenant Name</th>
           <th>Contact</th>
           <th>Room</th>
-          <th>Status</th>
+          <th>Booking Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -20,25 +20,36 @@
             <td>Room {{ bk.room_number }}</td>
             <td>
               <span class="badge" 
-                [class.badge-success]="bk.status === 'APPROVED' || bk.status === 'PAID' || bk.status === 'CHECKED_IN'"
-                [class.badge-warning]="bk.status === 'PENDING'"
-                [class.badge-secondary]="bk.status === 'CHECKED_OUT' || bk.status === 'VACATED'">
-                {{ bk.status }}
+                [class.badge-success]="(bk.booking_status || bk.status) === 'APPROVED' || (bk.booking_status || bk.status) === 'PAID' || (bk.booking_status || bk.status) === 'CHECKED_IN'"
+                [class.badge-warning]="(bk.booking_status || bk.status) === 'PENDING'"
+                [class.badge-danger]="(bk.booking_status || bk.status) === 'REJECTED' || (bk.booking_status || bk.status) === 'CANCELLED'"
+                [class.badge-secondary]="(bk.booking_status || bk.status) === 'CHECKED_OUT' || (bk.booking_status || bk.status) === 'VACATED'">
+                {{ bk.booking_status || bk.status }}
               </span>
             </td>
             <td>
               <div class="action-btn-group">
-                <button class="btn btn-secondary action-btn me-2" (click)="openViewModal(bk)">
+                <button class="btn btn-secondary action-btn me-2" (click)="openViewModal(bk)" title="View Details">
                   <i class="fa-solid fa-eye me-1"></i> View
                 </button>
 
-                @if (bk.status === 'PENDING') {
-                  <button class="btn btn-primary action-btn me-2" (click)="updateStatus.emit({ id: bk.id, status: 'APPROVED' })">
-                    Approve
+                @if ((bk.booking_status || bk.status) === 'PENDING') {
+                  <button class="btn btn-success action-btn me-2" (click)="updateStatus.emit({ id: bk.id, status: 'APPROVED' })" title="Accept Booking">
+                    <i class="fa-solid fa-check me-1"></i> Accept
+                  </button>
+                  <button class="btn btn-danger action-btn me-2" (click)="updateStatus.emit({ id: bk.id, status: 'REJECTED' })" title="Reject Booking">
+                    <i class="fa-solid fa-xmark me-1"></i> Reject
                   </button>
                 }
 
-                @if (bk.status === 'APPROVED' || bk.status === 'PAID' || bk.status === 'CHECKED_IN') {
+                @if ((bk.booking_status || bk.status) === 'APPROVED') {
+                  <button class="btn btn-outline-danger action-btn me-2" (click)="updateStatus.emit({ id: bk.id, status: 'REJECTED' })" title="Reject Booking">
+                    <i class="fa-solid fa-xmark me-1"></i> Reject
+                  </button>
+                  <button class="btn btn-outline-danger action-btn" (click)="updateStatus.emit({ id: bk.id, status: 'CHECKED_OUT' })" title="Vacate tenant & free room">
+                    <i class="fa-solid fa-door-open me-1"></i> Vacate / Check Out
+                  </button>
+                } @else if ((bk.booking_status || bk.status) === 'PAID' || (bk.booking_status || bk.status) === 'CHECKED_IN') {
                   <button class="btn btn-outline-danger action-btn" (click)="updateStatus.emit({ id: bk.id, status: 'CHECKED_OUT' })" title="Vacate tenant & free room">
                     <i class="fa-solid fa-door-open me-1"></i> Vacate / Check Out
                   </button>
@@ -244,9 +255,23 @@
       <!-- Modal Footer -->
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeViewModal()">Close</button>
-        @if (selectedBooking.status === 'PENDING') {
-          <button class="btn btn-primary" (click)="updateStatus.emit({ id: selectedBooking.id, status: 'APPROVED' }); closeViewModal();">
-            <i class="fa-solid fa-check me-1"></i> Approve Booking
+        @if ((selectedBooking.booking_status || selectedBooking.status) === 'PENDING') {
+          <button class="btn btn-danger ms-2" (click)="updateStatus.emit({ id: selectedBooking.id, status: 'REJECTED' }); closeViewModal();">
+            <i class="fa-solid fa-xmark me-1"></i> Reject Booking
+          </button>
+          <button class="btn btn-success ms-2" (click)="updateStatus.emit({ id: selectedBooking.id, status: 'APPROVED' }); closeViewModal();">
+            <i class="fa-solid fa-check me-1"></i> Accept Booking
+          </button>
+        } @else if ((selectedBooking.booking_status || selectedBooking.status) === 'APPROVED') {
+          <button class="btn btn-outline-danger ms-2" (click)="updateStatus.emit({ id: selectedBooking.id, status: 'REJECTED' }); closeViewModal();">
+            <i class="fa-solid fa-ban me-1"></i> Reject Booking
+          </button>
+          <button class="btn btn-danger ms-2" (click)="updateStatus.emit({ id: selectedBooking.id, status: 'CHECKED_OUT' }); closeViewModal();">
+            <i class="fa-solid fa-door-open me-1"></i> Vacate / Check Out
+          </button>
+        } @else if ((selectedBooking.booking_status || selectedBooking.status) === 'PAID' || (selectedBooking.booking_status || selectedBooking.status) === 'CHECKED_IN') {
+          <button class="btn btn-danger ms-2" (click)="updateStatus.emit({ id: selectedBooking.id, status: 'CHECKED_OUT' }); closeViewModal();">
+            <i class="fa-solid fa-door-open me-1"></i> Vacate / Check Out
           </button>
         }
       </div>

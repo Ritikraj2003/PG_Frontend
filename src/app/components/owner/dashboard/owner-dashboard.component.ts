@@ -94,7 +94,9 @@ export class OwnerDashboardComponent implements OnInit {
 
   async fetchDashboard() {
     try {
-      const savedBranchId = sessionStorage.getItem('selected_branch_id');
+      const userBranchId = this.authService.currentUser?.branch_id;
+      const isOwner = this.authService.currentUser?.is_owner;
+      const savedBranchId = (!isOwner && userBranchId) ? userBranchId : (sessionStorage.getItem('selected_branch_id') || userBranchId);
       const [dash, plans] = await Promise.all([
         this.apiService.owner.getDashboard(savedBranchId || undefined),
         this.apiService.public.getPlans().catch(() => []),
@@ -116,8 +118,15 @@ export class OwnerDashboardComponent implements OnInit {
         }
       }
       
-      if (this.dashboard.branches && this.dashboard.branches.length > 0) {
-        this.branches = this.dashboard.branches;
+      if (this.dashboard?.branches && this.dashboard.branches.length > 0) {
+        let bList = this.dashboard.branches;
+        if (userBranchId && !isOwner) {
+          const userOnly = bList.filter((b: any) => b.id === userBranchId);
+          if (userOnly.length > 0) {
+            bList = userOnly;
+          }
+        }
+        this.branches = bList;
         const exists = this.branches.find((b: any) => b.id === savedBranchId);
         
         if (exists && savedBranchId) {

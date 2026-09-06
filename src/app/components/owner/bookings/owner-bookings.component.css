@@ -67,6 +67,35 @@ td {
   color: #64748b;
 }
 
+.badge-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.btn-success {
+  background: #16a34a;
+  color: #ffffff;
+  border: 1px solid #16a34a;
+  transition: all 0.2s;
+}
+
+.btn-success:hover {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #ffffff;
+  border: 1px solid #dc2626;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
 .btn-outline-danger {
   border: 1px solid #fca5a5;
   color: #dc2626;

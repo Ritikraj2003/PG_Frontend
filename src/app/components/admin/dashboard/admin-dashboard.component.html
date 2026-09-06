@@ -83,6 +83,7 @@
           (editOwner)="openEditOwnerModal($event)"
           (addBranch)="addBranchForOwner($event)"
           (deleteOwner)="deleteOwner($event)"
+          (renewOwner)="openRenewModal($event)"
         ></app-admin-owners>
       }
 
@@ -98,6 +99,7 @@
           [branches]="branches"
           (editBranch)="openEditBranchModal($event)"
           (deleteBranch)="deleteBranch($event)"
+          (renewBranch)="openRenewBranchModal($event)"
         ></app-admin-branches>
       }
 
@@ -1289,51 +1291,61 @@
   <!-- 6. CREATE / EDIT PLAN MODAL -->
   <!-- ========================================== -->
   @if (showPlanModal) {
-  <div class="modal-overlay">
-    <div class="modal-content glass-card" style="max-width: 550px;">
+  <div class="modal-overlay" (click)="showPlanModal = false">
+    <div class="modal-content glass-card plan-modal-box" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>
-          <i class="fa-solid" [class.fa-plus]="!isEditingPlan" [class.fa-pen-to-square]="isEditingPlan"></i>
-          {{ isEditingPlan ? 'Edit Subscription Plan' : 'Create New Subscription Plan' }}
-        </h3>
-        <button type="button" class="close-icon-btn" (click)="showPlanModal = false">&times;</button>
+        <div class="d-flex align-items-center gap-2">
+          <div class="plan-modal-icon">
+            <i class="fa-solid" [class.fa-plus]="!isEditingPlan" [class.fa-pen-to-square]="isEditingPlan"></i>
+          </div>
+          <h3 class="plan-modal-title m-0">
+            {{ isEditingPlan ? 'Edit Subscription Plan' : 'Create New Subscription Plan' }}
+          </h3>
+        </div>
+        <button type="button" class="close-icon-btn" (click)="showPlanModal = false" aria-label="Close modal">&times;</button>
       </div>
-      <form (ngSubmit)="savePlan()" class="modal-form">
-        <div class="detail-grid">
-          <div class="detail-item full-width">
-            <label>Plan Name *</label>
-            <input type="text" class="input-field" placeholder="e.g. Pro Growth Plan (3 Months)" [(ngModel)]="planFormData.name" name="plan_name" required />
+
+      <form (ngSubmit)="savePlan()" class="plan-modal-form">
+        <div class="plan-form-grid">
+          <div class="plan-form-group full-width">
+            <label class="plan-form-label">Plan Name <span class="text-danger">*</span></label>
+            <input type="text" class="plan-form-input" placeholder="e.g. Pro Growth Plan (3 Months)" [(ngModel)]="planFormData.name" name="plan_name" required />
           </div>
-          <div class="detail-item">
-            <label>Price in INR (₹) *</label>
-            <input type="number" class="input-field" placeholder="e.g. 2999" [(ngModel)]="planFormData.price" name="plan_price" min="0" required />
+
+          <div class="plan-form-group">
+            <label class="plan-form-label">Price in INR (₹) <span class="text-danger">*</span></label>
+            <input type="number" class="plan-form-input" placeholder="e.g. 1999" [(ngModel)]="planFormData.price" name="plan_price" min="0" required />
           </div>
-          <div class="detail-item">
-            <label>Duration (Months) *</label>
-            <input type="number" class="input-field" placeholder="e.g. 3" [(ngModel)]="planFormData.duration_months" name="plan_duration" min="1" max="60" required />
+
+          <div class="plan-form-group">
+            <label class="plan-form-label">Duration (Months) <span class="text-danger">*</span></label>
+            <input type="number" class="plan-form-input" placeholder="e.g. 2" [(ngModel)]="planFormData.duration_months" name="plan_duration" min="1" max="60" required />
           </div>
-          <div class="detail-item">
-            <label>Max Branches Allowed *</label>
-            <input type="number" class="input-field" placeholder="e.g. 2" [(ngModel)]="planFormData.max_branches" name="plan_max_branches" min="1" required />
+
+          <div class="plan-form-group">
+            <label class="plan-form-label">Max Branches <span class="text-danger">*</span></label>
+            <input type="number" class="plan-form-input" placeholder="e.g. 1" [(ngModel)]="planFormData.max_branches" name="plan_max_branches" min="1" required />
           </div>
-          <div class="detail-item">
-            <label>Status</label>
-            <select class="input-field" [(ngModel)]="planFormData.is_active" name="plan_active">
+
+          <div class="plan-form-group">
+            <label class="plan-form-label">Status</label>
+            <select class="plan-form-input plan-form-select" [(ngModel)]="planFormData.is_active" name="plan_active">
               <option [ngValue]="true">Active</option>
               <option [ngValue]="false">Inactive</option>
             </select>
           </div>
-          <div class="detail-item full-width">
-            <label>Features (comma-separated)</label>
-            <textarea class="input-field" rows="2" placeholder="e.g. PMS Access, Rent Invoicing, Tenant Mobile App" [(ngModel)]="planFormData.featuresText" name="plan_features"></textarea>
+
+          <div class="plan-form-group full-width">
+            <label class="plan-form-label">Features (comma-separated)</label>
+            <textarea class="plan-form-input" rows="3" placeholder="e.g. Full PMS Access, Tenant Portal, Auto Invoicing" [(ngModel)]="planFormData.featuresText" name="plan_features"></textarea>
           </div>
         </div>
 
-        <div class="form-actions mt-4 d-flex gap-2">
-          <button type="submit" class="btn btn-primary flex-1">
+        <div class="plan-modal-actions mt-4">
+          <button type="button" class="btn-plan-cancel" (click)="showPlanModal = false">Cancel</button>
+          <button type="submit" class="btn-plan-submit">
             <i class="fa-solid fa-check me-1"></i> {{ isEditingPlan ? 'Update Plan' : 'Create Plan' }}
           </button>
-          <button type="button" class="btn btn-secondary" (click)="showPlanModal = false">Cancel</button>
         </div>
       </form>
     </div>

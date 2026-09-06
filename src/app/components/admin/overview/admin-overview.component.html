@@ -1,20 +1,55 @@
 <!-- Metrics Grid -->
 <div class="grid-4 metrics-grid mb-4">
   <div class="glass-card metric-card">
-    <div class="metric-label">TOTAL OWNERS</div>
+    <div class="metric-header">
+      <span class="metric-label">Total Owners</span>
+      <div class="metric-icon-wrap icon-purple">
+        <i class="fa-solid fa-building-user"></i>
+      </div>
+    </div>
     <div class="metric-value color-purple">{{ reports?.totalOwners || owners.length || 0 }}</div>
+    <div class="metric-footer">
+      <span class="metric-subtext"><i class="fa-solid fa-arrow-trend-up me-1 text-success"></i>Registered</span>
+    </div>
   </div>
+
   <div class="glass-card metric-card">
-    <div class="metric-label">PROPERTIES</div>
+    <div class="metric-header">
+      <span class="metric-label">Properties</span>
+      <div class="metric-icon-wrap icon-pink">
+        <i class="fa-solid fa-city"></i>
+      </div>
+    </div>
     <div class="metric-value color-pink">{{ reports?.totalProperties || properties.length || 0 }}</div>
+    <div class="metric-footer">
+      <span class="metric-subtext"><i class="fa-solid fa-hotel me-1 text-pink"></i>Buildings</span>
+    </div>
   </div>
+
   <div class="glass-card metric-card">
-    <div class="metric-label">BRANCHES</div>
+    <div class="metric-header">
+      <span class="metric-label">Branches</span>
+      <div class="metric-icon-wrap icon-blue">
+        <i class="fa-solid fa-code-branch"></i>
+      </div>
+    </div>
     <div class="metric-value color-blue">{{ reports?.totalBranches || branches.length || 0 }}</div>
+    <div class="metric-footer">
+      <span class="metric-subtext"><i class="fa-solid fa-location-dot me-1 text-primary"></i>Outlets</span>
+    </div>
   </div>
+
   <div class="glass-card metric-card">
-    <div class="metric-label">ACTIVE TENANTS</div>
+    <div class="metric-header">
+      <span class="metric-label">Active Tenants</span>
+      <div class="metric-icon-wrap icon-green">
+        <i class="fa-solid fa-users"></i>
+      </div>
+    </div>
     <div class="metric-value color-green">{{ reports?.totalTenants || 0 }}</div>
+    <div class="metric-footer">
+      <span class="metric-subtext"><i class="fa-solid fa-bed me-1 text-success"></i>Occupied</span>
+    </div>
   </div>
 </div>
 

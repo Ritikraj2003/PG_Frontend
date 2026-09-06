@@ -1,54 +1,107 @@
-<div class="glass-card table-card">
-  <div class="table-header-row mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <div>
-      <h3 class="card-title mb-1"><i class="fa-solid fa-tags me-2 text-primary"></i> SaaS Subscription Packages</h3>
-      <p class="text-muted m-0" style="font-size: 0.88rem;">Define and manage branch-level subscription plans, pricing, duration, and branch limits.</p>
+<div class="glass-card table-card" style="background: #ffffff; border-radius: 18px; border: 1px solid #e2e8f0; padding: 1.5rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);">
+  <!-- Plans Page Header -->
+  <div class="plans-header-row mb-4" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.25rem;">
+    <div class="plans-title-area">
+      <div class="title-with-icon" style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="header-icon-box" style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);">
+          <i class="fa-solid fa-tags"></i>
+        </div>
+        <h3 class="card-title" style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.02em;">SaaS Subscription Packages</h3>
+      </div>
+      <p class="subtitle-text text-muted" style="font-size: 0.88rem; margin: 0.4rem 0 0 0; color: #64748b; line-height: 1.4;">Define and manage branch-level subscription plans, pricing, duration, and branch limits.</p>
     </div>
-    <button class="btn btn-primary btn-sm shadow-sm" (click)="createPlan.emit()">
-      <i class="fa-solid fa-plus me-1"></i> Create New Plan
+    <button
+      type="button"
+      class="btn btn-primary btn-create-plan"
+      style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; padding: 0.7rem 1.35rem; border-radius: 12px; border: none; font-size: 0.92rem; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); text-decoration: none;"
+      (click)="createPlan.emit()"
+    >
+      <i class="fa-solid fa-plus"></i>
+      <span>Create New Plan</span>
     </button>
   </div>
 
   <!-- Plans Grid -->
-  <div class="plans-admin-grid mb-4">
+  <div class="plans-admin-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.25rem;">
     @for (p of plans; track p.id) {
-      <div class="plan-admin-card" [class.inactive-card]="!p.is_active">
-        <div class="plan-card-top d-flex justify-content-between align-items-start mb-2">
-          <div>
-            <span class="plan-type-pill">{{ p.duration_months }} Months</span>
-            <h4 class="plan-card-name mt-2 mb-0">{{ p.name }}</h4>
+      <div
+        class="plan-admin-card"
+        [class.inactive-card]="!p.is_active"
+        style="display: flex; flex-direction: column; border: 1.5px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 18px; padding: 1.4rem; background: #ffffff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); position: relative;"
+      >
+        <div class="plan-card-top" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;">
+          <div class="plan-header-info">
+            <span class="plan-type-pill" style="display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; background: #eff6ff; color: #1d4ed8; padding: 4px 10px; border-radius: 9999px; letter-spacing: 0.5px; border: 1px solid #bfdbfe;">
+              {{ p.duration_months }} Month{{ p.duration_months > 1 ? 's' : '' }}
+            </span>
+            <h4 class="plan-card-name" style="font-size: 1.18rem; font-weight: 800; color: #0f172a; margin: 0.45rem 0 0; line-height: 1.3;">
+              {{ p.name }}
+            </h4>
           </div>
-          <span class="badge" [class.bg-success]="p.is_active" [class.bg-danger]="!p.is_active">
+          <span
+            class="plan-status-badge"
+            [class.status-active]="p.is_active"
+            [class.status-inactive]="!p.is_active"
+            [style.background]="p.is_active ? '#ecfdf5' : '#fef2f2'"
+            [style.color]="p.is_active ? '#059669' : '#dc2626'"
+            [style.border]="p.is_active ? '1px solid #a7f3d0' : '1px solid #fecaca'"
+            style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0;"
+          >
+            <span class="status-dot" [style.background]="p.is_active ? '#059669' : '#dc2626'" style="width: 7px; height: 7px; border-radius: 50%; display: inline-block;"></span>
             {{ p.is_active ? 'ACTIVE' : 'INACTIVE' }}
           </span>
         </div>
 
-        <div class="plan-price-wrap my-3">
-          <span class="currency">₹</span>
-          <span class="amount font-bold" style="font-size: 1.8rem; color: #7a422f;">{{ p.price | number }}</span>
-          <span class="period text-muted"> / {{ p.duration_months }} mos</span>
+        <div class="plan-price-wrap" style="display: flex; align-items: baseline; margin: 1rem 0 0.5rem;">
+          <span class="currency" style="font-size: 1.3rem; font-weight: 800; color: #2563eb; margin-right: 3px;">₹</span>
+          <span class="amount" style="font-size: 2.1rem; font-weight: 800; color: #0f172a; line-height: 1; letter-spacing: -0.02em;">{{ p.price | number }}</span>
+          <span class="period" style="font-size: 0.85rem; color: #64748b; margin-left: 6px; font-weight: 500;">/ {{ p.duration_months }} mos</span>
         </div>
 
-        <div class="plan-meta mb-3" style="font-size: 0.9rem;">
-          <div class="mb-1"><i class="fa-solid fa-code-branch text-primary me-2"></i>Max Branches: <strong>{{ p.max_branches }}</strong></div>
-          <div><i class="fa-solid fa-calendar-days text-info me-2"></i>Duration: <strong>{{ p.duration_months }} Months</strong></div>
+        <div class="plan-specs-row" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.65rem 0 0.85rem;">
+          <div class="spec-item" style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.4rem 0.75rem; border-radius: 10px; font-size: 0.8rem; color: #334155;">
+            <i class="fa-solid fa-code-branch text-primary"></i>
+            <span>Max Branches: <strong>{{ p.max_branches }}</strong></span>
+          </div>
+          <div class="spec-item" style="display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.4rem 0.75rem; border-radius: 10px; font-size: 0.8rem; color: #334155;">
+            <i class="fa-solid fa-calendar-days text-info"></i>
+            <span>Duration: <strong>{{ p.duration_months }} Mos</strong></span>
+          </div>
         </div>
 
         @if (p.features && p.features.length > 0) {
-          <ul class="plan-feature-list mb-3 p-0" style="list-style: none; font-size: 0.85rem;">
-            @for (feat of p.features; track feat) {
-              <li class="mb-1"><i class="fa-solid fa-check text-success me-2"></i>{{ feat }}</li>
-            }
-          </ul>
+          <div class="plan-features-box" style="background: #f8fafc; border-radius: 12px; padding: 0.8rem 0.95rem; margin-bottom: 0.9rem; border: 1px solid #edf2f7;">
+            <div class="features-heading" style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem;">Included Features:</div>
+            <ul class="plan-feature-list" style="list-style: none; padding: 0; margin: 0; font-size: 0.84rem; color: #334155; display: flex; flex-direction: column; gap: 5px;">
+              @for (feat of p.features; track feat) {
+                <li style="display: flex; align-items: center; gap: 7px;">
+                  <i class="fa-solid fa-circle-check text-success"></i> {{ feat }}
+                </li>
+              }
+            </ul>
+          </div>
         }
 
-        <div class="plan-actions d-flex gap-2 pt-3 border-top mt-auto">
-          <button class="btn btn-outline-primary btn-sm flex-1" (click)="editPlan.emit(p)">
-            <i class="fa-solid fa-pen me-1"></i> Edit Plan
+        <div class="plan-actions" style="display: flex; gap: 0.65rem; margin-top: auto; padding-top: 0.85rem; border-top: 1px solid #f1f5f9;">
+          <button
+            type="button"
+            class="btn-plan-action btn-plan-edit"
+            style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 0.6rem 1rem; font-size: 0.88rem; font-weight: 600; cursor: pointer;"
+            (click)="editPlan.emit(p)"
+          >
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Edit Plan</span>
           </button>
           @if (p.is_active) {
-            <button class="btn btn-outline-danger btn-sm" (click)="deletePlan.emit(p)" title="Deactivate Plan">
+            <button
+              type="button"
+              class="btn-plan-action btn-plan-delete"
+              style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; border-radius: 10px; padding: 0.6rem 1rem; font-size: 0.88rem; font-weight: 600; cursor: pointer;"
+              (click)="deletePlan.emit(p)"
+              title="Deactivate Plan"
+            >
               <i class="fa-solid fa-ban"></i>
+              <span>Deactivate</span>
             </button>
           }
         </div>
@@ -57,15 +110,18 @@
   </div>
 
   <!-- Table View -->
-  <div class="table-container mt-4">
-    <h5 class="mb-3 font-bold" style="font-size: 1rem;"><i class="fa-solid fa-list me-2"></i> All Configured Plans</h5>
-    <table class="table align-middle">
+  <div class="table-container mt-4" style="width: 100%; overflow-x: auto;">
+    <div class="table-subheading mb-3" style="font-size: 1rem; font-weight: 700; color: #0f172a; display: flex; align-items: center;">
+      <i class="fa-solid fa-table-list text-primary me-2"></i>
+      <span>All Configured Plans List</span>
+    </div>
+    <table class="table align-middle" style="width: 100%; border-collapse: collapse;">
       <thead>
         <tr>
           <th>Plan Name</th>
           <th>Price (INR)</th>
           <th>Duration</th>
-          <th>Max Branches Allowed</th>
+          <th>Max Branches</th>
           <th>Status</th>
           <th class="text-center">Actions</th>
         </tr>
@@ -73,24 +129,31 @@
       <tbody>
         @for (p of plans; track p.id) {
           <tr>
-            <td class="font-bold"><i class="fa-solid fa-gem text-warning me-2"></i>{{ p.name }}</td>
-            <td class="font-bold text-success">₹{{ p.price | number }}</td>
+            <td class="font-bold">
+              <i class="fa-solid fa-gem text-warning me-2"></i>{{ p.name }}
+            </td>
+            <td><strong class="text-success">₹{{ p.price | number }}</strong></td>
             <td>{{ p.duration_months }} Months</td>
-            <td><span class="badge bg-secondary">{{ p.max_branches }} Branch{{ p.max_branches > 1 ? 'es' : '' }}</span></td>
+            <td><span class="branch-pill" style="background: #f1f5f9; color: #475569; font-size: 0.78rem; font-weight: 700; padding: 3px 9px; border-radius: 6px; border: 1px solid #e2e8f0;">{{ p.max_branches }} Branch{{ p.max_branches > 1 ? 'es' : '' }}</span></td>
             <td>
-              @if (p.is_active) {
-                <span class="badge bg-success">Active</span>
-              } @else {
-                <span class="badge bg-danger">Inactive</span>
-              }
+              <span
+                class="plan-status-badge"
+                [style.background]="p.is_active ? '#ecfdf5' : '#fef2f2'"
+                [style.color]="p.is_active ? '#059669' : '#dc2626'"
+                [style.border]="p.is_active ? '1px solid #a7f3d0' : '1px solid #fecaca'"
+                style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 9999px;"
+              >
+                <span style="width: 6px; height: 6px; border-radius: 50%; display: inline-block;" [style.background]="p.is_active ? '#059669' : '#dc2626'"></span>
+                {{ p.is_active ? 'Active' : 'Inactive' }}
+              </span>
             </td>
             <td>
-              <div class="table-actions">
-                <button class="action-btn btn-edit" (click)="editPlan.emit(p)" title="Edit Plan">
+              <div class="table-actions" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <button type="button" class="action-btn btn-edit" (click)="editPlan.emit(p)" title="Edit Plan" style="width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; background: #fef3c7; color: #d97706;">
                   <i class="fa-solid fa-pen"></i>
                 </button>
                 @if (p.is_active) {
-                  <button class="action-btn btn-delete" (click)="deletePlan.emit(p)" title="Deactivate Plan">
+                  <button type="button" class="action-btn btn-delete" (click)="deletePlan.emit(p)" title="Deactivate Plan" style="width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; background: #fee2e2; color: #dc2626;">
                     <i class="fa-solid fa-ban"></i>
                   </button>
                 }

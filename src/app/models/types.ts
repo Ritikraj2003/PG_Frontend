@@ -1,4 +1,4 @@
-﻿export type RoleType = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'STAFF' | 'USER' | string;
+export type RoleType = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'STAFF' | 'USER' | string;
 
 export interface SubscriptionPlan {
   id: string;
@@ -175,6 +175,8 @@ export interface CustomRole {
   name: string;
   description?: string;
   owner_id?: string;
+  branch_id?: string | null;
+  branch_name?: string;
   created_by?: string;
   created_on?: string;
   permission_ids?: number[];
