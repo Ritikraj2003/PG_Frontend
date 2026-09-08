@@ -930,6 +930,35 @@
               <input type="text" class="input-field" placeholder="e.g. Karnataka" [(ngModel)]="branchData.state" name="state" required />
             </div>
             <div class="detail-item">
+              <label>District / Region</label>
+              <input type="text" class="input-field" placeholder="e.g. Bengaluru Urban" [(ngModel)]="branchData.district" name="district" />
+            </div>
+            <div class="detail-item">
+              <label>PG Accommodation Type *</label>
+              <select class="input-field" [(ngModel)]="branchData.pg_type" name="pg_type">
+                <option value="UNISEX">Unisex Co-Living</option>
+                <option value="MALE">Male / Boys PG</option>
+                <option value="FEMALE">Female / Girls PG</option>
+              </select>
+            </div>
+            <div class="detail-item">
+              <label>Starting Monthly Rent (₹)</label>
+              <input type="number" class="input-field" placeholder="8000" [(ngModel)]="branchData.starting_monthly_rent" name="starting_monthly_rent" />
+            </div>
+            <div class="detail-item">
+              <label>Latitude (GPS) *</label>
+              <input type="number" step="any" class="input-field" placeholder="e.g. 12.9352" [(ngModel)]="branchData.latitude" name="latitude" required />
+            </div>
+            <div class="detail-item">
+              <label>Longitude (GPS) *</label>
+              <div class="d-flex gap-2">
+                <input type="number" step="any" class="input-field" placeholder="e.g. 77.6245" [(ngModel)]="branchData.longitude" name="longitude" required />
+                <button type="button" class="btn btn-outline-primary text-nowrap px-2" (click)="detectBranchLocation()" title="Auto-detect via Browser GPS">
+                  <i class="fa-solid fa-crosshairs"></i> Detect
+                </button>
+              </div>
+            </div>
+            <div class="detail-item full-width">
               <label>Parent Property / Brand</label>
               <input type="text" class="input-field" [value]="selectedOwnerForBranch?.business_name || selectedOwnerForBranch?.property_name || 'Assigned Property'" disabled style="opacity: 0.75; background: #f3f4f6;" />
             </div>

@@ -1,31 +1,105 @@
 <div class="staypulse-public-wrapper">
-  <!-- Hero Section with Soft Cyan/Blue Gradient -->
+  <!-- Hero Section with Location-First Geo Header -->
   <section class="hero-section">
     <div class="hero-content">
-      <h1 class="hero-title">Find Your Next Home</h1>
+      <div class="hero-badge">
+        <i class="fa-solid fa-location-crosshairs text-blue"></i>
+        <span>Hyperlocal PG & Co-Living Discovery</span>
+      </div>
+      <h1 class="hero-title">Find PGs & Co-Living Near You</h1>
       <p class="hero-subtitle">
-        Discover premium co-living spaces tailored for the modern professional.<br />
-        Seamless booking, superior amenities, and vibrant communities.
+        Instant discovery within a <strong>40 km radius</strong> of your current location.<br />
+        Real-time bed availability, transparent pricing, verified amenities & direct online booking.
       </p>
 
-      <!-- Pill Search Bar -->
-      <div class="search-pill-container">
-        <div class="search-input-wrapper">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input
-            type="text"
-            class="search-input"
-            placeholder="Search by city, property, or room type..."
-            [(ngModel)]="searchCity"
-            (keyup.enter)="fetchData()"
-          />
+      <!-- Geolocation Action Card / Bar -->
+      <!-- Unified Luxury Search Console -->
+      <div class="unified-search-card">
+        <!-- Location Picker Segment -->
+        <div class="search-seg location-seg">
+          <div class="seg-icon">
+            <i class="fa-solid fa-location-dot text-rose"></i>
+          </div>
+          <div class="seg-body">
+            <span class="seg-caption">Location</span>
+            <div class="seg-select-wrapper">
+              <select 
+                class="seg-select" 
+                [ngModel]="selectedCityDropdown"
+                (ngModelChange)="onCityDropdownSelect($event)"
+              >
+                <option value="GPS">📍 Current GPS Location</option>
+                @for (c of presetCities; track c.name) {
+                  <option [value]="c.name">
+                    {{ c.name }}, {{ c.state }}
+                  </option>
+                }
+              </select>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            class="btn-gps-circle" 
+            (click)="detectUserLocation(true)" 
+            title="Auto-detect via GPS"
+          >
+            <i class="fa-solid fa-crosshairs" [class.fa-spin]="locationState === 'detecting'"></i>
+          </button>
         </div>
-        <button class="btn-search" (click)="fetchData()">Search</button>
+
+        <div class="seg-divider"></div>
+
+        <!-- Keyword Search Segment -->
+        <div class="search-seg input-seg">
+          <div class="seg-icon">
+            <i class="fa-solid fa-magnifying-glass text-slate"></i>
+          </div>
+          <div class="seg-body">
+            <span class="seg-caption">Find PG, Area or Landmark</span>
+            <input
+              type="text"
+              class="seg-input"
+              placeholder="e.g. Koramangala, Indiranagar, HSR..."
+              [(ngModel)]="searchKeyword"
+              (keyup.enter)="fetchNearbyPGs()"
+            />
+          </div>
+        </div>
+
+        <!-- Search Action Button -->
+        <button class="btn-main-search" (click)="fetchNearbyPGs()" id="btn-master-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Search</span>
+        </button>
       </div>
+
+      <!-- Clean Minimal Quick City Pills -->
+      <div class="quick-cities-bar">
+        <span class="quick-title">Quick Cities:</span>
+        <div class="quick-chips-scroll">
+          @for (c of presetCities; track c.name) {
+            <button 
+              type="button"
+              class="quick-chip" 
+              [class.active]="userLocationName.includes(c.name)"
+              (click)="selectPresetCity(c)"
+            >
+              {{ c.name }}
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (locationErrorMsg) {
+        <div class="location-notice-banner">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>{{ locationErrorMsg }}</span>
+        </div>
+      }
     </div>
   </section>
 
-  <!-- Main Directory Container -->
+  <!-- Main Discovery Container -->
   <main class="main-directory-container">
     @if (bookingMessage) {
       <div class="alert-banner mb-4">
@@ -41,203 +115,385 @@
       </div>
     }
 
+    <!-- Toolbar: View Switcher & Comprehensive 40 KM Controls -->
+    <div class="discovery-toolbar">
+      <!-- Left: View Mode Toggle -->
+      <div class="view-mode-toggle">
+        <button 
+          class="toggle-btn" 
+          [class.active]="viewMode === 'list'" 
+          (click)="setViewMode('list')"
+          id="btn-list-view"
+        >
+          <i class="fa-solid fa-list-ul me-2"></i> List View
+        </button>
+        <button 
+          class="toggle-btn" 
+          [class.active]="viewMode === 'map'" 
+          (click)="setViewMode('map')"
+          id="btn-map-view"
+        >
+          <i class="fa-solid fa-map-location-dot me-2"></i> Map View (OpenStreetMap)
+        </button>
+      </div>
+
+      <!-- Center: Radius Slider (5 to 100 KM, Default 40 KM) -->
+      <div class="radius-slider-box">
+        <div class="radius-header">
+          <span class="radius-title"><i class="fa-solid fa-compass-drafting me-1 text-blue"></i> Search Radius:</span>
+          <span class="radius-badge">{{ searchRadius }} KM</span>
+        </div>
+        <input 
+          type="range" 
+          min="5" 
+          max="100" 
+          step="5" 
+          [(ngModel)]="searchRadius" 
+          (change)="onRadiusChange()"
+          class="radius-range-input" 
+          id="radius-slider"
+        />
+        <div class="radius-limits">
+          <span>5 km</span>
+          <span class="text-blue font-bold">40 km (Optimal)</span>
+          <span>100 km</span>
+        </div>
+      </div>
+
+      <!-- Right: Sort By Dropdown -->
+      <div class="sort-box">
+        <label for="sortSelect" class="sort-label">Sort By:</label>
+        <select id="sortSelect" class="sort-select" [(ngModel)]="sortBy" (change)="fetchNearbyPGs()">
+          <option value="distance">📍 Distance (Nearest First)</option>
+          <option value="price_asc">💰 Price: Low to High</option>
+          <option value="price_desc">💎 Price: High to Low</option>
+          <option value="rating">⭐ Rating: High to Low</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Filter Pills Row -->
+    <div class="filter-chips-row">
+      <!-- Gender Filter -->
+      <div class="filter-group">
+        <span class="filter-label">PG Type:</span>
+        <button class="chip-btn" [class.active]="genderFilter === 'ALL'" (click)="genderFilter = 'ALL'; fetchNearbyPGs()">All</button>
+        <button class="chip-btn" [class.active]="genderFilter === 'MALE'" (click)="genderFilter = 'MALE'; fetchNearbyPGs()">👨 Male PG</button>
+        <button class="chip-btn" [class.active]="genderFilter === 'FEMALE'" (click)="genderFilter = 'FEMALE'; fetchNearbyPGs()">👩 Female PG</button>
+        <button class="chip-btn" [class.active]="genderFilter === 'UNISEX'" (click)="genderFilter = 'UNISEX'; fetchNearbyPGs()">👥 Unisex</button>
+      </div>
+
+      <!-- Amenities Filters -->
+      <div class="filter-group">
+        <span class="filter-label">Included:</span>
+        <button 
+          class="chip-btn" 
+          [class.active]="foodFilter === true" 
+          (click)="foodFilter = foodFilter === true ? null : true; fetchNearbyPGs()"
+        >
+          <i class="fa-solid fa-utensils me-1"></i> Food / Meals
+        </button>
+        <button 
+          class="chip-btn" 
+          [class.active]="acFilter === true" 
+          (click)="acFilter = acFilter === true ? null : true; fetchNearbyPGs()"
+        >
+          <i class="fa-solid fa-snowflake me-1"></i> AC Rooms
+        </button>
+      </div>
+
+      <!-- Room Type -->
+      <div class="filter-group">
+        <span class="filter-label">Sharing:</span>
+        <button class="chip-btn" [class.active]="roomTypeFilter === 'ALL'" (click)="roomTypeFilter = 'ALL'; fetchNearbyPGs()">Any</button>
+        <button class="chip-btn" [class.active]="roomTypeFilter === 'Single'" (click)="roomTypeFilter = 'Single'; fetchNearbyPGs()">Single</button>
+        <button class="chip-btn" [class.active]="roomTypeFilter === 'Double'" (click)="roomTypeFilter = 'Double'; fetchNearbyPGs()">Double</button>
+        <button class="chip-btn" [class.active]="roomTypeFilter === 'Triple'" (click)="roomTypeFilter = 'Triple'; fetchNearbyPGs()">Triple</button>
+      </div>
+    </div>
+
+    @if (viewMode === 'map') {
+      <div class="map-hint-bar">
+        <i class="fa-solid fa-circle-info text-blue me-1"></i>
+        <span>Click any pin on the map to see PG details and reserve a bed.</span>
+      </div>
+    }
+
+    <!-- LOADING STATE -->
     @if (loading) {
       <div class="loading-state">
         <div class="pulse-spinner"></div>
-        <p>Searching for premium spaces...</p>
+        <p>Calculating geographical distances and fetching verified PGs within {{ searchRadius }} km...</p>
       </div>
-    } @else if (propertyGroups.length === 0) {
+    } @else if (nearbyPGs.length === 0) {
       <div class="empty-state">
-        <i class="fa-solid fa-building-circle-exclamation empty-icon"></i>
-        <h3>No Spaces Found</h3>
-        <p>We couldn't find any rooms matching "{{ searchCity }}". Try clearing your search.</p>
-        <button class="btn-reset" (click)="searchCity = ''; fetchData()">Clear Search</button>
+        <i class="fa-solid fa-map-location-dot empty-icon"></i>
+        <h3>No PGs Found in this {{ searchRadius }} KM Radius</h3>
+        <p>We couldn't find any accommodations matching your current location and filters.</p>
+        <div class="empty-actions">
+          <button class="btn-reset" (click)="searchRadius = 60; onRadiusChange()">Expand Radius to 60 KM</button>
+          <button class="btn-reset secondary" (click)="searchKeyword = ''; genderFilter = 'ALL'; foodFilter = null; acFilter = null; fetchNearbyPGs()">Clear All Filters</button>
+        </div>
       </div>
     } @else {
-      <!-- Iterate over Property Groups (e.g. Stay Raj, Heritage Residency) -->
-      <div class="properties-list">
-        @for (property of propertyGroups; track property.property_id) {
-          <section class="property-group-section">
-            
-            <!-- Property Name Header -->
-            <div class="property-group-header">
-              @if (property.property_name.includes('Raj') || property.property_name.includes('Stay')) {
-                <i class="fa-solid fa-building property-icon text-blue"></i>
-              } @else {
-                <i class="fa-solid fa-house-chimney property-icon text-blue"></i>
-              }
-              <h2 class="property-title">{{ property.property_name }}</h2>
-            </div>
 
-            <!-- Branches List within this Property -->
-            <div class="branches-wrapper">
-              @for (branch of property.branches; track branch.branch_id) {
-                <div class="branch-card-container">
-                  
-                  <!-- Branch Sub-Header with Name & Location -->
-                  <div class="branch-card-header">
-                    <div class="branch-title-col">
-                      <div class="branch-name-row">
-                        <i class="fa-solid fa-hotel branch-icon me-2"></i>
-                        <h3 class="branch-name">{{ branch.branch_name }}</h3>
-                        <span class="branch-type-pill">Co-Living / PG Branch</span>
-                      </div>
-                      @if (branch.city || branch.address) {
-                        <div class="branch-location">
-                          <i class="fa-solid fa-location-dot location-icon me-1 text-danger"></i>
-                          <span>{{ branch.address ? (branch.address + ', ') : '' }}{{ branch.city || 'Bengaluru' }}</span>
-                        </div>
+      <!-- ========================================== -->
+      <!-- VIEW 1: INTERACTIVE MAP VIEW (LEAFLET + OSM) -->
+      <!-- ========================================== -->
+      <div [style.display]="viewMode === 'map' ? 'block' : 'none'" class="map-view-wrapper">
+        <div class="map-container-card">
+          <div id="pg-leaflet-map" class="leaflet-map-canvas"></div>
+          
+          <!-- Floating Map Legend -->
+          <div class="map-floating-legend">
+            <div class="legend-item">
+              <span class="legend-dot user-dot"></span>
+              <span>Your Location</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-circle radius-circle-sample"></span>
+              <span>{{ searchRadius }} KM Radius Boundary</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-pin pg-pin-sample">₹</span>
+              <span>Available PG Accommodations</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2: RICH LIST VIEW -->
+      <!-- ========================================== -->
+      @if (viewMode === 'list') {
+        <div class="pg-cards-grid">
+          @for (pg of nearbyPGs; track pg.id) {
+            <div class="pg-rich-card">
+              
+              <!-- Card Image & Distance Floating Tag -->
+              <div class="pg-card-media" (click)="openPGDetail(pg)">
+                <img 
+                  [src]="getImageUrl(pg.cover_image || (pg.images && pg.images[0]))" 
+                  [alt]="pg.name" 
+                  class="pg-cover-image"
+                />
+
+                <!-- Distance Proximity Badge -->
+                @if (pg.distance_km !== null && pg.distance_km !== undefined) {
+                  <div class="distance-badge" [class.near]="pg.distance_km <= 5" [class.mid]="pg.distance_km > 5 && pg.distance_km <= 20">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                    <span>{{ pg.distance_km }} km away</span>
+                  </div>
+                }
+
+                <!-- Gender Tag -->
+                <div class="pg-type-badge" [ngClass]="'type-' + (pg.pg_type || 'UNISEX').toLowerCase()">
+                  @if (pg.pg_type === 'FEMALE') {
+                    <i class="fa-solid fa-venus me-1"></i> Girls PG
+                  } @else if (pg.pg_type === 'MALE') {
+                    <i class="fa-solid fa-mars me-1"></i> Boys PG
+                  } @else {
+                    <i class="fa-solid fa-venus-mars me-1"></i> Unisex Co-Living
+                  }
+                </div>
+
+                <!-- Rating Pill -->
+                <div class="pg-rating-pill">
+                  <i class="fa-solid fa-star text-amber"></i>
+                  <span>{{ pg.rating }}</span>
+                  <small>({{ pg.total_reviews }})</small>
+                </div>
+              </div>
+
+              <!-- Card Body Content -->
+              <div class="pg-card-body">
+                <div class="pg-header-row">
+                  <div>
+                    <span class="property-parent-tag">{{ pg.property_name }}</span>
+                    <h3 class="pg-name" (click)="openPGDetail(pg)">{{ pg.name }}</h3>
+                  </div>
+                </div>
+
+                <p class="pg-address">
+                  <i class="fa-solid fa-location-dot me-1 text-rose"></i>
+                  <span>{{ pg.address }}, {{ pg.city }}</span>
+                  @if (pg.district) {
+                    <small class="district-text">• {{ pg.district }}</small>
+                  }
+                </p>
+
+                <!-- Amenities Tags -->
+                <div class="amenities-pills-row">
+                  @if (pg.food_available) {
+                    <span class="amenity-pill"><i class="fa-solid fa-utensils"></i> Food Included</span>
+                  }
+                  @if (pg.ac_available) {
+                    <span class="amenity-pill"><i class="fa-solid fa-snowflake"></i> AC</span>
+                  }
+                  <span class="amenity-pill"><i class="fa-solid fa-wifi"></i> WiFi</span>
+                  <span class="amenity-pill"><i class="fa-solid fa-bolt"></i> Power Backup</span>
+                </div>
+
+                <!-- Occupancy & Bed Availability Indicator -->
+                <div class="occupancy-status-bar">
+                  <div class="bed-stat">
+                    <i class="fa-solid fa-bed text-blue"></i>
+                    <span><strong>{{ pg.available_beds }}</strong> beds available</span>
+                  </div>
+                  <div class="room-stat">
+                    <span>{{ pg.total_rooms }} Rooms</span>
+                  </div>
+                </div>
+
+                <!-- Pricing & Action Row -->
+                <div class="pg-card-footer">
+                  <div class="pricing-box">
+                    <span class="rent-label">Monthly Rent</span>
+                    <div class="rent-amount">
+                      <strong>₹{{ Number(pg.min_rent).toLocaleString() }}</strong>
+                      @if (pg.max_rent && pg.max_rent > pg.min_rent) {
+                        <span class="max-rent-text">- ₹{{ Number(pg.max_rent).toLocaleString() }}</span>
                       }
+                      <small>/month</small>
                     </div>
                   </div>
 
-                  <!-- Rooms Cards Grid (Rich & Comprehensive) -->
-                  <div class="rooms-grid mt-4">
-                    @for (room of branch.rooms; track room.id) {
-                      <div 
-                        class="room-rich-card" 
-                        (click)="openBookingModal(room)"
-                        title="Click to view details and reserve bed"
-                      >
-                        <!-- Top Image / Ambient Illustration -->
-                        <div class="room-card-media">
-                          @if (room.images && room.images.length > 0) {
-                            <img [src]="getImageUrl(room.images[0])" [alt]="room.room_name || room.room_number" class="room-cover-img" />
-                          } @else {
-                            <div class="room-cover-ambient">
-                              <div class="ambient-glow"></div>
-                              <i class="fa-solid fa-bed ambient-icon"></i>
-                              <span class="ambient-badge">{{ room.room_type || 'Comfort Room' }}</span>
-                            </div>
-                          }
-
-                          <!-- Floating Status Pill -->
-                          <div 
-                            class="room-float-status"
-                            [class.status-available]="getRoomAvailableBeds(room) === getRoomTotalBeds(room)"
-                            [class.status-partial]="getRoomAvailableBeds(room) > 0 && getRoomAvailableBeds(room) < getRoomTotalBeds(room)"
-                            [class.status-occupied]="getRoomAvailableBeds(room) === 0"
-                          >
-                            <span class="status-dot"></span>
-                            {{ getRoomStatusLabel(room) }}
-                          </div>
-
-                          <!-- Floor Pill -->
-                          <div class="room-float-floor">
-                            Floor {{ room.floor_number || 1 }}
-                          </div>
-                        </div>
-
-                        <!-- Card Body Details -->
-                        <div class="room-rich-body">
-                          <div class="room-title-section">
-                            <h4 class="room-heading">Room {{ room.room_number }}</h4>
-                            <span class="room-sharing-pill">{{ room.room_type || 'Sharing Room' }}</span>
-                          </div>
-
-                          <!-- Bed Occupancy Progress Bar -->
-                          <div class="room-bed-progress-box">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                              <small class="bed-count-text">
-                                <i class="fa-solid fa-bed me-1 text-primary"></i>
-                                <strong>{{ getRoomAvailableBeds(room) }}</strong> of {{ getRoomTotalBeds(room) }} beds free
-                              </small>
-                              <small class="bed-percent-text" [ngClass]="{
-                                'text-success': getRoomAvailableBeds(room) > 0,
-                                'text-danger': getRoomAvailableBeds(room) === 0
-                              }">
-                                {{ getRoomOccupiedPercent(room) }}% Occupied
-                              </small>
-                            </div>
-                            <div class="bed-progress-track">
-                              <div 
-                                class="bed-progress-fill"
-                                [style.width.%]="getRoomOccupiedPercent(room)"
-                                [ngClass]="{
-                                  'bg-fill-free': getRoomOccupiedPercent(room) === 0,
-                                  'bg-fill-partial': getRoomOccupiedPercent(room) > 0 && getRoomOccupiedPercent(room) < 100,
-                                  'bg-fill-full': getRoomOccupiedPercent(room) === 100
-                                }"
-                              ></div>
-                            </div>
-                          </div>
-
-                          <!-- Amenities Tags -->
-                          <div class="room-amenities-tags">
-                            <span class="amenity-tag"><i class="fa-solid fa-wifi text-primary"></i> WiFi</span>
-                            <span class="amenity-tag"><i class="fa-solid fa-shower text-info"></i> Geyser</span>
-                            <span class="amenity-tag"><i class="fa-solid fa-broom text-success"></i> Daily Cleaning</span>
-                          </div>
-
-                          <!-- Pricing & Booking Button Footer -->
-                          <div class="room-rich-footer">
-                            <div class="price-col">
-                              <div class="price-line">
-                                <span class="price-main">₹{{ room.monthly_rent | number }}</span>
-                                <span class="price-term">/mo</span>
-                              </div>
-                              @if (room.security_deposit) {
-                                <span class="deposit-text">Deposit: ₹{{ room.security_deposit | number }}</span>
-                              }
-                            </div>
-                            <button class="btn-book-now" [disabled]="getRoomAvailableBeds(room) === 0">
-                              @if (getRoomAvailableBeds(room) > 0) {
-                                <span>Reserve Bed</span> <i class="fa-solid fa-arrow-right ms-1"></i>
-                              } @else {
-                                <span>Fully Booked</span>
-                              }
-                            </button>
-                          </div>
-                        </div>
-
-                      </div>
-                    }
+                  <div class="action-btn-group">
+                    <button class="btn-view-details" (click)="openPGDetail(pg)">
+                      View Details
+                    </button>
+                    <button class="btn-book-instant" (click)="openBookingModalFromPG(pg)">
+                      Book Bed
+                    </button>
                   </div>
-
                 </div>
-              }
+
+              </div>
             </div>
-          </section>
-        }
-      </div>
+          }
+        </div>
+      }
+
     }
   </main>
 
-  <!-- StayPulse Premium SaaS Footer -->
-  <footer class="staypulse-footer">
-    <!-- Ambient Top Border Glow Line -->
-    <div class="footer-top-glow"></div>
-
-    <div class="footer-container">
-      <div class="footer-content-wrap">
-        <!-- Brand Info -->
-        <div class="footer-brand-box">
-          <div class="footer-brand-logo">
-            <div class="footer-logo-badge">
-              <i class="fa-solid fa-heart-pulse"></i>
+  <!-- ========================================== -->
+  <!-- PG DETAIL MODAL (PHOTOS, ROOMS, AMENITIES) -->
+  <!-- ========================================== -->
+  @if (showPGDetailModal && selectedPGForDetail) {
+    <div class="modal-overlay">
+      <div class="modal-window pg-detail-modal-dialog">
+        <div class="modal-window-header">
+          <div class="header-title-box">
+            <div class="header-icon-box">
+              <i class="fa-solid fa-hotel"></i>
             </div>
-            <span class="brand-text">StayPulse</span>
-            <span class="brand-sub-tag">Living</span>
+            <div>
+              <h3 class="modal-main-title">{{ selectedPGForDetail.name }}</h3>
+              <p class="modal-sub-title">
+                {{ selectedPGForDetail.property_name }} • 
+                <span class="text-blue font-bold">📍 {{ selectedPGForDetail.distance_km ?? 0 }} km from your location</span>
+              </p>
+            </div>
           </div>
-          <p class="copyright-text">
-            © 2024 - 2025 <strong>StayPulse Hospitality Technologies</strong>. All rights reserved.
-          </p>
+          <button class="modal-close-icon" (click)="closePGDetail()">&times;</button>
         </div>
 
-        <!-- Signature: "Design & Developed by Ritik Raj" -->
-        <div class="creator-signature-card">
-          <span class="signature-prefix">Design & Developed by</span>
-          <div class="creator-badge">
-            <div class="creator-avatar">
-              <i class="fa-solid fa-code"></i>
+        <div class="modal-window-body">
+          <!-- Image Gallery Banner -->
+          <div class="pg-detail-gallery">
+            <img 
+              [src]="getImageUrl(selectedPGForDetail.cover_image || (selectedPGForDetail.images && selectedPGForDetail.images[0]))" 
+              [alt]="selectedPGForDetail.name" 
+              class="pg-detail-main-img" 
+            />
+            @if (selectedPGForDetail.images && selectedPGForDetail.images.length > 1) {
+              <div class="pg-detail-thumbnails">
+                @for (img of selectedPGForDetail.images.slice(1, 4); track img) {
+                  <img [src]="getImageUrl(img)" alt="PG Room Photo" class="detail-thumb-img" />
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Quick Overview Info -->
+          <div class="detail-overview-grid mt-4">
+            <div class="overview-box">
+              <i class="fa-solid fa-location-dot text-rose"></i>
+              <div>
+                <strong>Location</strong>
+                <p>{{ selectedPGForDetail.address }}, {{ selectedPGForDetail.city }}, {{ selectedPGForDetail.district || '' }}</p>
+              </div>
             </div>
-            <span class="creator-name">Ritik Raj</span>
-            <span class="creator-sparkle">✨</span>
+            <div class="overview-box">
+              <i class="fa-solid fa-phone text-emerald"></i>
+              <div>
+                <strong>Direct Contact</strong>
+                <p>{{ selectedPGForDetail.contact_number || '+91 98765 43210' }}</p>
+              </div>
+            </div>
+            <div class="overview-box">
+              <i class="fa-solid fa-star text-amber"></i>
+              <div>
+                <strong>Rating & Trust</strong>
+                <p>{{ selectedPGForDetail.rating }} / 5.0 ({{ selectedPGForDetail.total_reviews }} Reviews)</p>
+              </div>
+            </div>
+          </div>
+
+          @if (selectedPGForDetail.description) {
+            <div class="detail-description-section mt-4">
+              <h4>About this Accommodation</h4>
+              <p>{{ selectedPGForDetail.description }}</p>
+            </div>
+          }
+
+          <!-- Available Rooms in this PG -->
+          <div class="detail-rooms-section mt-4">
+            <h4 class="section-heading">
+              <i class="fa-solid fa-door-open me-2 text-blue"></i>
+              Available Rooms & Beds (Ready to Move In)
+            </h4>
+
+            @if (selectedPGForDetail.rooms && selectedPGForDetail.rooms.length > 0) {
+              <div class="rooms-detail-grid">
+                @for (rm of selectedPGForDetail.rooms; track rm.id) {
+                  <div class="room-item-card">
+                    <div class="room-item-header">
+                      <div>
+                        <strong>Room {{ rm.room_number }}</strong>
+                        <span class="room-type-tag">{{ rm.room_type || 'Standard' }}</span>
+                      </div>
+                      <span class="room-avail-tag" [class.free]="(rm.available_beds || 0) > 0">
+                        {{ rm.available_beds || 0 }} Beds Free
+                      </span>
+                    </div>
+
+                    <div class="room-item-price">
+                      <span class="price-val">₹{{ Number(rm.monthly_rent).toLocaleString() }}</span>
+                      <span class="price-sub">/month</span>
+                    </div>
+
+                    <button 
+                      class="btn-room-book" 
+                      [disabled]="(rm.available_beds || 0) === 0"
+                      (click)="openBookingModalFromPG(selectedPGForDetail, rm)"
+                    >
+                      {{ (rm.available_beds || 0) > 0 ? 'Select Room & Book' : 'Fully Occupied' }}
+                    </button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="p-3 text-center text-slate-500 bg-slate-50 rounded">
+                Contact owner directly for room availability.
+              </div>
+            }
           </div>
         </div>
       </div>
     </div>
-  </footer>
+  }
 
   <!-- ========================================== -->
   <!-- COMPREHENSIVE ROOM BOOKING & KYC MODAL -->
@@ -254,7 +510,7 @@
             </div>
             <div>
               <h3 class="modal-main-title">{{ selectedRoomForBooking.room_name || ('Room ' + selectedRoomForBooking.room_number) }} Reservation</h3>
-              <p class="modal-sub-title">{{ selectedRoomForBooking.branch_name || 'PG Branch' }} • Instant Booking</p>
+              <p class="modal-sub-title">{{ selectedRoomForBooking.branch_name || 'PG Accommodation' }} • Instant Online Booking</p>
             </div>
           </div>
           <button class="modal-close-icon" (click)="closeBookingModal()">&times;</button>
@@ -272,7 +528,7 @@
             <span class="tab-badge">3</span> KYC & Documents
           </button>
           <button class="tab-item-btn" [class.active]="activeBookingStep === 4" (click)="activeBookingStep = 4">
-            <span class="tab-badge">4</span> Request & Payment Preference
+            <span class="tab-badge">4</span> Request & Payment
           </button>
         </div>
 
@@ -294,306 +550,286 @@
                   <select class="custom-form-input" [(ngModel)]="bookingForm.selectedBedId">
                     @for (b of selectedRoomForBooking.beds; track b.id) {
                       <option [value]="b.id" [disabled]="b.status !== 'AVAILABLE'">
-                        Bed {{ b.bed_number }} — {{ b.status === 'AVAILABLE' ? '✅ AVAILABLE' : '❌ OCCUPIED' }} (₹{{ b.monthly_rent }}/mo)
+                        Bed {{ b.bed_number }} — {{ b.status === 'AVAILABLE' ? '✅ AVAILABLE' : '❌ OCCUPIED' }}
                       </option>
                     }
                   </select>
                 </div>
               }
 
-              <!-- Financial Summary Card -->
-              <div class="financial-summary-card">
-                <h5 class="summary-card-header"><i class="fa-solid fa-receipt me-2"></i> Total Upfront Advance Payment Summary</h5>
-
-                <div class="summary-line">
-                  <span>🏠 Monthly Rent</span>
-                  <span class="summary-val">₹{{ getMonthlyRent() | number }}</span>
+              <!-- Advance Cost Summary Table -->
+              <div class="financials-box">
+                <div class="fin-row">
+                  <span>Monthly Rent:</span>
+                  <strong>₹{{ getMonthlyRent().toLocaleString() }}</strong>
                 </div>
-                <div class="summary-line">
-                  <span>🛡️ Refundable Security Deposit</span>
-                  <span class="summary-val">₹{{ getSecurityDeposit() | number }}</span>
+                <div class="fin-row">
+                  <span>Refundable Security Deposit:</span>
+                  <strong>₹{{ getSecurityDeposit().toLocaleString() }}</strong>
                 </div>
-                <div class="summary-line">
-                  <span>⚡ Fixed Electricity Charges</span>
-                  <span class="summary-val">₹{{ getElectricityCharge() | number }}</span>
+                <div class="fin-row">
+                  <span>Electricity Advance:</span>
+                  <strong>₹{{ getElectricityCharge().toLocaleString() }}</strong>
                 </div>
-                <div class="summary-line">
-                  <span>🧹 Maintenance Charges</span>
-                  <span class="summary-val">₹{{ getMaintenanceCharge() | number }}</span>
+                <div class="fin-row">
+                  <span>Maintenance Fee:</span>
+                  <strong>₹{{ getMaintenanceCharge().toLocaleString() }}</strong>
                 </div>
-
-                <div class="summary-total-banner mt-3">
-                  <span>TOTAL PAYABLE ADVANCE</span>
-                  <span class="total-price-text">₹{{ getTotalAdvancePayable() | number }}</span>
+                <div class="fin-total-row">
+                  <span>Total Advance Amount Payable:</span>
+                  <span class="text-blue">₹{{ getTotalAdvancePayable().toLocaleString() }}</span>
                 </div>
               </div>
 
-              <div class="modal-step-actions text-end">
-                <button class="btn btn-primary-blue" (click)="activeBookingStep = 2">
-                  Next: Tenant Profile & Address <i class="fa-solid fa-chevron-right ms-2"></i>
-                </button>
+              <div class="modal-footer-nav">
+                <button class="btn-next-step" (click)="activeBookingStep = 2">Continue to Profile &rarr;</button>
               </div>
             </div>
           }
 
-          <!-- STEP 2: TENANT PROFILE & EMERGENCY CONTACT -->
+          <!-- STEP 2: TENANT OCCUPATION & ADDRESS -->
           @if (activeBookingStep === 2) {
             <div class="step-panel">
-              <h4 class="step-panel-title">👤 Tenant Personal & Employment Details</h4>
+              <h4 class="step-panel-title">👤 Resident Details & Permanent Address</h4>
 
-              <div class="form-grid-2">
-                <div class="custom-form-group">
-                  <label class="custom-form-label">Full Name *</label>
-                  <input type="text" class="custom-form-input readonly-input" [value]="getUserName()" readonly />
-                </div>
-                <div class="custom-form-group">
-                  <label class="custom-form-label">Occupation / Designation</label>
+              <div class="custom-form-row">
+                <div class="custom-form-group half">
+                  <label class="custom-form-label">Occupation / Profession *</label>
                   <input type="text" class="custom-form-input" placeholder="e.g. Software Engineer, Student" [(ngModel)]="bookingForm.occupation" />
                 </div>
+                <div class="custom-form-group half">
+                  <label class="custom-form-label">Company or College Name *</label>
+                  <input type="text" class="custom-form-input" placeholder="e.g. Infosys, Wipro, College" [(ngModel)]="bookingForm.company_name" />
+                </div>
               </div>
 
               <div class="custom-form-group">
-                <label class="custom-form-label">Company / College Name</label>
-                <input type="text" class="custom-form-input" placeholder="e.g. Infosys / Christ University" [(ngModel)]="bookingForm.company_name" />
+                <label class="custom-form-label">Permanent Home Address *</label>
+                <textarea class="custom-form-textarea" rows="2" placeholder="Street name, landmark, house number" [(ngModel)]="bookingForm.permanent_address"></textarea>
               </div>
 
-              <div class="custom-form-group">
-                <label class="custom-form-label">Permanent Residential Address</label>
-                <textarea class="custom-form-input" rows="2" placeholder="House/Street Address" [(ngModel)]="bookingForm.permanent_address"></textarea>
-              </div>
-
-              <div class="form-grid-3">
-                <div class="custom-form-group">
-                  <label class="custom-form-label">City</label>
-                  <input type="text" class="custom-form-input" placeholder="City" [(ngModel)]="bookingForm.city" />
+              <div class="custom-form-row">
+                <div class="custom-form-group third">
+                  <label class="custom-form-label">City *</label>
+                  <input type="text" class="custom-form-input" [(ngModel)]="bookingForm.city" />
                 </div>
-                <div class="custom-form-group">
-                  <label class="custom-form-label">State</label>
-                  <input type="text" class="custom-form-input" placeholder="State" [(ngModel)]="bookingForm.state" />
+                <div class="custom-form-group third">
+                  <label class="custom-form-label">State *</label>
+                  <input type="text" class="custom-form-input" [(ngModel)]="bookingForm.state" />
                 </div>
-                <div class="custom-form-group">
-                  <label class="custom-form-label">Pincode</label>
-                  <input type="text" class="custom-form-input" placeholder="Pincode" [(ngModel)]="bookingForm.pincode" />
+                <div class="custom-form-group third">
+                  <label class="custom-form-label">Pincode *</label>
+                  <input type="text" class="custom-form-input" [(ngModel)]="bookingForm.pincode" />
                 </div>
               </div>
 
-              <h5 class="sub-section-title mt-4">🚨 Emergency Contact Person</h5>
-              <div class="form-grid-3">
-                <div class="custom-form-group">
-                  <label class="custom-form-label">Contact Person Name</label>
-                  <input type="text" class="custom-form-input" placeholder="Parent/Guardian Name" [(ngModel)]="bookingForm.emergency_name" />
+              <h5 class="sub-form-heading">Emergency Contact Information</h5>
+              <div class="custom-form-row">
+                <div class="custom-form-group third">
+                  <label class="custom-form-label">Contact Name *</label>
+                  <input type="text" class="custom-form-input" [(ngModel)]="bookingForm.emergency_name" />
                 </div>
-                <div class="custom-form-group">
-                  <label class="custom-form-label">Relation</label>
-                  <input type="text" class="custom-form-input" placeholder="e.g. Father, Mother, Guardian" [(ngModel)]="bookingForm.emergency_relation" />
+                <div class="custom-form-group third">
+                  <label class="custom-form-label">Contact Phone *</label>
+                  <input type="text" class="custom-form-input" [(ngModel)]="bookingForm.emergency_phone" />
                 </div>
-                <div class="custom-form-group">
-                  <label class="custom-form-label">Phone Number</label>
-                  <input type="text" class="custom-form-input" placeholder="Mobile Number" [(ngModel)]="bookingForm.emergency_phone" />
+                <div class="custom-form-group third">
+                  <label class="custom-form-label">Relation *</label>
+                  <select class="custom-form-input" [(ngModel)]="bookingForm.emergency_relation">
+                    <option value="Parent">Parent</option>
+                    <option value="Sibling">Sibling</option>
+                    <option value="Guardian">Guardian</option>
+                    <option value="Spouse">Spouse</option>
+                  </select>
                 </div>
               </div>
 
-              <div class="modal-step-actions space-between">
-                <button class="btn btn-outline-slate" (click)="activeBookingStep = 1">
-                  <i class="fa-solid fa-chevron-left me-2"></i> Back
-                </button>
-                <button class="btn btn-primary-blue" (click)="activeBookingStep = 3">
-                  Next: KYC & Documents <i class="fa-solid fa-chevron-right ms-2"></i>
-                </button>
+              <div class="modal-footer-nav">
+                <button class="btn-prev-step" (click)="activeBookingStep = 1">&larr; Back</button>
+                <button class="btn-next-step" (click)="activeBookingStep = 3">Continue to KYC &rarr;</button>
               </div>
             </div>
           }
 
-          <!-- STEP 3: KYC DOCUMENTS & PHOTO UPLOAD -->
+          <!-- STEP 3: KYC UPLOAD -->
           @if (activeBookingStep === 3) {
             <div class="step-panel">
-              <h4 class="step-panel-title">📄 KYC Identity Verification & Photo</h4>
+              <h4 class="step-panel-title">🛡️ Government ID Proof & Tenant Photo</h4>
 
-              <div class="form-grid-2">
-                <div class="custom-form-group">
-                  <label class="custom-form-label">Select Identity Proof Type *</label>
+              <div class="custom-form-row">
+                <div class="custom-form-group half">
+                  <label class="custom-form-label">Document Type *</label>
                   <select class="custom-form-input" [(ngModel)]="bookingForm.document_type">
-                    <option value="AADHAAR">Aadhar Card</option>
+                    <option value="AADHAAR">Aadhaar Card</option>
                     <option value="PAN">PAN Card</option>
                     <option value="PASSPORT">Passport</option>
                     <option value="DRIVING_LICENSE">Driving License</option>
-                    <option value="EMPLOYEE_ID">College / Employee ID</option>
                   </select>
                 </div>
-                <div class="custom-form-group">
-                  <label class="custom-form-label">Document ID Number</label>
-                  <input type="text" class="custom-form-input" placeholder="e.g. 12-digit Aadhar Number" [(ngModel)]="bookingForm.document_number" />
+                <div class="custom-form-group half">
+                  <label class="custom-form-label">Document ID Number *</label>
+                  <input type="text" class="custom-form-input" placeholder="e.g. XXXX-XXXX-XXXX" [(ngModel)]="bookingForm.document_number" />
                 </div>
               </div>
 
-              <div class="custom-form-group mb-4">
-                <label class="custom-form-label">Upload ID Proof File (Aadhar/Passport/ID)</label>
-                <input type="file" class="custom-file-input" (change)="onDocFileSelected($event)" accept="image/*,.pdf" />
-                @if (docFilePreview) {
-                  <div class="file-preview-card mt-2">
-                    <img [src]="docFilePreview" alt="KYC Document Preview" class="doc-thumbnail" />
-                    <span class="file-success-badge"><i class="fa-solid fa-circle-check me-1"></i> ID Document Attached</span>
-                  </div>
-                }
-              </div>
-
+              <!-- Upload KYC Document -->
               <div class="custom-form-group">
-                <label class="custom-form-label">Upload Profile Photo / Avatar</label>
-                <input type="file" class="custom-file-input" (change)="onPhotoFileSelected($event)" accept="image/*" />
-                @if (photoFilePreview) {
-                  <div class="file-preview-card mt-2">
-                    <img [src]="photoFilePreview" alt="Profile Preview" class="photo-thumbnail" />
-                    <span class="file-success-badge"><i class="fa-solid fa-circle-check me-1"></i> Profile Photo Attached</span>
+                <label class="custom-form-label">Upload KYC Document (Photo or PDF) *</label>
+                <input type="file" (change)="onDocFileSelected($event)" accept="image/*,.pdf" class="custom-file-input" />
+                @if (docFilePreview) {
+                  <div class="file-preview-box">
+                    <img [src]="docFilePreview" alt="KYC Document Preview" />
                   </div>
                 }
               </div>
 
-              <div class="modal-step-actions space-between">
-                <button class="btn btn-outline-slate" (click)="activeBookingStep = 2">
-                  <i class="fa-solid fa-chevron-left me-2"></i> Back
-                </button>
-                <button class="btn btn-primary-blue" (click)="activeBookingStep = 4">
-                  Next: Payment & Confirm <i class="fa-solid fa-chevron-right ms-2"></i>
-                </button>
+              <!-- Upload Tenant Photo -->
+              <div class="custom-form-group">
+                <label class="custom-form-label">Upload Tenant Passport-size Photo *</label>
+                <input type="file" (change)="onPhotoFileSelected($event)" accept="image/*" class="custom-file-input" />
+                @if (photoFilePreview) {
+                  <div class="file-preview-box photo">
+                    <img [src]="photoFilePreview" alt="Tenant Photo Preview" />
+                  </div>
+                }
+              </div>
+
+              <div class="modal-footer-nav">
+                <button class="btn-prev-step" (click)="activeBookingStep = 2">&larr; Back</button>
+                <button class="btn-next-step" (click)="activeBookingStep = 4">Review & Pay &rarr;</button>
               </div>
             </div>
           }
 
-          <!-- STEP 4: ADVANCE PAYMENT & CONFIRMATION -->
+          <!-- STEP 4: PAYMENT CONFIRMATION -->
           @if (activeBookingStep === 4) {
             <div class="step-panel">
-              <h4 class="step-panel-title">📋 Submit Booking Request & Payment Preference</h4>
+              <h4 class="step-panel-title">💳 Reservation & Payment Method</h4>
 
-              <div class="alert alert-info border-0 rounded-3 p-3 mb-4" style="background: rgba(13, 110, 253, 0.08); border-left: 4px solid #0d6efd !important;">
-                <div class="d-flex align-items-center gap-2">
-                  <i class="fa-solid fa-circle-info text-primary fs-5"></i>
-                  <div>
-                    <strong>Approval-First Payment Workflow:</strong>
-                    <div class="small text-muted">Your booking request will be sent to the Owner for confirmation. Once approved by the Owner, your invoice will be generated and you can pay directly from your Tenant Dashboard.</div>
-                  </div>
-                </div>
+              <div class="custom-form-group">
+                <label class="custom-form-label">Select Payment Mode *</label>
+                <select class="custom-form-input" [(ngModel)]="bookingForm.payment_method">
+                  <option value="UPI">UPI / QR Payment</option>
+                  <option value="RAZORPAY">Razorpay / NetBanking / Cards</option>
+                  <option value="CASH_AT_DESK">Pay Cash at Check-In Desk</option>
+                </select>
               </div>
 
-              <div class="custom-form-group mb-4">
-                <label class="custom-form-label mb-2">Select Preferred Payment Method (For Invoice):</label>
-
-                <div class="payment-cards-grid">
-                  <label class="pay-method-card" [class.selected]="bookingForm.payment_method === 'UPI'">
-                    <input type="radio" name="payMethod" value="UPI" [(ngModel)]="bookingForm.payment_method" />
-                    <div class="pay-card-body">
-                      <div class="pay-icon-wrapper"><i class="fa-solid fa-qrcode"></i></div>
-                      <div class="pay-card-title">UPI / QR Code</div>
-                      <div class="pay-card-sub">GPay, PhonePe, Paytm</div>
-                    </div>
-                  </label>
-
-                  <label class="pay-method-card" [class.selected]="bookingForm.payment_method === 'CARD'">
-                    <input type="radio" name="payMethod" value="CARD" [(ngModel)]="bookingForm.payment_method" />
-                    <div class="pay-card-body">
-                      <div class="pay-icon-wrapper"><i class="fa-solid fa-credit-card"></i></div>
-                      <div class="pay-card-title">Credit / Debit Card</div>
-                      <div class="pay-card-sub">Visa, Mastercard, RuPay</div>
-                    </div>
-                  </label>
-
-                  <label class="pay-method-card" [class.selected]="bookingForm.payment_method === 'DESK'">
-                    <input type="radio" name="payMethod" value="DESK" [(ngModel)]="bookingForm.payment_method" />
-                    <div class="pay-card-body">
-                      <div class="pay-icon-wrapper"><i class="fa-solid fa-store"></i></div>
-                      <div class="pay-card-title">Pay at PG Office</div>
-                      <div class="pay-card-sub">Cash / Desk Confirmation</div>
-                    </div>
-                  </label>
-                </div>
+              <div class="custom-form-group">
+                <label class="custom-form-label">Special Requests / Move-In Remarks</label>
+                <textarea class="custom-form-textarea" rows="2" placeholder="e.g. Vegetarian food preference, late arrival" [(ngModel)]="bookingForm.remarks"></textarea>
               </div>
 
-              <div class="checkout-total-card">
-                <div>
-                  <div class="checkout-label">ESTIMATED ADVANCE AMOUNT</div>
-                  <div class="checkout-price">₹{{ getTotalAdvancePayable() | number }}</div>
-                </div>
-                <div class="text-end">
-                  <span class="instant-lock-badge"><i class="fa-solid fa-clock me-1"></i> Pending Owner Approval</span>
-                </div>
+              <div class="final-payable-box">
+                <div class="fp-title">Total Move-In Advance:</div>
+                <div class="fp-amount">₹{{ getTotalAdvancePayable().toLocaleString() }}</div>
+                <div class="fp-sub">Your room and bed will be immediately reserved upon confirmation.</div>
               </div>
 
-              <div class="modal-step-actions space-between mt-4">
-                <button class="btn btn-outline-slate" (click)="activeBookingStep = 3">
-                  <i class="fa-solid fa-chevron-left me-2"></i> Back
-                </button>
-                <button class="btn btn-confirm-pay" [disabled]="isSubmittingBooking" (click)="submitCompleteBooking()">
-                  @if (isSubmittingBooking) {
-                    <i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting Request...
-                  } @else {
-                    <i class="fa-solid fa-paper-plane me-2"></i> Submit Booking Request
-                  }
+              <div class="modal-footer-nav">
+                <button class="btn-prev-step" (click)="activeBookingStep = 3">&larr; Back</button>
+                <button 
+                  class="btn-confirm-booking" 
+                  [disabled]="isSubmittingBooking"
+                  (click)="submitCompleteBooking()"
+                >
+                  <i class="fa-solid fa-circle-check me-2"></i>
+                  {{ isSubmittingBooking ? 'Submitting Reservation...' : 'Confirm & Reserve Bed' }}
                 </button>
               </div>
             </div>
           }
 
         </div>
-
       </div>
     </div>
   }
 
-  <!-- BOOKING RECEIPT & CONFIRMATION MODAL -->
+  <!-- ========================================== -->
+  <!-- BOOKING CONFIRMATION RECEIPT MODAL -->
+  <!-- ========================================== -->
   @if (bookingReceipt) {
     <div class="modal-overlay">
-      <div class="modal-window receipt-dialog">
-        <div class="receipt-header-banner">
-          <div class="success-icon-badge"><i class="fa-solid fa-check"></i></div>
-          <h3 class="receipt-main-title">🎉 Room Reservation Confirmed!</h3>
-          <p class="receipt-ref-text">Booking Ref: <strong>{{ bookingReceipt.booking_number }}</strong></p>
+      <div class="modal-window receipt-modal-dialog">
+        <div class="receipt-header">
+          <i class="fa-solid fa-circle-check receipt-success-icon"></i>
+          <h3>Reservation Confirmed!</h3>
+          <p>Your booking request has been registered in the system.</p>
         </div>
 
-        <div class="receipt-body-content">
-          <div class="receipt-row-item">
-            <span class="text-slate">Branch Name:</span>
-            <strong>{{ bookingReceipt.branch_name }}</strong>
-          </div>
-          <div class="receipt-row-item">
-            <span class="text-slate">Allocated Room:</span>
-            <strong>Room {{ bookingReceipt.room_number }}</strong>
-          </div>
-          <div class="receipt-row-item">
-            <span class="text-slate">Expected Check-In:</span>
-            <strong>{{ bookingReceipt.expected_check_in_date | date }}</strong>
-          </div>
-
-          <div class="receipt-dashed-line"></div>
-
-          <div class="receipt-row-item">
-            <span class="text-slate">Monthly Rent:</span>
-            <span>₹{{ bookingReceipt.breakdown.monthly_rent | number }}</span>
-          </div>
-          <div class="receipt-row-item">
-            <span class="text-slate">Security Deposit:</span>
-            <span>₹{{ bookingReceipt.breakdown.security_deposit | number }}</span>
-          </div>
-          <div class="receipt-row-item">
-            <span class="text-slate">Electricity Advance:</span>
-            <span>₹{{ bookingReceipt.breakdown.electricity_charge | number }}</span>
-          </div>
-          <div class="receipt-row-item">
-            <span class="text-slate">Maintenance Charge:</span>
-            <span>₹{{ bookingReceipt.breakdown.maintenance_charge | number }}</span>
+        <div class="receipt-body">
+          <div class="receipt-meta-box">
+            <div class="rm-row">
+              <span>Booking Ref:</span>
+              <strong>{{ bookingReceipt.booking_number || 'BK-CONFIRMED' }}</strong>
+            </div>
+            <div class="rm-row">
+              <span>Room Assigned:</span>
+              <strong>Room {{ bookingReceipt.room_number }}</strong>
+            </div>
+            <div class="rm-row">
+              <span>Branch:</span>
+              <strong>{{ bookingReceipt.branch_name }}</strong>
+            </div>
+            <div class="rm-row">
+              <span>Status:</span>
+              <span class="badge-pending">PENDING VERIFICATION</span>
+            </div>
           </div>
 
-          <div class="receipt-row-item receipt-total-row">
-            <span>Total Advance Paid:</span>
-            <strong class="receipt-total-price">₹{{ bookingReceipt.breakdown.total_paid | number }}</strong>
+          <div class="receipt-breakdown">
+            <h4>Payment Breakdown</h4>
+            <div class="rb-row">
+              <span>Monthly Rent:</span>
+              <span>₹{{ bookingReceipt.breakdown?.monthly_rent?.toLocaleString() }}</span>
+            </div>
+            <div class="rb-row">
+              <span>Security Deposit:</span>
+              <span>₹{{ bookingReceipt.breakdown?.security_deposit?.toLocaleString() }}</span>
+            </div>
+            <div class="rb-total-row">
+              <span>Total Advance Paid:</span>
+              <strong>₹{{ bookingReceipt.breakdown?.total_paid?.toLocaleString() }}</strong>
+            </div>
           </div>
         </div>
 
         <div class="receipt-footer">
-          <button class="btn btn-primary-blue full-width" (click)="closeReceiptModal()">
-            Done & Return to Directory
-          </button>
+          <button class="btn-close-receipt" (click)="closeReceiptModal()">Done & Back to Browse</button>
         </div>
       </div>
     </div>
   }
-</div>
 
+  <!-- StayPulse Premium SaaS Footer -->
+  <footer class="staypulse-footer">
+    <div class="footer-top-glow"></div>
+    <div class="footer-container">
+      <div class="footer-content-wrap">
+        <div class="footer-brand-box">
+          <div class="footer-brand-logo">
+            <div class="footer-logo-badge">
+              <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <span class="brand-text">StayPulse</span>
+            <span class="brand-sub-tag">Living</span>
+          </div>
+          <p class="copyright-text">
+            © 2024 - 2026 <strong>StayPulse Hospitality Technologies</strong>. Location-based PG Discovery.
+          </p>
+        </div>
+
+        <div class="creator-signature-card">
+          <span class="signature-prefix">Design & Developed by</span>
+          <div class="creator-badge">
+            <div class="creator-avatar">
+              <i class="fa-solid fa-code"></i>
+            </div>
+            <span class="creator-name">Ritik Raj</span>
+            <span class="creator-sparkle">✨</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>

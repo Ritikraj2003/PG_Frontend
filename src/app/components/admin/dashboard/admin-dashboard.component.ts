@@ -131,12 +131,30 @@ export class AdminDashboardComponent implements OnInit {
     address: '',
     city: 'Bengaluru',
     state: 'Karnataka',
+    district: 'Bengaluru Urban',
     contact_number: '',
+    latitude: 12.9352,
+    longitude: 77.6245,
+    pg_type: 'UNISEX',
+    starting_monthly_rent: 8000,
     plan_id: '',
     payment_mode: 'CASH',
     payment_status: 'PAID',
     payment_ref: '',
   };
+
+  detectBranchLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          this.branchData.latitude = Number(pos.coords.latitude.toFixed(6));
+          this.branchData.longitude = Number(pos.coords.longitude.toFixed(6));
+          alert(`Detected GPS Coordinates: ${this.branchData.latitude}, ${this.branchData.longitude}`);
+        },
+        () => alert('Could not automatically retrieve GPS location. Please enter coordinates manually.')
+      );
+    }
+  }
 
   renewBranchPaymentMode: string = 'CASH';
   renewBranchPaymentStatus: string = 'PAID';
@@ -692,7 +710,12 @@ export class AdminDashboardComponent implements OnInit {
       address: '',
       city: owner.city || 'Bengaluru',
       state: owner.state || 'Karnataka',
+      district: 'Bengaluru Urban',
       contact_number: owner.contact_number || '',
+      latitude: 12.9352,
+      longitude: 77.6245,
+      pg_type: 'UNISEX',
+      starting_monthly_rent: 8000,
       plan_id: this.isBranchCoveredByPlan ? '' : (defaultPlan ? defaultPlan.id : ''),
       payment_mode: 'RAZORPAY',
       payment_status: 'PAID',

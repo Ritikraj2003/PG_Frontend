@@ -96,6 +96,43 @@ export class ApiService {
       return this.request(`/public/properties${query}`);
     },
 
+    getNearbyPGs: (filters: {
+      lat?: number;
+      lng?: number;
+      radius?: number;
+      search?: string;
+      gender?: string;
+      min_rent?: number;
+      max_rent?: number;
+      room_type?: string;
+      food?: boolean;
+      ac?: boolean;
+      sort_by?: string;
+    } = {}) => {
+      const params = new URLSearchParams();
+      if (filters.lat !== undefined) params.append('lat', filters.lat.toString());
+      if (filters.lng !== undefined) params.append('lng', filters.lng.toString());
+      if (filters.radius !== undefined) params.append('radius', filters.radius.toString());
+      if (filters.search) params.append('search', filters.search);
+      if (filters.gender) params.append('gender', filters.gender);
+      if (filters.min_rent !== undefined) params.append('min_rent', filters.min_rent.toString());
+      if (filters.max_rent !== undefined) params.append('max_rent', filters.max_rent.toString());
+      if (filters.room_type) params.append('room_type', filters.room_type);
+      if (filters.food !== undefined) params.append('food', filters.food.toString());
+      if (filters.ac !== undefined) params.append('ac', filters.ac.toString());
+      if (filters.sort_by) params.append('sort_by', filters.sort_by);
+      const query = params.toString() ? `?${params.toString()}` : '';
+      return this.request(`/public/pgs/nearby${query}`);
+    },
+
+    getPGById: (id: string, lat?: number, lng?: number) => {
+      const params = new URLSearchParams();
+      if (lat !== undefined) params.append('lat', lat.toString());
+      if (lng !== undefined) params.append('lng', lng.toString());
+      const query = params.toString() ? `?${params.toString()}` : '';
+      return this.request(`/public/pgs/${id}${query}`);
+    },
+
     getRooms: (branchId?: string) =>
       this.request(`/public/rooms${branchId ? `?branch_id=${branchId}` : ''}`),
     getPlans: () => this.request('/public/plans'),
